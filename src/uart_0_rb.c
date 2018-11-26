@@ -32,22 +32,11 @@
 #include "chip.h"
 #include "board.h"
 #include "string.h"
+#include "uart_0_rb.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
-
-// BEGIN - from PWM example
-/* Systick is used for general timing */
-#define TICKRATE_HZ (33)	/* 33% rate of change per second */
-
-/* PWM cycle time - time of a single PWM sweep */
-#define PWMCYCLERATE (1000)
-
-/* Saved tick count used for a PWM cycle */
-static uint32_t cycleTicks;
-// END
-
 /* Transmit and receive ring buffers */
 STATIC RINGBUFF_T txring, rxring;
 
@@ -68,35 +57,6 @@ const char inst2[] = "Press a key to echo it back or ESC to quit\r\n";
 /*****************************************************************************
  * Private functions
  ****************************************************************************/
-
-/* Set SCT PWM 'high' period based on passed percentage */
-void setPWMRate(int pwnNum, uint8_t percentage)
-{
-	uint32_t value;
-
-	/* Limit valid PWMs to 3 */
-	if ((pwnNum < 0) || (pwnNum > 3)) {
-		return;
-	}
-
-	if (percentage >= 100) {
-		value = 1;
-	}
-	else if (percentage == 0) {
-		value = cycleTicks + 1;
-	}
-	else {
-		uint32_t newTicks;
-
-		newTicks = (cycleTicks * percentage) / 100;
-
-		/* Approximate duty cycle rate */
-		value = cycleTicks - newTicks;
-	}
-
-	LPC_SCT1->MATCHREL[pwnNum + 1].U = value;
-}
-
 static void Init_UART_PinMux(void)
 {
 #if defined(BOARD_MANLEY_11U68)
@@ -134,91 +94,9 @@ void USART0_IRQHandler(void)
 	Chip_UART0_IRQRBHandler(LPC_USART0, &rxring, &txring);
 }
 
-/**
- * @brief	Main UART program body
- * @return	Always returns 1
- */
-int main(void)
+void Init_UART0(void)
 {
-	uint8_t key, dutyCycle;
-	int bytes, countdir = 10;
-
-	SystemCoreClockUpdate();
-	Board_Init();
 	Init_UART_PinMux();
-	Board_LED_Set(0, false);
-
-	// BEGIN PWM
-	/* Chip specific SCT setup - clocks and peripheral reset
-	   There are a lot of registers in the SCT peripheral. Performing
-	   the reset allows the default states of the SCT to be loaded, so
-	   we don't need to set them all and rely on defaults when needed. */
-	Chip_SCT_Init(LPC_SCT1);
-
-	/* SCT1_OUT0 on PIO2_16 mapped to FUNC2 */
-	Chip_IOCON_PinMuxSet(LPC_IOCON, 2, 16, (IOCON_FUNC1 | IOCON_MODE_INACT |
-										   IOCON_ADMODE_EN));
-
-
-	/* Configure the SCT as a 32bit counter using the bus clock */
-	LPC_SCT1->CONFIG = SCT_CONFIG_32BIT_COUNTER | SCT_CONFIG_CLKMODE_BUSCLK;
-
-	/* Initial CTOUT0 state is high */
-	LPC_SCT1->OUTPUT = (7 << 0);
-
-	/* The PWM will use a cycle time of (PWMCYCLERATE)Hz based off the bus clock */
-	cycleTicks = Chip_Clock_GetSystemClockRate() / PWMCYCLERATE;
-
-	/* Setup for match mode */
-	LPC_SCT1->REGMODE_L = 0;
-
-	/* Start at 50% duty cycle */
-	dutyCycle = 50;
-
-	/* Setup match counter 0 for the number of ticks in a PWM sweep, event 0
-	    will be used with the match 0 count to reset the counter.  */
-	LPC_SCT1->MATCH[0].U = cycleTicks;
-	LPC_SCT1->MATCHREL[0].U = cycleTicks;
-	LPC_SCT1->EVENT[0].CTRL = 0x00001000;
-	LPC_SCT1->EVENT[0].STATE = 0xFFFFFFFF;
-	LPC_SCT1->LIMIT_L = (1 << 0);
-
-	/* For CTOUT0 to CTOUT2, event 1 is used to clear the output */
-	LPC_SCT1->OUT[0].CLR = (1 << 0);
-	LPC_SCT1->OUT[1].CLR = (1 << 0);
-	LPC_SCT1->OUT[2].CLR = (1 << 0);
-
-	/* Setup PWM0(CTOUT0), PWM1(CTOUT1), and PWM2(CTOUT2) to 50% dutycycle */
-	setPWMRate(0, dutyCycle);	/* On match 1 */
-	setPWMRate(1, dutyCycle);	/* On match 2 */
-	setPWMRate(2, dutyCycle);	/* On match 3 */
-
-	/* Setup event 1 to trigger on match 1 and set CTOUT0 high */
-	LPC_SCT1->EVENT[1].CTRL = (1 << 0) | (1 << 12);
-	LPC_SCT1->EVENT[1].STATE = 1;
-	LPC_SCT1->OUT[0].SET = (1 << 1);
-
-	/* Setup event 2 trigger on match 2 and set CTOUT1 high */
-	LPC_SCT1->EVENT[2].CTRL = (2 << 0) | (1 << 12);
-	LPC_SCT1->EVENT[2].STATE = 1;
-	LPC_SCT1->OUT[1].SET = (1 << 2);
-
-	/* Setup event 3 trigger on match 3 and set CTOUT2 high */
-	LPC_SCT1->EVENT[3].CTRL = (3 << 0) | (1 << 12);
-	LPC_SCT1->EVENT[3].STATE = 1;
-	LPC_SCT1->OUT[2].SET = (1 << 3);
-
-	/* Don't use states */
-	LPC_SCT1->STATE_L = 0;
-
-	/* Unhalt the counter to start */
-	LPC_SCT1->CTRL_U &= ~(1 << 2);
-
-	setPWMRate(0, dutyCycle);
-	setPWMRate(1, dutyCycle);
-	setPWMRate(2, dutyCycle);
-
-	// END PWM
 
 	/* Setup UART for 115.2K8N1 */
 	Chip_UART0_Init(LPC_USART0);
@@ -241,33 +119,21 @@ int main(void)
 	/* Send initial messages */
 	Chip_UART0_SendRB(LPC_USART0, &txring, inst1, sizeof(inst1) - 1);
 	Chip_UART0_SendRB(LPC_USART0, &txring, inst2, sizeof(inst2) - 1);
+}
 
-	/* Poll the receive ring buffer for the ESC (ASCII 27) key */
-	key = 0;
-	while (key != 27) {
-		bytes = Chip_UART0_ReadRB(LPC_USART0, &rxring, &key, 1);
-		if (bytes > 0) {
-			/* Wrap value back around */
-			if (Chip_UART0_SendRB(LPC_USART0, &txring, (const uint8_t *) &key, 1) != 1) {
+int UART0_GetChar(void *return_ch)
+{
+	return Chip_UART0_ReadRB(LPC_USART0, &rxring, return_ch, 1);
+}
+
+uint32_t UART0_PutChar(char ch)
+{
+	uint32_t return_value;
+
+	return_value = Chip_UART0_SendRB(LPC_USART0, &txring, (const uint8_t *) &ch, 1);
+	if ( return_value!= 1) {
 //				Board_LED_Toggle(0); /* Toggle LED if the TX FIFO is full */
-			}
-
-			dutyCycle += countdir;
-			if ((dutyCycle  == 0) || (dutyCycle >= 100)) {
-				countdir = -countdir;
-			}
-
-			/* Update duty cycle in SCT/PWM by change match 1 reload time */
-			setPWMRate(0, dutyCycle);
-			setPWMRate(1, dutyCycle);
-			setPWMRate(2, dutyCycle);
-
-		}
 	}
 
-	/* DeInitialize UART0 peripheral */
-	NVIC_DisableIRQ(USART0_IRQn);
-	Chip_UART0_DeInit(LPC_USART0);
-
-	return 1;
+	return return_value;
 }
