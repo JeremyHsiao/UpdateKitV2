@@ -27,7 +27,8 @@
 
 extern bool GPIOGoup0_Int;
 
-void GPIO_Init(void);
+void Init_GPIO(void);
+void DeInit_GPIO(void);
 bool Get_GPIO_Switch_Key(void);
 
 #endif /* GPIO_H_ */

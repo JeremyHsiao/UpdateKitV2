@@ -40,7 +40,7 @@ int main(void)
 	Board_Init();
 	//Init_UART_PinMux();
 	//Board_LED_Set(0, false);
-	GPIO_Init();
+	Init_GPIO();
 	Init_PWM();
 	Init_UART0();
 
@@ -69,9 +69,9 @@ int main(void)
 		}
 	}
 
-	/* DeInitialize UART0 peripheral */
-	NVIC_DisableIRQ(USART0_IRQn);
-	Chip_UART0_DeInit(LPC_USART0);
-
+	/* DeInitialize peripherals before ending */
+	DeInit_UART0();
+	DeInit_PWM();
+	DeInit_GPIO();
 	return 1;
 }

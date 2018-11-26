@@ -9,6 +9,7 @@
 #define UART_0_RB_H_
 
 extern void Init_UART0(void);
+extern void DeInit_UART0(void);
 extern int UART0_GetChar(void *return_ch);
 extern uint32_t UART0_PutChar(char ch);
 

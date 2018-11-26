@@ -162,3 +162,9 @@ void Init_PWM(void)
 	/* Unhalt the counter to start */
 	LPC_SCT1->CTRL_U &= ~(1 << 2);
 }
+
+void DeInit_PWM(void)
+{
+	NVIC_DisableIRQ(GINT0_IRQn);
+	Chip_SCT_DeInit(LPC_SCT1);
+}

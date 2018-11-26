@@ -121,6 +121,12 @@ void Init_UART0(void)
 	Chip_UART0_SendRB(LPC_USART0, &txring, inst2, sizeof(inst2) - 1);
 }
 
+void DeInit_UART0(void)
+{
+    NVIC_DisableIRQ(USART0_IRQn);
+    Chip_UART0_DeInit(LPC_USART0);
+}
+
 int UART0_GetChar(void *return_ch)
 {
 	return Chip_UART0_ReadRB(LPC_USART0, &rxring, return_ch, 1);

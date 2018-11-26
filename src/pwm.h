@@ -17,6 +17,7 @@
 #define default_duty_cycle	(50)
 
 extern void Init_PWM(void);
+extern void DeInit_PWM(void);
 extern void setPWMRate(int pwnNum, uint8_t percentage);
 
 #endif /* PWM_H_ */

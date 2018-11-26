@@ -36,7 +36,7 @@ void GINT0_IRQHandler(void)
 	GPIOGoup0_Int = true;
 }
 
-void GPIO_Init(void)
+void Init_GPIO(void)
 {
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, SWITCH_KEY_GPIO_PORT, SWITCH_KEY_GPIO_PIN);
 	//Chip_GPIO_SetPinDIRInput(LPC_GPIO, ISP_KEY_GPIO_PORT, ISP_KEY_GPIO_PIN);
@@ -59,4 +59,10 @@ void GPIO_Init(void)
 bool Get_GPIO_Switch_Key(void)
 {
 	return (Chip_GPIO_GetPinState(LPC_GPIO, SWITCH_KEY_GPIO_PORT, SWITCH_KEY_GPIO_PIN));
+}
+
+void DeInit_GPIO(void)
+{
+	NVIC_DisableIRQ(USART0_IRQn);
+	Chip_UART0_DeInit(LPC_USART0);
 }
