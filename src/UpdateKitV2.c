@@ -9,6 +9,7 @@
 #include "string.h"
 #include "pwm.h"
 #include "uart_0_rb.h"
+#include "gpio.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -39,6 +40,7 @@ int main(void)
 	Board_Init();
 	//Init_UART_PinMux();
 	//Board_LED_Set(0, false);
+	GPIO_Init();
 	Init_PWM();
 	Init_UART0();
 
@@ -49,6 +51,11 @@ int main(void)
 		if (bytes > 0) {
 			/* Wrap value back around */
 			UART0_PutChar((char)key);
+		}
+
+		if(GPIOGoup0_Int==true)
+		{
+			GPIOGoup0_Int = false;
 
 			dutyCycle += countdir;
 			if ((dutyCycle  == 0) || (dutyCycle >= 100)) {
@@ -59,7 +66,6 @@ int main(void)
 			setPWMRate(0, dutyCycle);
 			setPWMRate(1, dutyCycle);
 			setPWMRate(2, dutyCycle);
-
 		}
 	}
 
