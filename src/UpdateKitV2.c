@@ -16,6 +16,8 @@
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
+bool SysTick_100ms_timeout = false;
+bool SysTick_1s_timeout = false;
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -24,6 +26,29 @@
 /*****************************************************************************
  * Private functions
  ****************************************************************************/
+#define 	SYSTICK_PER_SECOND			(10000)		// 100us
+#define     SYSTICK_COUNT_VALUE_MS(x)	((SYSTICK_PER_SECOND*x/1000)-1)
+
+uint32_t	sys_tick_100_ms_cnt = SYSTICK_COUNT_VALUE_MS(100);
+/**
+ * @brief    Handle interrupt from SysTick timer
+ * @return    Nothing
+ */
+void SysTick_Handler(void)
+{
+	SysTick_1s_timeout = true;
+
+	// 100ms timeout timer
+	if(sys_tick_100_ms_cnt)
+	{
+		sys_tick_100_ms_cnt--;
+	}
+	else
+	{
+		sys_tick_100_ms_cnt = SYSTICK_COUNT_VALUE_MS(100);
+		SysTick_100ms_timeout = true;
+	}
+}
 
 /*****************************************************************************
  * Public functions
@@ -47,6 +72,9 @@ int main(void)
 	Init_UART0();
 	Init_ADC();
 
+	/* Enable and setup SysTick Timer at a periodic rate */
+	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
+
 	/* Poll the receive ring buffer for the ESC (ASCII 27) key */
 	key = 0;
 	while (key != 27) {
@@ -56,9 +84,9 @@ int main(void)
 			UART0_PutChar((char)key);
 		}
 
-		if(GPIOGoup0_Int==true)
+		if(SysTick_100ms_timeout==true)
 		{
-			GPIOGoup0_Int = false;
+			SysTick_100ms_timeout = false;
 
 			dutyCycle += countdir;
 			if ((dutyCycle  == 0) || (dutyCycle >= 100)) {
@@ -69,6 +97,11 @@ int main(void)
 			setPWMRate(0, dutyCycle);
 			setPWMRate(1, dutyCycle);
 			setPWMRate(2, dutyCycle);
+		}
+
+		if(GPIOGoup0_Int==true)
+		{
+			GPIOGoup0_Int = false;
 
 			/* Manual start for ADC conversion sequence A */
 			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
