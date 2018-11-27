@@ -143,3 +143,108 @@ uint32_t UART0_PutChar(char ch)
 
 	return return_value;
 }
+
+int itoa_10(uint32_t value, char* result)
+{
+	// check that the base if valid
+
+	char*       ptr = result, *ptr1 = result, tmp_char;
+	uint32_t    tmp_value;
+    int         str_len;
+
+	str_len = 0;
+	do {
+		tmp_value = value % 10;
+		value /= 10;
+		*ptr++ = "0123456789" [tmp_value];
+		str_len++;
+	} while ( value );
+
+	*ptr-- = '\0';
+	while(ptr1 < ptr) {
+		tmp_char = *ptr;
+		*ptr--= *ptr1;
+		*ptr1++ = tmp_char;
+	}
+	return str_len;
+}
+
+int itoa_16(uint32_t value, char* result)
+{
+	// check that the base if valid
+
+	char*       ptr = result, *ptr1 = result, tmp_char;
+	uint32_t    tmp_value;
+    int         str_len;
+
+	str_len = 0;
+	do {
+		tmp_value = value % 16;
+		value /= 16;
+		*ptr++ = "0123456789abcdef" [tmp_value];
+		str_len++;
+	} while ( value );
+
+	*ptr-- = '\0';
+	while(ptr1 < ptr) {
+		tmp_char = *ptr;
+		*ptr--= *ptr1;
+		*ptr1++ = tmp_char;
+	}
+	return str_len;
+}
+
+int OutputHexValue(uint32_t value)
+{
+    char    temp_str[8+1];
+    int     byte_length, return_value;
+    byte_length = itoa_16(value,temp_str);
+
+    return_value = Chip_UART0_SendRB(LPC_USART0, &txring, (const uint8_t *) temp_str, byte_length);
+	if ( return_value!= byte_length) {
+//				Board_LED_Toggle(0); /* Toggle LED if the TX FIFO is full */
+	}
+
+	return return_value;
+}
+
+int OutputHexValue_with_newline(uint32_t value)
+{
+    char    temp_str[8+1+1];
+    int     byte_length, return_value;
+
+    byte_length = itoa_16(value,temp_str);
+    temp_str[byte_length++] = '\n';
+
+    return_value = Chip_UART0_SendRB(LPC_USART0, &txring, (const uint8_t *) temp_str, byte_length);
+	if ( return_value!= byte_length) {
+//				Board_LED_Toggle(0); /* Toggle LED if the TX FIFO is full */
+	}
+
+	return return_value;
+}
+
+int OutputString(char *str)
+{
+    int return_value, temp_len=0;
+    char *temp_ch = str;
+
+    while(*temp_ch!='\0')
+    {
+    	temp_ch++;
+    	temp_len++;
+    }
+
+    return_value = Chip_UART0_SendRB(LPC_USART0, &txring, (const uint8_t *) str, temp_len);
+    return return_value;
+}
+
+int OutputString_with_newline(char *str)
+{
+    int return_value = 0;
+    return_value = OutputString(str);
+    return_value += UART0_PutChar('\n');
+
+    return return_value;
+}
+
