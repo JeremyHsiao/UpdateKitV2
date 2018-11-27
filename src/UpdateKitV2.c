@@ -11,7 +11,7 @@
 #include "uart_0_rb.h"
 #include "gpio.h"
 #include "adc.h"
-
+#include "string_detector.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -60,7 +60,7 @@ void SysTick_Handler(void)
  */
 int main(void)
 {
-	uint8_t key, dutyCycle = 50;  	/* Start at 50% duty cycle */
+	uint8_t key, dutyCycle = 50, temp;  	/* Start at 50% duty cycle */
 	int bytes, countdir = 10;
 
 	SystemCoreClockUpdate();
@@ -82,6 +82,12 @@ int main(void)
 		if (bytes > 0) {
 			/* Wrap value back around */
 			UART0_PutChar((char)key);
+
+			temp=locate_OK_pattern_process(key);
+			if(temp==10)
+			{
+				OutputHexValue_with_newline(temp);
+			}
 		}
 
 		if(SysTick_100ms_timeout==true)
