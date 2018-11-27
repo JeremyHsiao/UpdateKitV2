@@ -10,6 +10,8 @@
 #include "pwm.h"
 #include "uart_0_rb.h"
 #include "gpio.h"
+#include "adc.h"
+
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -43,6 +45,7 @@ int main(void)
 	Init_GPIO();
 	Init_PWM();
 	Init_UART0();
+	Init_ADC();
 
 	/* Poll the receive ring buffer for the ESC (ASCII 27) key */
 	key = 0;
@@ -66,10 +69,46 @@ int main(void)
 			setPWMRate(0, dutyCycle);
 			setPWMRate(1, dutyCycle);
 			setPWMRate(2, dutyCycle);
+
+			/* Manual start for ADC conversion sequence A */
+			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
 		}
+
+		if (thresholdCrossed) {
+			thresholdCrossed = false;
+		}
+
+		/* Is a conversion sequence complete? */
+		if (sequenceComplete) {
+			uint32_t rawSample;
+
+			sequenceComplete = false;
+
+			/* Get raw sample data for channels 0-11 */
+//			for (j = 0; j < 12; j++) {
+//			    rawSample = Chip_ADC_GetDataReg(LPC_ADC, j);
+				rawSample = Chip_ADC_GetDataReg(LPC_ADC, 0);
+
+				/* Show some ADC data */
+				if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
+					OutputHexValue_with_newline(ADC_DR_RESULT(rawSample));
+//					DEBUGOUT("Sample value = 0x%x (Data sample %d)\r\n", ADC_DR_RESULT(rawSample), j);
+//					DEBUGOUT("Threshold range = 0x%x\r\n", ADC_DR_THCMPRANGE(rawSample));
+//					DEBUGOUT("Threshold cross = 0x%x\r\n", ADC_DR_THCMPCROSS(rawSample));
+//				}
+			}
+
+//			DEBUGOUT("Overrun    = %d\r\n", ((rawSample & ADC_DR_OVERRUN) != 0));
+//			DEBUGOUT("Data valid = %d\r\n", ((rawSample & ADC_SEQ_GDAT_DATAVALID) != 0));
+//			DEBUGSTR("\r\n");
+		}
+
+
+
 	}
 
 	/* DeInitialize peripherals before ending */
+	DeInit_ADC();
 	DeInit_UART0();
 	DeInit_PWM();
 	DeInit_GPIO();
