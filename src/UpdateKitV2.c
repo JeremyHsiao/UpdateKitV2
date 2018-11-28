@@ -6,7 +6,6 @@
 
 #include "chip.h"
 #include "board.h"
-#include "string.h"
 #include "pwm.h"
 #include "uart_0_rb.h"
 #include "gpio.h"
@@ -78,6 +77,10 @@ int main(void)
 	/* Poll the receive ring buffer for the ESC (ASCII 27) key */
 	key = 0;
 	while (key != 27) {
+
+		/* Sleep until something happens */
+		__WFI();
+
 		bytes = UART0_GetChar(&key);
 		if (bytes > 0) {
 			/* Wrap value back around */
@@ -123,27 +126,27 @@ int main(void)
 
 			sequenceComplete = false;
 
-			/* Get raw sample data for channels 0-11 */
-//			for (j = 0; j < 12; j++) {
-//			    rawSample = Chip_ADC_GetDataReg(LPC_ADC, j);
-				rawSample = Chip_ADC_GetDataReg(LPC_ADC, 0);
-
-				/* Show some ADC data */
-				if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
-					OutputHexValue_with_newline(ADC_DR_RESULT(rawSample));
-//					DEBUGOUT("Sample value = 0x%x (Data sample %d)\r\n", ADC_DR_RESULT(rawSample), j);
-//					DEBUGOUT("Threshold range = 0x%x\r\n", ADC_DR_THCMPRANGE(rawSample));
-//					DEBUGOUT("Threshold cross = 0x%x\r\n", ADC_DR_THCMPCROSS(rawSample));
-//				}
+			/* Get raw sample data for channels 6 */
+			rawSample = Chip_ADC_GetDataReg(LPC_ADC, 6);
+			/* Show some ADC data */
+			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
+				OutputString("ADC_6:");
+				OutputHexValue_with_newline(ADC_DR_RESULT(rawSample));
 			}
 
+			/* Get raw sample data for channels 8 */
+			rawSample = Chip_ADC_GetDataReg(LPC_ADC, 8);
+			/* Show some ADC data */
+			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
+				OutputString("ADC_8:");
+				OutputHexValue_with_newline(ADC_DR_RESULT(rawSample));
+			}
+
+			// Overtun example code
 //			DEBUGOUT("Overrun    = %d\r\n", ((rawSample & ADC_DR_OVERRUN) != 0));
 //			DEBUGOUT("Data valid = %d\r\n", ((rawSample & ADC_SEQ_GDAT_DATAVALID) != 0));
 //			DEBUGSTR("\r\n");
 		}
-
-
-
 	}
 
 	/* DeInitialize peripherals before ending */

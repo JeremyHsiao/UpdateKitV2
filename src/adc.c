@@ -99,16 +99,15 @@ void Init_ADC(void)
 
 	/* Setup a sequencer to do the following:
 	   Perform ADC conversion of ADC channels 0 only */
-	Chip_ADC_SetupSequencer(LPC_ADC, ADC_SEQA_IDX,
-		(ADC_SEQ_CTRL_CHANSEL(BOARD_ADC_CH) | ADC_SEQ_CTRL_MODE_EOS));
+	Chip_ADC_SetupSequencer(LPC_ADC, ADC_SEQA_IDX,(ADC_SEQ_CTRL_CHANSEL(6) | ADC_SEQ_CTRL_CHANSEL(8) | ADC_SEQ_CTRL_MODE_EOS));
 
 	/* ADC input 0 is on PIO1_9 mapped to FUNC3 */
-	Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 9, (IOCON_FUNC3 | IOCON_MODE_INACT | IOCON_ADMODE_EN));
+	//Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 9, (IOCON_FUNC3 | IOCON_MODE_INACT | IOCON_ADMODE_EN));
 
 	/* ADC input 8 is on PIO0_12 mapped to FUNC2 */
-	//Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 12, (IOCON_FUNC2 | IOCON_MODE_INACT | IOCON_ADMODE_EN));
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 12, (IOCON_FUNC2 | IOCON_MODE_INACT | IOCON_ADMODE_EN));
 	/* ADC input 6 is on PIO0_14 mapped to FUNC2 */
-	//Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 14, (IOCON_FUNC2 | IOCON_MODE_INACT | IOCON_ADMODE_EN));
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 14, (IOCON_FUNC2 | IOCON_MODE_INACT | IOCON_ADMODE_EN));
 
 	/* Use higher voltage trim */
 	Chip_ADC_SetTrim(LPC_ADC, ADC_TRIM_VRANGE_HIGHV);
