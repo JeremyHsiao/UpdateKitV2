@@ -9,15 +9,17 @@
 #include "pwm.h"
 #include "uart_0_rb.h"
 #include "gpio.h"
+#include "LED_7seg.h"
 #include "adc.h"
 #include "string_detector.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
-bool SysTick_100ms_timeout = false;
-bool SysTick_1s_timeout = false;
-
+bool 		SysTick_1s_timeout = false;
+bool 		SysTick_100ms_timeout = false;
+bool 		SysTick_led_7seg_refresh_timeout = false;
+uint32_t	time_elapse=0;
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
@@ -28,15 +30,15 @@ bool SysTick_1s_timeout = false;
 #define 	SYSTICK_PER_SECOND			(10000)		// 100us
 #define     SYSTICK_COUNT_VALUE_MS(x)	((SYSTICK_PER_SECOND*x/1000)-1)
 
+uint32_t	sys_tick_1s_cnt = SYSTICK_COUNT_VALUE_MS(1000);
 uint32_t	sys_tick_100_ms_cnt = SYSTICK_COUNT_VALUE_MS(100);
+uint32_t	sys_tick_1ms_cnt = SYSTICK_COUNT_VALUE_MS(1);
 /**
  * @brief    Handle interrupt from SysTick timer
  * @return    Nothing
  */
 void SysTick_Handler(void)
 {
-	SysTick_1s_timeout = true;
-
 	// 100ms timeout timer
 	if(sys_tick_100_ms_cnt)
 	{
@@ -46,6 +48,29 @@ void SysTick_Handler(void)
 	{
 		sys_tick_100_ms_cnt = SYSTICK_COUNT_VALUE_MS(100);
 		SysTick_100ms_timeout = true;
+	}
+
+	// 10ms timeout timer for SysTick_led_7seg_refresh_timeout
+	if(sys_tick_1ms_cnt)
+	{
+		sys_tick_1ms_cnt--;
+	}
+	else
+	{
+		sys_tick_1ms_cnt = SYSTICK_COUNT_VALUE_MS(1);
+		SysTick_led_7seg_refresh_timeout = true;
+	}
+
+	// 1s
+	if(sys_tick_1s_cnt)
+	{
+		sys_tick_1s_cnt--;
+	}
+	else
+	{
+		sys_tick_1s_cnt = SYSTICK_COUNT_VALUE_MS(1000);
+		SysTick_1s_timeout = true;
+		time_elapse++;
 	}
 }
 
@@ -61,12 +86,12 @@ int main(void)
 {
 	uint8_t key, dutyCycle = 50, temp;  	/* Start at 50% duty cycle */
 	int bytes, countdir = 10;
+	char time_elapse_str[5] = {'0','0','0','0', '\0'};
 
 	SystemCoreClockUpdate();
 	Board_Init();
-	//Init_UART_PinMux();
-	//Board_LED_Set(0, false);
 	Init_GPIO();
+	Init_LED_7seg_GPIO();
 	Init_PWM();
 	Init_UART0();
 	Init_ADC();
@@ -106,6 +131,34 @@ int main(void)
 			setPWMRate(0, dutyCycle);
 			setPWMRate(1, dutyCycle);
 			setPWMRate(2, dutyCycle);
+		}
+
+		if(SysTick_led_7seg_refresh_timeout==true)
+		{
+			SysTick_led_7seg_refresh_timeout = false;
+			refresh_LED_7SEG_periodic_task();
+		}
+
+		if(SysTick_1s_timeout==true)
+		{
+			SysTick_1s_timeout = false;
+			if(time_elapse_str[3]++>='9')
+			{
+				time_elapse_str[3]='0';
+				if(time_elapse_str[2]++>='9')
+				{
+					time_elapse_str[2]='0';
+					if(time_elapse_str[1]++>='9')
+					{
+						time_elapse_str[1]='0';
+						if(time_elapse_str[0]++>='9')
+						{
+							time_elapse_str[0]='0';
+						}
+					}
+				}
+			}
+			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
 		}
 
 		if(GPIOGoup0_Int==true)
