@@ -27,12 +27,14 @@ uint32_t	time_elapse=0;
 /*****************************************************************************
  * Private functions
  ****************************************************************************/
-#define 	SYSTICK_PER_SECOND			(10000)		// 100us
+#define		ADC_SAMPLE_ERROR_VALUE		(0xffff)	// length is 16 bits
+#define 	SYSTICK_PER_SECOND			(4000)		// 4000 ticks per == 250us each tick
 #define     SYSTICK_COUNT_VALUE_MS(x)	((SYSTICK_PER_SECOND*x/1000)-1)
 
 uint32_t	sys_tick_1s_cnt = SYSTICK_COUNT_VALUE_MS(1000);
 uint32_t	sys_tick_100_ms_cnt = SYSTICK_COUNT_VALUE_MS(100);
 uint32_t	sys_tick_1ms_cnt = SYSTICK_COUNT_VALUE_MS(1);
+
 /**
  * @brief    Handle interrupt from SysTick timer
  * @return    Nothing
@@ -87,6 +89,7 @@ int main(void)
 	uint8_t key, dutyCycle = 50, temp;  	/* Start at 50% duty cycle */
 	int bytes, countdir = 10;
 	uint8_t time_elapse_str[5] = {'0','0','0','0', '\0'};
+	uint16_t	ADC0_value, ADC1_value;
 
 	SystemCoreClockUpdate();
 	Board_Init();
@@ -101,6 +104,9 @@ int main(void)
 
 	/* Poll the receive ring buffer for the ESC (ASCII 27) key */
 	key = 0;
+	ADC0_value = ADC_SAMPLE_ERROR_VALUE;
+	ADC1_value = ADC_SAMPLE_ERROR_VALUE;
+
 	while (key != 27) {
 
 		/* Sleep until something happens */
@@ -131,6 +137,10 @@ int main(void)
 			setPWMRate(0, dutyCycle);
 			setPWMRate(1, dutyCycle);
 			setPWMRate(2, dutyCycle);
+
+			/* Manual start for ADC conversion sequence A */
+			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
+
 		}
 
 		if(SysTick_led_7seg_refresh_timeout==true)
@@ -164,16 +174,24 @@ int main(void)
 		if(GPIOGoup0_Int==true)
 		{
 			GPIOGoup0_Int = false;
-
-			/* Manual start for ADC conversion sequence A */
-			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
+			if(ADC0_value!=ADC_SAMPLE_ERROR_VALUE)
+			{
+				OutputString("ADC_6:");
+				OutputHexValue_with_newline(ADC0_value);
+			}
+			if(ADC1_value!=ADC_SAMPLE_ERROR_VALUE)
+			{
+				OutputString("ADC_8:");
+				OutputHexValue_with_newline(ADC1_value);
+			}
 		}
 
-		if (thresholdCrossed) {
-			thresholdCrossed = false;
-		}
+		// Is an ADC conversion overflow/underflow?
+		//if (thresholdCrossed) {
+		//	thresholdCrossed = false;
+		//}
 
-		/* Is a conversion sequence complete? */
+		/* Is an ADC conversion sequence complete? */
 		if (sequenceComplete) {
 			uint32_t rawSample;
 
@@ -183,16 +201,22 @@ int main(void)
 			rawSample = Chip_ADC_GetDataReg(LPC_ADC, 6);
 			/* Show some ADC data */
 			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
-				OutputString("ADC_6:");
-				OutputHexValue_with_newline(ADC_DR_RESULT(rawSample));
+				ADC1_value = ADC_SAMPLE_ERROR_VALUE;
+			}
+			else
+			{
+				ADC1_value = ADC_SAMPLE_ERROR_VALUE;
 			}
 
 			/* Get raw sample data for channels 8 */
 			rawSample = Chip_ADC_GetDataReg(LPC_ADC, 8);
 			/* Show some ADC data */
 			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
-				OutputString("ADC_8:");
-				OutputHexValue_with_newline(ADC_DR_RESULT(rawSample));
+				ADC1_value = ADC_DR_RESULT(rawSample);
+			}
+			else
+			{
+				ADC1_value = ADC_SAMPLE_ERROR_VALUE;
 			}
 
 			// Overtun example code
