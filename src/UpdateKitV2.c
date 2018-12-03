@@ -106,6 +106,7 @@ int main(void)
 	key = 0;
 	ADC0_value = ADC_SAMPLE_ERROR_VALUE;
 	ADC1_value = ADC_SAMPLE_ERROR_VALUE;
+	reset_string_detector();
 
 	while (key != 27) {
 
@@ -122,6 +123,14 @@ int main(void)
 			{
 				OutputHexValue_with_newline(temp);
 			}
+
+			locate_POWERON_pattern_process(key);
+			if(Get_POWERON_pattern()==true)
+			{
+				OutputString_with_newline("POWER_ON_DETECTED");
+				Clear_POWERON_pattern();
+			}
+
 		}
 
 		if(SysTick_100ms_timeout==true)
@@ -201,11 +210,11 @@ int main(void)
 			rawSample = Chip_ADC_GetDataReg(LPC_ADC, 6);
 			/* Show some ADC data */
 			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
-				ADC1_value = ADC_SAMPLE_ERROR_VALUE;
+				ADC0_value = ADC_SAMPLE_ERROR_VALUE;
 			}
 			else
 			{
-				ADC1_value = ADC_SAMPLE_ERROR_VALUE;
+				ADC0_value = ADC_SAMPLE_ERROR_VALUE;
 			}
 
 			/* Get raw sample data for channels 8 */

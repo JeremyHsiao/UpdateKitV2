@@ -208,13 +208,17 @@ int OutputHexValue(uint32_t value)
 	return return_value;
 }
 
-int OutputHexValue_with_newline(uint32_t value)
+int OutputHexValue_with_newline(uint32_t value)		// Assume that HEX is at most 8-digits
 {
-    char    temp_str[8+1+1];
+    char    temp_str[8+1+2];
     int     byte_length, return_value;
 
     byte_length = itoa_16(value,temp_str);
     temp_str[byte_length++] = '\n';
+
+#if (NEW_LINE_SYMBOL==_R_N_)
+    temp_str[byte_length++] = '\r';
+#endif //  (NEW_LINE_SYMBOL==_R_N_)
 
     return_value = Chip_UART0_SendRB(LPC_USART0, &txring, (const uint8_t *) temp_str, byte_length);
 	if ( return_value!= byte_length) {
@@ -244,6 +248,9 @@ int OutputString_with_newline(char *str)
     int return_value = 0;
     return_value = OutputString(str);
     return_value += UART0_PutChar('\n');
+#if (NEW_LINE_SYMBOL==_R_N_)
+    return_value += UART0_PutChar('\r');
+#endif //  (NEW_LINE_SYMBOL==_R_N_)
 
     return return_value;
 }

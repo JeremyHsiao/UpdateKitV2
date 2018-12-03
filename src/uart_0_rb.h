@@ -17,4 +17,7 @@ extern int OutputHexValue_with_newline(uint32_t value);
 extern int OutputString(char *str);
 extern int OutputString_with_newline(char *str);
 
+#define NEW_LINE_SYMBOL		_R_N_
+//#define NEW_LINE_SYMBOL		_N_
+
 #endif /* UART_0_RB_H_ */
