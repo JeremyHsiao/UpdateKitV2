@@ -86,7 +86,7 @@ int main(void)
 {
 	uint8_t key, dutyCycle = 50, temp;  	/* Start at 50% duty cycle */
 	int bytes, countdir = 10;
-	char time_elapse_str[5] = {'0','0','0','0', '\0'};
+	uint8_t time_elapse_str[5] = {'0','0','0','0', '\0'};
 
 	SystemCoreClockUpdate();
 	Board_Init();
