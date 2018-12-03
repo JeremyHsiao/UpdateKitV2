@@ -9,8 +9,7 @@
 #include "LED_7seg.h"
 
 uint32_t	gpio_mask[3];
-uint8_t		led_7seg_message[4], dp_point=0;
-uint8_t		next_refresh_index=1;
+uint8_t		led_7seg_message[4], dp_point, next_refresh_index;
 
 uint8_t const LED_7SEG_GPIO_LUT[] =
 {
@@ -102,11 +101,12 @@ uint8_t const LED_character_index_LUT[] =
 
 void Init_LED_7seg_GPIO(void)
 {
-	uint8_t			temp_index;
+	uint8_t const 	*prt_7seg_gpio_lut, *prt_7seg_gpio_iofunc_lut;
 
+	// Init variables
+	next_refresh_index=0;
 	gpio_mask[0]=gpio_mask[1]=gpio_mask[2]=0;
 	led_7seg_message[0]=led_7seg_message[1]=led_7seg_message[2]=led_7seg_message[3]=dp_point=0;
-	uint8_t const 	*prt_7seg_gpio_lut, *prt_7seg_gpio_iofunc_lut;
 
 	// Init all LED 7SEG IO port by using table LED_7SEG_GPIO_LUT & LED_7SEG_GPIO_IOFUNC_LUT
 	prt_7seg_gpio_lut = LED_7SEG_GPIO_LUT;
@@ -138,55 +138,6 @@ void Init_LED_7seg_GPIO(void)
 	LPC_GPIO->MPIN[2] = 0;
 }
 
-// update_char_index is 1~4
-void update_led_char(uint8_t display_char_no, uint8_t update_char_index, bool show_dp)
-{
-	  uint32_t 			out_port[3];
-	  uint8_t			temp_index;
-	  uint8_t const 	*ptr_char_def_lut, *prt_7seg_gpio_lut;
-
-	  // Init port data & pointer to LUT
-	  out_port[0] = out_port[1] = out_port[2] = 0;
-	  ptr_char_def_lut = LED_character_definition_LUT + (display_char_no*LED_character_definition_LUT_width);
-	  prt_7seg_gpio_lut = LED_7SEG_GPIO_LUT;
-
-	  // Please note that first 7 element of LED_7SEG_GPIO_LUT is LED_a~g
-	  for(temp_index=0;temp_index<7;temp_index++)
-	  {
-		  if(*ptr_char_def_lut++)
-		  {
-			  out_port[*prt_7seg_gpio_lut] |= 1L<<(*(prt_7seg_gpio_lut+1));
-		  }
-		  prt_7seg_gpio_lut+=2;
-	  }
-
-	  // Please note that next element of LED_7SEG_GPIO_LUT is LED_dp
-	  if (show_dp==true)
-	  {
-		  out_port[*prt_7seg_gpio_lut] |= 1L<<(*(prt_7seg_gpio_lut+1));
-	  }
-	  prt_7seg_gpio_lut+=2;
-
-	  // Please note that next 4 element of LED_7SEG_GPIO_LUT is LED_1~4
-	  // The GPIO for the digit to be displayed should be set to low; others is keep as high
-	  for(temp_index=1; temp_index<=4; temp_index++)
-	  {
-		  if(temp_index!=update_char_index)
-		  {
-			  out_port[*prt_7seg_gpio_lut] |= 1L<<(*(prt_7seg_gpio_lut+1));
-		  }
-		  prt_7seg_gpio_lut+=2;
-	  }
-
-	  // output to gpio with mask
-	  temp_index = 3;
-	  while(temp_index-->0)
-	  {
-		  LPC_GPIO->MASK[temp_index] = ~gpio_mask[temp_index];
-		  LPC_GPIO->MPIN[temp_index] = out_port[temp_index];
-	  }
-}
-
 void Update_LED_7SEG_Message_Buffer(uint8_t *msg, uint8_t new_dp_point)
 {
 	uint8_t	temp_msg_index, temp_char_index, temp_char;
@@ -216,10 +167,55 @@ void Update_LED_7SEG_Message_Buffer(uint8_t *msg, uint8_t new_dp_point)
 
 void refresh_LED_7SEG_periodic_task(void)
 {
+	uint32_t 		out_port[3];
+	uint8_t			temp_index;
+	uint8_t const 	*ptr_char_def_lut, *prt_7seg_gpio_lut;
+
+	// Go to next index
 	next_refresh_index--;
 	if((next_refresh_index==0)||(next_refresh_index>4))
 	{
 		next_refresh_index = 4;
 	}
-	update_led_char(led_7seg_message[next_refresh_index-1],next_refresh_index,(dp_point==next_refresh_index)?true:false);
+
+	// Init port data & pointer to LUT
+	out_port[0] = out_port[1] = out_port[2] = 0;
+	ptr_char_def_lut = LED_character_definition_LUT + (led_7seg_message[next_refresh_index-1]*LED_character_definition_LUT_width);
+	prt_7seg_gpio_lut = LED_7SEG_GPIO_LUT;
+
+	// Please note that first 7 element of LED_7SEG_GPIO_LUT is LED_a~g
+	for(temp_index=0;temp_index<7;temp_index++)
+	{
+		if(*ptr_char_def_lut++)
+		{
+			out_port[*prt_7seg_gpio_lut] |= 1L<<(*(prt_7seg_gpio_lut+1));
+		}
+		prt_7seg_gpio_lut+=2;
+	}
+
+	// Please note that next element of LED_7SEG_GPIO_LUT is LED_dp
+	if (dp_point==next_refresh_index)
+	{
+		out_port[*prt_7seg_gpio_lut] |= 1L<<(*(prt_7seg_gpio_lut+1));
+	}
+	prt_7seg_gpio_lut+=2;
+
+	// Please note that next 4 element of LED_7SEG_GPIO_LUT is LED_1~4
+	// The GPIO for the digit to be displayed should be set to low; others is keep as high
+	for(temp_index=1; temp_index<=4; temp_index++)
+	{
+		if(temp_index!=next_refresh_index)
+		{
+			out_port[*prt_7seg_gpio_lut] |= 1L<<(*(prt_7seg_gpio_lut+1));
+		}
+		prt_7seg_gpio_lut+=2;
+	}
+
+	// output to gpio with mask
+	temp_index = 3;
+	while(temp_index-->0)
+	{
+		LPC_GPIO->MASK[temp_index] = ~gpio_mask[temp_index];
+		LPC_GPIO->MPIN[temp_index] = out_port[temp_index];
+	}
 }
