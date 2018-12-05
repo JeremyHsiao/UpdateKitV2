@@ -88,7 +88,7 @@ int main(void)
 {
 	uint8_t key, dutyCycle = 50, temp;  	/* Start at 50% duty cycle */
 	int bytes, countdir = 10;
-	uint8_t time_elapse_str[5] = {'0','0','0','0', '\0'};
+	uint8_t 	time_elapse_str[5] = {'0','0','0','0', '\0'};
 	uint16_t	ADC0_value, ADC1_value;
 
 	SystemCoreClockUpdate();
@@ -131,21 +131,17 @@ int main(void)
 				Clear_POWERON_pattern();
 			}
 
+			locate_VER_pattern_process(key);
+			if(Found_VER_string()==true)
+			{
+				OutputString("Version:");
+				OutputString_with_newline((char *)Get_VER_string());
+			}
 		}
 
 		if(SysTick_100ms_timeout==true)
 		{
 			SysTick_100ms_timeout = false;
-
-			dutyCycle += countdir;
-			if ((dutyCycle  == 0) || (dutyCycle >= 100)) {
-				countdir = -countdir;
-			}
-
-			/* Update duty cycle in SCT/PWM by change match 1 reload time */
-			setPWMRate(0, dutyCycle);
-			setPWMRate(1, dutyCycle);
-			setPWMRate(2, dutyCycle);
 
 			/* Manual start for ADC conversion sequence A */
 			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
@@ -182,7 +178,19 @@ int main(void)
 
 		if(GPIOGoup0_Int==true)
 		{
+
+			dutyCycle += countdir;
+			if ((dutyCycle  == 0) || (dutyCycle >= 100)) {
+				countdir = -countdir;
+			}
+
+			/* Update duty cycle in SCT/PWM by change match 1 reload time */
+			setPWMRate(0, dutyCycle);
+			setPWMRate(1, dutyCycle);
+			setPWMRate(2, dutyCycle);
+
 			GPIOGoup0_Int = false;
+
 			if(ADC0_value!=ADC_SAMPLE_ERROR_VALUE)
 			{
 				OutputString("ADC_6:");
@@ -193,6 +201,7 @@ int main(void)
 				OutputString("ADC_8:");
 				OutputHexValue_with_newline(ADC1_value);
 			}
+
 		}
 
 		// Is an ADC conversion overflow/underflow?
@@ -210,7 +219,7 @@ int main(void)
 			rawSample = Chip_ADC_GetDataReg(LPC_ADC, 6);
 			/* Show some ADC data */
 			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
-				ADC0_value = ADC_SAMPLE_ERROR_VALUE;
+				ADC0_value = ADC_DR_RESULT(rawSample);
 			}
 			else
 			{

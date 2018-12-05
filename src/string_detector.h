@@ -15,4 +15,9 @@ extern void locate_POWERON_pattern_process(char input_ch);
 extern bool Get_POWERON_pattern(void);
 extern void Clear_POWERON_pattern(void);
 
+void locate_VER_pattern_process(char input_ch);
+extern bool Found_VER_string(void);
+extern uint8_t *Get_VER_string(void);
+#define	MAX_VER_NO_LEN	(96)
+
 #endif /* STRING_DETECTOR_H_ */
