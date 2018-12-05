@@ -136,6 +136,7 @@ int main(void)
 			{
 				OutputString("Version:");
 				OutputString_with_newline((char *)Get_VER_string());
+				Clear_VER_string();
 			}
 		}
 

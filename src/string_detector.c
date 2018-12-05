@@ -15,11 +15,11 @@ uint8_t 	OK_state;
 uint32_t	OK_cnt;
 
 uint8_t POWERON_state;
-uint8_t poweron_string[] = "@POWERON";
+const uint8_t poweron_string[] = "@POWERON";
 bool    POWERON_string_detected;
 
 uint8_t VER_state;
-uint8_t ver_string[] = "@VER";
+const uint8_t ver_string[] = "@VER";
 bool    VER_string_detected;
 bool    VER_string_end_of_line;
 uint8_t ver_string_index;
@@ -169,6 +169,12 @@ bool Found_VER_string(void)
 	return VER_string_end_of_line;
 }
 
+void Clear_VER_string(void)
+{
+	VER_string_end_of_line=false;
+	//VER_NO_str[0] = '\0';
+}
+
 uint8_t *Get_VER_string(void)
 {
 	if(VER_string_end_of_line==false)
@@ -220,6 +226,13 @@ void locate_VER_pattern_process(char input_ch)
 		{
 			VER_NO_str[VER_state-(sizeof(ver_string)-1)] = input_ch;
 			VER_state++;
+			if((VER_state-(sizeof(ver_string)-1))==(MAX_VER_NO_LEN-1))		// only 1 more space left
+			{
+				VER_string_end_of_line = true;
+				VER_NO_str[MAX_VER_NO_LEN-1] = '\0';		// End of version string is enforced.
+				VER_string_detected = false;
+				VER_state = 0;
+			}
 		}
 	}
 	else // default for abnormal situation

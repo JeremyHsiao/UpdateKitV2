@@ -17,6 +17,7 @@ extern void Clear_POWERON_pattern(void);
 
 void locate_VER_pattern_process(char input_ch);
 extern bool Found_VER_string(void);
+extern void Clear_VER_string(void);
 extern uint8_t *Get_VER_string(void);
 #define	MAX_VER_NO_LEN	(96)
 
