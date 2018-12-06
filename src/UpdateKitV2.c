@@ -12,6 +12,7 @@
 #include "LED_7seg.h"
 #include "adc.h"
 #include "string_detector.h"
+#include "lcd_module.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -28,12 +29,15 @@ uint32_t	time_elapse=0;
  * Private functions
  ****************************************************************************/
 #define		ADC_SAMPLE_ERROR_VALUE		(0xffff)	// length is 16 bits
-#define 	SYSTICK_PER_SECOND			(4000)		// 4000 ticks per == 250us each tick
+#define 	SYSTICK_PER_SECOND			(20000)		// 20000 ticks per second == 50us each tick
 #define     SYSTICK_COUNT_VALUE_MS(x)	((SYSTICK_PER_SECOND*x/1000)-1)
+#define     SYSTICK_COUNT_VALUE_US(x)	((SYSTICK_PER_SECOND*x/1000000)-1)
 
 uint32_t	sys_tick_1s_cnt = SYSTICK_COUNT_VALUE_MS(1000);
 uint32_t	sys_tick_100_ms_cnt = SYSTICK_COUNT_VALUE_MS(100);
 uint32_t	sys_tick_1ms_cnt = SYSTICK_COUNT_VALUE_MS(1);
+uint32_t	sys_tick_100_us_cnt = SYSTICK_COUNT_VALUE_US(100);
+uint32_t	SW_delay_100us = 0;
 
 /**
  * @brief    Handle interrupt from SysTick timer
@@ -52,7 +56,8 @@ void SysTick_Handler(void)
 		SysTick_100ms_timeout = true;
 	}
 
-	// 10ms timeout timer for SysTick_led_7seg_refresh_timeout
+	// 1ms timeout timer for SysTick_led_7seg_refresh_timeout
+	// temporarily 1ms delay timer
 	if(sys_tick_1ms_cnt)
 	{
 		sys_tick_1ms_cnt--;
@@ -61,6 +66,20 @@ void SysTick_Handler(void)
 	{
 		sys_tick_1ms_cnt = SYSTICK_COUNT_VALUE_MS(1);
 		SysTick_led_7seg_refresh_timeout = true;
+	}
+
+	// 100us for software delay loop
+	if(sys_tick_100_us_cnt)
+	{
+		sys_tick_100_us_cnt--;
+	}
+	else
+	{
+		sys_tick_100_us_cnt = SYSTICK_COUNT_VALUE_US(100);
+		if(SW_delay_100us>0)
+		{
+			SW_delay_100us--;
+		}
 	}
 
 	// 1s
@@ -92,6 +111,9 @@ int main(void)
 	uint16_t	ADC0_value, ADC1_value;
 
 	SystemCoreClockUpdate();
+	/* Enable and setup SysTick Timer at a periodic rate */
+	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
+
 	Board_Init();
 	Init_GPIO();
 	Init_LED_7seg_GPIO();
@@ -99,14 +121,12 @@ int main(void)
 	Init_UART0();
 	Init_ADC();
 
-	/* Enable and setup SysTick Timer at a periodic rate */
-	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
-
 	/* Poll the receive ring buffer for the ESC (ASCII 27) key */
 	key = 0;
 	ADC0_value = ADC_SAMPLE_ERROR_VALUE;
 	ADC1_value = ADC_SAMPLE_ERROR_VALUE;
 	reset_string_detector();
+	lcm_init();
 
 	while (key != 27) {
 
