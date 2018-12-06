@@ -77,16 +77,6 @@ void setPWMRate(int pwnNum, uint8_t percentage)
 /*****************************************************************************
  * Public functions
  ****************************************************************************/
-
-/**
- * @brief	Handle interrupt from SysTick timer
- * @return	Nothing
- */
-void SysTick_Handler(void)
-{
-	/* This is only used to wakeup up the device from sleep */
-}
-
 /**
  * @brief	Handle interrupt from State Configurable Timer
  * @return	Nothing

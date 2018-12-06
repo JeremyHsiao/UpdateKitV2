@@ -7,13 +7,12 @@
 //
 #include "chip.h"
 #include "lcd_module.h"
-
-extern uint32_t	SW_delay_100us;
+#include "sw_timer.h"
 
 void DelayMS(uint32_t delayms)
 {
-	SW_delay_100us = (delayms*10);
- 	while(SW_delay_100us!=0);
+	SW_delay_cnt = (delayms*(SYSTICK_PER_SECOND/1000));
+ 	while(SW_delay_cnt!=0);
 }
 
 uint8_t const LCD_LCM_GPIO_LUT[] =
@@ -258,6 +257,7 @@ void lcm_goto(uint8_t pos, uint8_t line)
  	}
 }
 
+extern void lcm_demo(void);
 
 void lcm_init(void)
 {
