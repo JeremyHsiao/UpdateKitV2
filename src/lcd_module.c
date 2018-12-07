@@ -29,12 +29,12 @@ static void inline Wait_until_No_More_Delay_Tick(void)
 	while(SW_delay_cnt!=0);
 }
 
-void DelayMS(uint32_t delayms)
-{
-	SW_delay_cnt = (delayms*(SYSTICK_PER_SECOND/1000));
- 	while(SW_delay_cnt!=0);
-}
-
+//void DelayMS(uint32_t delayms)
+//{
+//	SW_delay_cnt = (delayms*(SYSTICK_PER_SECOND/1000));
+// 	while(SW_delay_cnt!=0);
+//}
+//
 uint8_t const LCD_LCM_GPIO_LUT[] =
 {
 	LCD_DB4_7_PORT,  DB4_PIN,
@@ -131,7 +131,7 @@ void lcm_write_4bit(uint8_t high_nibble, bool rs_high)
 {
 	Chip_GPIO_SetPortMask(LPC_GPIO, LCD_DB4_7_PORT, ~HIGH_NIBBLE_MASK);
 	Chip_GPIO_SetMaskedPortValue(LPC_GPIO, LCD_DB4_7_PORT, PACK_LCD_4BITS(high_nibble&0xf0));
-	DelayMS(1);
+//DelayMS(1);
 
 	if(rs_high==false)
 	{
@@ -142,11 +142,11 @@ void lcm_write_4bit(uint8_t high_nibble, bool rs_high)
 		LCM_RS_1;
 	}
 	LCM_RW_0;
-	DelayMS(1);
+	Delay125ns(); // DelayMS(1);
 	LCM_EN_1;
-	DelayMS(1);
+	Delay125ns(); Delay125ns(); Delay125ns(); // DelayMS(1);
 	LCM_EN_0;
-	DelayMS(1); // DelayMS(10);
+	Delay125ns(); // DelayMS(1); // DelayMS(10);
 }
 
 void lcm_write_cmd(uint8_t c)
@@ -157,12 +157,17 @@ void lcm_write_cmd(uint8_t c)
 #endif // #ifdef WRITE_4BITS
 }
 
-void lcm_write_data(uint8_t c)
+void lcm_write_ram_data(uint8_t c)
 {
+	Wait_until_No_More_Delay_Tick();
+
 #ifdef WRITE_4BITS
 	lcm_write_4bit((c&0xf0), true);				// RS is high
 	lcm_write_4bit(((c<<4)&0xf0), true);		// RS is high
 #endif // #ifdef WRITE_4BITS
+
+	Add_LCM_Delay_Tick(50);
+
 }
 
 uint8_t lcm_read_4bit_wo_setting_gpio_input(bool rs_high)
@@ -251,23 +256,78 @@ void lcm_clear_display(void)
 	Add_LCM_Delay_Tick(160);
 }
 
+void lcm_return_home(void)
+{
+	Wait_until_No_More_Delay_Tick();
+	lcm_write_cmd(0x02);        // Clear Display
+	Add_LCM_Delay_Tick(160);
+}
+
+void lcm_entry_mode(bool ID, bool SH)
+{
+	uint8_t	out_data = 0x04;
+
+	if(ID) out_data|= 0x02;
+	if(SH) out_data|= 0x01;
+	Wait_until_No_More_Delay_Tick();
+	lcm_write_cmd(out_data);
+	Add_LCM_Delay_Tick(50);
+}
+
+void lcm_display_on_off_control(bool Disply, bool Cursor, bool Blinking)
+{
+	uint8_t	out_data = 0x08;
+
+	if(Disply) out_data|= 0x04;
+	if(Cursor) out_data|= 0x02;
+	if(Blinking) out_data|= 0x01;
+	Wait_until_No_More_Delay_Tick();
+	lcm_write_cmd(out_data);
+}
+
+void lcm_cursor_display_shift(bool SC, bool RL)
+{
+	uint8_t	out_data = 0x10;
+
+	if(SC) out_data|= 0x08;
+	if(RL) out_data|= 0x04;
+	Wait_until_No_More_Delay_Tick();
+	lcm_write_cmd(out_data);
+	Add_LCM_Delay_Tick(50);
+}
+
+void lcm_initialize_to_4_bit_mode()
+{
+	Wait_until_No_More_Delay_Tick();
+	lcm_write_cmd(0x33);	// This 0x33 is to make sure to starting with 8-bit mode after this cmd even only 4 DB pins
+	Add_LCM_Delay_Tick(50);
+	Wait_until_No_More_Delay_Tick();
+	lcm_write_cmd(0x02);	// Make sure 4 bit mode is set with only 4 DB pins
+	Add_LCM_Delay_Tick(50);
+	Wait_until_No_More_Delay_Tick();
+	lcm_write_cmd(0x28);    // enable 5x7 mode for chars
+	Add_LCM_Delay_Tick(50);
+}
+
 void lcm_puts(uint8_t *s)
 {
  	while(*s)
  	{
- 		lcm_write_data(*s++);
+ 		lcm_write_ram_data(*s++);
  	}
 }
 void lcm_putch(uint8_t c)
 {
- 	lcm_write_data( c );
+ 	lcm_write_ram_data( c );
 }
 
-void lcm_goto(uint8_t pos, uint8_t line)
+void lcm_goto(uint8_t pos, uint8_t line)		// pos / line
 {
 	uint8_t	LineTmp;
 
- 	if( line <2 )
+	Wait_until_No_More_Delay_Tick();
+
+	if( line <2 )
  	{
  		LineTmp = ((( line * 40) + pos) & 0x7F);
  		lcm_write_cmd(0x80+LineTmp);
@@ -282,6 +342,8 @@ void lcm_goto(uint8_t pos, uint8_t line)
  		LineTmp = ( pos  & 0x7F);
  		lcm_write_cmd(0xD4+LineTmp);
  	}
+
+	Add_LCM_Delay_Tick(50);
 }
 
 extern void lcm_demo(void);
@@ -291,21 +353,16 @@ void lcm_init(void)
 	lcd_gpio_init();	// All port are configured as output, set as low
 
 #ifdef WRITE_4BITS
-	lcm_write_cmd(0x33);	// This 0x33 is to make sure to starting with 8-bit mode after this cmd even only 4 DB pins
-	lcm_write_cmd(0x02);	// Make sure 4 bit mode is set with only 4 DB pins
-	lcm_write_cmd(0x28);    // enable 5x7 mode for chars
+	lcm_initialize_to_4_bit_mode();
 #else
-	lcm_write_cmd(0x38);	// Function set	8 bits
+	// lcm_write_cmd(0x38);	// Function set	8 bits
 #endif
 
-//	lcm_clear_display();        // Clear Display
-//	lcm_write_cmd(0x0F);        // Display ON, Cursor ON, Cursor Blink On
-		lcm_clear_display();
-		lcm_write_cmd(0x02);        // Display ON, Cursor ON, Cursor Blink On
-		lcm_write_cmd(0x06);        // Clear Display
-		lcm_write_cmd(0x0c);        // Display ON, Cursor ON, Cursor Blink On
-		lcm_write_cmd(0x1c);        // Display ON, Cursor ON, Cursor Blink On
-		lcm_write_cmd(0x28);    // enable 5x7 mode for chars
+	lcm_clear_display();
+	lcm_return_home();
+	lcm_entry_mode(true,false);		// I/D high, SH low
+	lcm_display_on_off_control(true,false,false);       // Display ON, Cursor off, Cursor Blink off
+	lcm_cursor_display_shift(true,true);        		// S/C high & R/L high
 
 	lcm_demo();
 }
@@ -319,11 +376,12 @@ void lcm_demo(void)
 
 	readback_value = lcd_read_busy_and_address();
 
+	lcm_goto(0,0);			// Go back to 0,0 for confirming (pos:0, Line:0)
 	lcm_puts(brand_string);
-    lcm_write_cmd(0xc0);        //Go to Next line
+	lcm_goto(0,1);			// Go to Next line (pos:0, Line:1)
     lcm_puts(product_string);
 
-	lcm_write_cmd(0x80);        // Move the cursor to beginning of first line
+	lcm_goto(0,0);			// Go back to 0,0 for confirming (pos:0, Line:0)
 	readback_value = lcd_read_busy_and_address();
 	for (index=0; index<sizeof(brand_string-1); index++)
 	{
@@ -333,7 +391,7 @@ void lcm_demo(void)
 			OutputHexValue_with_newline(index);
 		}
 	}
-    lcm_write_cmd(0xc0);        //Go to Next line
+	lcm_goto(0,1);			// Go to Next line (pos:0, Line:1)
 	for (index=0; index<sizeof(product_string-1); index++)
 	{
 		readback_value = lcd_read_data_from_RAM();

@@ -45,5 +45,12 @@ extern void lcm_puts(uint8_t *s);
 extern void lcm_putch(uint8_t c);
 extern void lcm_goto(uint8_t pos, uint8_t line);
 extern void lcm_init(void);
+extern void lcm_clear_display(void);
+extern void lcm_return_home(void);
+extern void lcm_entry_mode(bool ID, bool SH);
+
+extern void lcm_write_ram_data(uint8_t c);
+extern uint8_t lcd_read_busy_and_address(void);
+extern uint8_t lcd_read_data_from_RAM(void);
 
 #endif /* LCD_MODULE_H_ */
