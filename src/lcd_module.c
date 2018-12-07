@@ -22,7 +22,7 @@ static void inline Delay125ns(void)
 
 static void inline Add_LCM_Delay_Tick(uint32_t delay_us)
 {
-	SW_delay_cnt += (delay_us*(SYSTICK_PER_SECOND/1000)/1000);
+	SW_delay_cnt += ((delay_us*(SYSTICK_PER_SECOND/1000))/1000);
 }
 static void inline Wait_until_No_More_Delay_Tick(void)
 {
@@ -34,7 +34,7 @@ static void inline Wait_until_No_More_Delay_Tick(void)
 //	SW_delay_cnt = (delayms*(SYSTICK_PER_SECOND/1000));
 // 	while(SW_delay_cnt!=0);
 //}
-//
+
 uint8_t const LCD_LCM_GPIO_LUT[] =
 {
 	LCD_DB4_7_PORT,  DB4_PIN,
@@ -166,7 +166,7 @@ void lcm_write_ram_data(uint8_t c)
 	lcm_write_4bit(((c<<4)&0xf0), true);		// RS is high
 #endif // #ifdef WRITE_4BITS
 
-	Add_LCM_Delay_Tick(50);
+	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 
 }
 
@@ -244,7 +244,7 @@ uint8_t lcd_read_data_from_RAM(void)
 #endif
 	lcd_module_db_gpio_as_output();
 
-	Add_LCM_Delay_Tick(50);
+	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 
 	return read_value;
 }
@@ -253,14 +253,14 @@ void lcm_clear_display(void)
 {
 	Wait_until_No_More_Delay_Tick();
 	lcm_write_cmd(0x01);        // Clear Display
-	Add_LCM_Delay_Tick(160);
+	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 }
 
 void lcm_return_home(void)
 {
 	Wait_until_No_More_Delay_Tick();
 	lcm_write_cmd(0x02);        // Clear Display
-	Add_LCM_Delay_Tick(160);
+	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 }
 
 void lcm_entry_mode(bool ID, bool SH)
@@ -271,7 +271,7 @@ void lcm_entry_mode(bool ID, bool SH)
 	if(SH) out_data|= 0x01;
 	Wait_until_No_More_Delay_Tick();
 	lcm_write_cmd(out_data);
-	Add_LCM_Delay_Tick(50);
+	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 }
 
 void lcm_display_on_off_control(bool Disply, bool Cursor, bool Blinking)
@@ -283,6 +283,7 @@ void lcm_display_on_off_control(bool Disply, bool Cursor, bool Blinking)
 	if(Blinking) out_data|= 0x01;
 	Wait_until_No_More_Delay_Tick();
 	lcm_write_cmd(out_data);
+	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 }
 
 void lcm_cursor_display_shift(bool SC, bool RL)
@@ -293,20 +294,21 @@ void lcm_cursor_display_shift(bool SC, bool RL)
 	if(RL) out_data|= 0x04;
 	Wait_until_No_More_Delay_Tick();
 	lcm_write_cmd(out_data);
-	Add_LCM_Delay_Tick(50);
+	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 }
 
 void lcm_initialize_to_4_bit_mode()
 {
+	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x33);	// This 0x33 is to make sure to starting with 8-bit mode after this cmd even only 4 DB pins
-	Add_LCM_Delay_Tick(50);
+	lcm_write_cmd(0x38);    // enable 5x7 mode for chars
+	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x02);	// Make sure 4 bit mode is set with only 4 DB pins
-	Add_LCM_Delay_Tick(50);
+	lcm_write_cmd(0x22);    // enable 5x7 mode for chars
+	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
 	lcm_write_cmd(0x28);    // enable 5x7 mode for chars
-	Add_LCM_Delay_Tick(50);
+	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 }
 
 void lcm_puts(uint8_t *s)
@@ -343,7 +345,7 @@ void lcm_goto(uint8_t pos, uint8_t line)		// pos / line
  		lcm_write_cmd(0xD4+LineTmp);
  	}
 
-	Add_LCM_Delay_Tick(50);
+	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 }
 
 extern void lcm_demo(void);
