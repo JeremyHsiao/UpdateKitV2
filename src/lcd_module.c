@@ -8,6 +8,26 @@
 #include "chip.h"
 #include "lcd_module.h"
 #include "sw_timer.h"
+#include "uart_0_rb.h"
+
+static void inline Delay125ns(void)
+{
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+}
+
+static void inline Add_LCM_Delay_Tick(uint32_t delay_us)
+{
+	SW_delay_cnt += (delay_us*(SYSTICK_PER_SECOND/1000)/1000);
+}
+static void inline Wait_until_No_More_Delay_Tick(void)
+{
+	while(SW_delay_cnt!=0);
+}
 
 void DelayMS(uint32_t delayms)
 {
@@ -159,14 +179,15 @@ uint8_t lcm_read_4bit_wo_setting_gpio_input(bool rs_high)
 		LCM_RS_1;
 	}
 	LCM_RW_1;
-	DelayMS(1);
+	Delay125ns(); // DelayMS(1);
 	LCM_EN_1;
-	DelayMS(1); // DelayMS(10);
+	Delay125ns(); Delay125ns(); Delay125ns(); // DelayMS(1); // DelayMS(10);
 	Chip_GPIO_SetPortMask(LPC_GPIO, LCD_DB4_7_PORT, ~HIGH_NIBBLE_MASK);
 	gpio_value = Chip_GPIO_GetMaskedPortValue(LPC_GPIO, LCD_DB4_7_PORT);
 	LCM_EN_0;
-	DelayMS(1); // DelayMS(10);
+	Delay125ns(); // DelayMS(1); // DelayMS(10);
 
+	// here is also delay
 	if(gpio_value&(1L<<DB7_PIN))
 	{
 		return_value |= 0x80;
@@ -207,7 +228,9 @@ uint8_t lcd_read_data_from_RAM(void)
 {
 	uint8_t		read_value, temp_nibble;
 
-    lcd_module_db_gpio_as_input();
+	Wait_until_No_More_Delay_Tick();
+
+	lcd_module_db_gpio_as_input();
 
 #ifdef WRITE_4BITS
     read_value = lcm_read_4bit_wo_setting_gpio_input(true);		// RS low
@@ -216,12 +239,16 @@ uint8_t lcd_read_data_from_RAM(void)
 #endif
 	lcd_module_db_gpio_as_output();
 
+	Add_LCM_Delay_Tick(50);
+
 	return read_value;
 }
 
-void lcm_clear(void)
+void lcm_clear_display(void)
 {
+	Wait_until_No_More_Delay_Tick();
 	lcm_write_cmd(0x01);        // Clear Display
+	Add_LCM_Delay_Tick(160);
 }
 
 void lcm_puts(uint8_t *s)
@@ -271,84 +298,50 @@ void lcm_init(void)
 	lcm_write_cmd(0x38);	// Function set	8 bits
 #endif
 
-	lcm_write_cmd(0x01);        // Clear Display
-	lcm_write_cmd(0x0F);        // Display ON, Cursor ON, Cursor Blink On
+//	lcm_clear_display();        // Clear Display
+//	lcm_write_cmd(0x0F);        // Display ON, Cursor ON, Cursor Blink On
+		lcm_clear_display();
+		lcm_write_cmd(0x02);        // Display ON, Cursor ON, Cursor Blink On
+		lcm_write_cmd(0x06);        // Clear Display
+		lcm_write_cmd(0x0c);        // Display ON, Cursor ON, Cursor Blink On
+		lcm_write_cmd(0x1c);        // Display ON, Cursor ON, Cursor Blink On
+		lcm_write_cmd(0x28);    // enable 5x7 mode for chars
 
 	lcm_demo();
 }
 
 void lcm_demo(void)
 {
-	uint8_t 	readback_value;
+	uint8_t 	readback_value, index;
+	uint8_t		brand_string[] = "TPV Technology";
+	uint8_t		product_string[] = "UpdateKit V002";
+
 
 	readback_value = lcd_read_busy_and_address();
 
-	lcm_puts((uint8_t*)"TPV Technology");
-
+	lcm_puts(brand_string);
     lcm_write_cmd(0xc0);        //Go to Next line
-    lcm_puts((uint8_t*)"UpdateKit V002");
+    lcm_puts(product_string);
 
 	lcm_write_cmd(0x80);        // Move the cursor to beginning of first line
 	readback_value = lcd_read_busy_and_address();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
+	for (index=0; index<sizeof(brand_string-1); index++)
+	{
+		readback_value = lcd_read_data_from_RAM();
+		if (readback_value != brand_string[index])
+		{
+			OutputHexValue_with_newline(index);
+		}
+	}
     lcm_write_cmd(0xc0);        //Go to Next line
-	readback_value = lcd_read_busy_and_address();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    lcm_clear();
-	readback_value = lcd_read_busy_and_address();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    lcm_write_cmd(0xc0);        //Go to Next line
-	readback_value = lcd_read_busy_and_address();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
-    readback_value = lcd_read_data_from_RAM();
+	for (index=0; index<sizeof(product_string-1); index++)
+	{
+		readback_value = lcd_read_data_from_RAM();
+		if (readback_value != product_string[index])
+		{
+			OutputHexValue_with_newline(index);
+		}
+	}
 
 }
 //
