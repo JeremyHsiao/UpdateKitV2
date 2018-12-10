@@ -301,13 +301,13 @@ void lcm_initialize_to_4_bit_mode()
 {
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x38);    // enable 5x7 mode for chars
+	lcm_write_cmd(0x38);    // force back to 8-bit modes to make sure initial stage
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x22);    // enable 5x7 mode for chars
+	lcm_write_cmd(0x22);    // send 2x 0x20 (for 4-bit) to make sure entering 4-bit mode
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x28);    // enable 5x7 mode for chars
+	lcm_write_cmd(0x28);    // Setup 4 bit mode, 2 lines, 5x8
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 }
 
@@ -362,9 +362,9 @@ void lcm_init(void)
 
 	lcm_clear_display();
 	lcm_return_home();
-	lcm_entry_mode(true,false);		// I/D high, SH low
+	//lcm_entry_mode(true,false);		// I/D high, SH low
 	lcm_display_on_off_control(true,false,false);       // Display ON, Cursor off, Cursor Blink off
-	lcm_cursor_display_shift(true,true);        		// S/C high & R/L high
+	//lcm_cursor_display_shift(true,true);        		// S/C high & R/L high
 
 	lcm_demo();
 }
