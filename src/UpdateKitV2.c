@@ -70,10 +70,7 @@ int main(void)
 		__WFI();
 
 		// Update LCD module display from time-to-time
-		if(lcd_module_auto_switch_timer_timeout==true)
-		{
-			lcm_auto_display_refresh_task();
-		}
+		lcm_auto_display_refresh_task();
 
 		// Process RS-232 input character
 		bytes = UART0_GetChar(&key);
@@ -168,7 +165,7 @@ int main(void)
 		/* Is an ADC conversion sequence complete? */
 		if (sequenceComplete) {
 			uint32_t rawSample;
-			char temp_str[12];
+			char temp_str[LCM_DISPLAY_COL-5+1];
 			int  temp_str_len;
 
 			sequenceComplete = false;
@@ -179,6 +176,7 @@ int main(void)
 			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
 				ADC0_value = ADC_DR_RESULT(rawSample);
 				temp_str_len = itoa_10(ADC0_value, temp_str);
+				memset((void *)&lcd_module_display_content[1][0][5], ' ', LCM_DISPLAY_COL-5);
 				memcpy((void *)&lcd_module_display_content[1][0][5], temp_str, temp_str_len-1);
 			}
 			else
@@ -192,6 +190,7 @@ int main(void)
 			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
 				ADC1_value = ADC_DR_RESULT(rawSample);
 				temp_str_len = itoa_10(ADC1_value, temp_str);
+				memset((void *)&lcd_module_display_content[1][1][5], ' ', LCM_DISPLAY_COL-5);
 				memcpy((void *)&lcd_module_display_content[1][1][5], temp_str, temp_str_len-1);
 			}
 			else

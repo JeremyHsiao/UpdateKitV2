@@ -423,10 +423,6 @@ bool lcm_move_to_next_pos(void)
 	lcm_current_row=0;
 	wait_for_not_busy(15);
 	lcm_goto(0,0);
-	if(++lcm_current_page>=MAX_LCD_CONTENT_PAGE)
-	{
-		lcm_current_page = 0;
-	}
 	return true;
 }
 
@@ -466,21 +462,35 @@ void lcm_auto_display_refresh_task(void)
 
 	if(lcm_move_to_next_pos()==true)		// end of current page, need to find next visible page
 	{
-		lcd_module_auto_switch_timer = SYSTICK_COUNT_VALUE_MS(LCM_AUTO_DISPLAY_SWITCH_PAGE_MS);
-		lcd_module_auto_switch_timer_timeout = false;
+		if(lcd_module_auto_switch_timer_timeout==true)
+		{
+			lcd_module_auto_switch_timer = SYSTICK_COUNT_VALUE_MS(LCM_AUTO_DISPLAY_SWITCH_PAGE_MS);
+			lcd_module_auto_switch_timer_timeout = false;
+
+			// Move to next display-enabled page
+			for(temp=0; temp < MAX_LCD_CONTENT_PAGE; temp++)
+			{
+				if(++lcm_current_page>=MAX_LCD_CONTENT_PAGE)
+				{
+					lcm_current_page = 0;
+				}
+				if(lcd_module_display_enable[lcm_current_page]!=0x0)
+					break;
+			}
+		}
 	}
 }
 
 void lcm_content_init(void)
 {
 	strcpy((void *)&lcd_module_display_content[0][0][0], "Elapse: 0000 Sec");
-	strcpy((void *)&lcd_module_display_content[0][1][0], "OK detecting... ");
+	strcpy((void *)&lcd_module_display_content[0][1][0], "Power detecting.");
 	strcpy((void *)&lcd_module_display_content[1][0][0], "ADC0:           ");
 	strcpy((void *)&lcd_module_display_content[1][1][0], "ADC1:           ");
 	strcpy((void *)&lcd_module_display_content[2][0][0], "Ver:            ");
 	strcpy((void *)&lcd_module_display_content[2][1][0], "detecting...    ");
-//	strcpy((void *)&lcd_module_display_content[3][0][0], "(C) 2018/12/10  ");
-//	strcpy((void *)&lcd_module_display_content[3][1][0], "Taipei, Taiwan  ");
+	strcpy((void *)&lcd_module_display_content[3][0][0], "OK detecting... ");
+ 	strcpy((void *)&lcd_module_display_content[3][1][0], "                ");
 	memset((void *)lcd_module_display_enable, 0x01, 3);
 	lcd_module_display_enable[3] = 0x00;
 }
