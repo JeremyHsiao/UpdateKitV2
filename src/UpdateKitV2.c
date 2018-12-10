@@ -40,7 +40,6 @@ int main(void)
 {
 	uint8_t key, dutyCycle = 50, temp;  	/* Start at 50% duty cycle */
 	int bytes, countdir = 10;
-	uint8_t 	time_elapse_str[5] = {'0','0','0','0', '\0'};
 	uint16_t	ADC0_value, ADC1_value;
 
 	SystemCoreClockUpdate();
@@ -65,22 +64,29 @@ int main(void)
 
 	while (key != 27) {
 
-		/* Sleep until something happens */
+		/* Sleep until interrupt/sys_tick happens */
 		__WFI();
 
-		lcm_auto_display_refresh_task();
+		// Update LCD module display from time-to-time
+		if(lcd_module_auto_switch_timer_timeout==true)
+		{
+			lcm_auto_display_refresh_task();
+		}
 
+		// Process RS-232 input character
 		bytes = UART0_GetChar(&key);
 		if (bytes > 0) {
 			/* Wrap value back around */
 			UART0_PutChar((char)key);
 
+			// To identify 10x OK
 			temp=locate_OK_pattern_process(key);
 			if(temp==10)
 			{
 				OutputHexValue_with_newline(temp);
 			}
 
+			// To identify @POWERON
 			locate_POWERON_pattern_process(key);
 			if(Get_POWERON_pattern()==true)
 			{
@@ -88,6 +94,7 @@ int main(void)
 				Clear_POWERON_pattern();
 			}
 
+			// To identify @VER
 			locate_VER_pattern_process(key);
 			if(Found_VER_string()==true)
 			{
@@ -97,43 +104,26 @@ int main(void)
 			}
 		}
 
+		// ADC coversion every 100ms
 		if(SysTick_100ms_timeout==true)
 		{
 			SysTick_100ms_timeout = false;
 
 			/* Manual start for ADC conversion sequence A */
 			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
-
 		}
 
+		// Refersh each char of 7 Segment LED every 100ms
 		if(SysTick_led_7seg_refresh_timeout==true)
 		{
 			SysTick_led_7seg_refresh_timeout = false;
 //			refresh_LED_7SEG_periodic_task();
 		}
 
-		if(SysTick_1s_timeout==true)
-		{
-			SysTick_1s_timeout = false;
-			if(time_elapse_str[3]++>='9')
-			{
-				time_elapse_str[3]='0';
-				if(time_elapse_str[2]++>='9')
-				{
-					time_elapse_str[2]='0';
-					if(time_elapse_str[1]++>='9')
-					{
-						time_elapse_str[1]='0';
-						if(time_elapse_str[0]++>='9')
-						{
-							time_elapse_str[0]='0';
-						}
-					}
-				}
-			}
-			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
-		}
+		// This is update every second
+		LED_Demo_Elapse_Timer(); // Can be removed if this demo is not required
 
+		// Process when button is pressed
 		if(GPIOGoup0_Int==true)
 		{
 
@@ -161,6 +151,7 @@ int main(void)
 			}
 
 		}
+
 
 		// Is an ADC conversion overflow/underflow?
 		//if (thresholdCrossed) {

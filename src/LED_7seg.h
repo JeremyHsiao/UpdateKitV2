@@ -59,5 +59,6 @@
 	extern void Init_LED_7seg_GPIO(void);
 	extern void Update_LED_7SEG_Message_Buffer(uint8_t *msg, uint8_t new_dp_point);
 	extern void refresh_LED_7SEG_periodic_task(void);
+	extern void LED_Demo_Elapse_Timer(void);
 
 #endif /* LED_7SEG_H_ */

@@ -7,6 +7,7 @@
 
 #include "board.h"
 #include "LED_7seg.h"
+#include "sw_timer.h"
 
 uint32_t	gpio_mask[3];
 uint8_t		led_7seg_message[4], dp_point, next_refresh_index;
@@ -218,4 +219,32 @@ void refresh_LED_7SEG_periodic_task(void)
 		LPC_GPIO->MASK[temp_index] = ~gpio_mask[temp_index];
 		LPC_GPIO->MPIN[temp_index] = out_port[temp_index];
 	}
+}
+
+static uint8_t 	time_elapse_str[5] = {'0','0','0','0', '\0'};
+
+void LED_Demo_Elapse_Timer(void)
+{
+	if(SysTick_1s_timeout==true)
+	{
+		SysTick_1s_timeout = false;
+		if(time_elapse_str[3]++>='9')
+		{
+			time_elapse_str[3]='0';
+			if(time_elapse_str[2]++>='9')
+			{
+				time_elapse_str[2]='0';
+				if(time_elapse_str[1]++>='9')
+				{
+					time_elapse_str[1]='0';
+					if(time_elapse_str[0]++>='9')
+					{
+						time_elapse_str[0]='0';
+					}
+				}
+			}
+		}
+		Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
+	}
+
 }

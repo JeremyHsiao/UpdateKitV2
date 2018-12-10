@@ -455,11 +455,6 @@ void lcm_auto_display_refresh_task(void)
 {
 	uint8_t	temp;
 
-	if(lcd_module_auto_switch_timer_timeout==false)
-	{
-		return;
-	}
-
 	// If all pages are disabled, simply return
 	for(temp=0; temp < MAX_LCD_CONTENT_PAGE; temp++)
 	{
