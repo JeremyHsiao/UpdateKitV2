@@ -14,6 +14,7 @@
 #include "string_detector.h"
 #include "lcd_module.h"
 #include "sw_timer.h"
+#include "string.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -60,7 +61,8 @@ int main(void)
 	reset_string_detector();
 	lcm_init();
 	lcm_auto_display_init();
-	lcm_demo();
+	//lcm_demo();
+	lcm_content_init();
 
 	while (key != 27) {
 
@@ -113,7 +115,7 @@ int main(void)
 			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
 		}
 
-		// Refersh each char of 7 Segment LED every 100ms
+		// Refresh each char of 7 Segment LED every 100ms
 		if(SysTick_led_7seg_refresh_timeout==true)
 		{
 			SysTick_led_7seg_refresh_timeout = false;
@@ -121,7 +123,12 @@ int main(void)
 		}
 
 		// This is update every second
-		LED_Demo_Elapse_Timer(); // Can be removed if this demo is not required
+		if(SysTick_1s_timeout==true)
+		{
+			Update_Elapse_Timer(); // Can be removed if this demo is not required
+			memcpy((void *)&lcd_module_display_content[0][0][8], time_elapse_str, 4);
+			//Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
+		}
 
 		// Process when button is pressed
 		if(GPIOGoup0_Int==true)
@@ -139,16 +146,16 @@ int main(void)
 
 			GPIOGoup0_Int = false;
 
-			if(ADC0_value!=ADC_SAMPLE_ERROR_VALUE)
-			{
-				OutputString("ADC_6:");
-				OutputHexValue_with_newline(ADC0_value);
-			}
-			if(ADC1_value!=ADC_SAMPLE_ERROR_VALUE)
-			{
-				OutputString("ADC_8:");
-				OutputHexValue_with_newline(ADC1_value);
-			}
+//			if(ADC0_value!=ADC_SAMPLE_ERROR_VALUE)
+//			{
+//				OutputString("ADC_6:");
+//				OutputHexValue_with_newline(ADC0_value);
+//			}
+//			if(ADC1_value!=ADC_SAMPLE_ERROR_VALUE)
+//			{
+//				OutputString("ADC_8:");
+//				OutputHexValue_with_newline(ADC1_value);
+//			}
 
 		}
 
@@ -161,6 +168,8 @@ int main(void)
 		/* Is an ADC conversion sequence complete? */
 		if (sequenceComplete) {
 			uint32_t rawSample;
+			char temp_str[12];
+			int  temp_str_len;
 
 			sequenceComplete = false;
 
@@ -169,6 +178,8 @@ int main(void)
 			/* Show some ADC data */
 			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
 				ADC0_value = ADC_DR_RESULT(rawSample);
+				temp_str_len = itoa_10(ADC0_value, temp_str);
+				memcpy((void *)&lcd_module_display_content[1][0][5], temp_str, temp_str_len-1);
 			}
 			else
 			{
@@ -180,6 +191,8 @@ int main(void)
 			/* Show some ADC data */
 			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
 				ADC1_value = ADC_DR_RESULT(rawSample);
+				temp_str_len = itoa_10(ADC1_value, temp_str);
+				memcpy((void *)&lcd_module_display_content[1][1][5], temp_str, temp_str_len-1);
 			}
 			else
 			{

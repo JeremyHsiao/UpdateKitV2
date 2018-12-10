@@ -62,4 +62,10 @@ extern void lcm_auto_display_refresh_task(void);
 
 extern void lcm_demo(void);
 
+#define	MAX_LCD_CONTENT_PAGE	(4)
+#define LCM_DISPLAY_ROW			(2)
+#define LCM_DISPLAY_COL			(16)
+extern uint8_t lcd_module_display_content[MAX_LCD_CONTENT_PAGE][LCM_DISPLAY_ROW][LCM_DISPLAY_COL];
+extern uint8_t lcd_module_display_enable[MAX_LCD_CONTENT_PAGE];
+
 #endif /* LCD_MODULE_H_ */

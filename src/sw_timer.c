@@ -85,4 +85,26 @@ void SysTick_Handler(void)
 
 }
 
+uint8_t time_elapse_str[5] = {'0','0','0','0', '\0'};
+
+void Update_Elapse_Timer(void)
+{
+	SysTick_1s_timeout = false;
+	if(time_elapse_str[3]++>='9')
+	{
+		time_elapse_str[3]='0';
+		if(time_elapse_str[2]++>='9')
+		{
+			time_elapse_str[2]='0';
+			if(time_elapse_str[1]++>='9')
+			{
+				time_elapse_str[1]='0';
+				if(time_elapse_str[0]++>='9')
+				{
+					time_elapse_str[0]='0';
+				}
+			}
+		}
+	}
+}
 

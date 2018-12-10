@@ -16,6 +16,7 @@ extern int OutputHexValue(uint32_t value);
 extern int OutputHexValue_with_newline(uint32_t value);
 extern int OutputString(char *str);
 extern int OutputString_with_newline(char *str);
+extern int itoa_10(uint32_t value, char* result);
 
 #define NEW_LINE_SYMBOL		_R_N_
 //#define NEW_LINE_SYMBOL		_N_

@@ -11,13 +11,10 @@
 #include "uart_0_rb.h"
 #include "string.h"
 
-#define	MAX_LCD_CONTENT_PAGE	(4)
-#define LCM_DISPLAY_ROW			(2)
-#define LCM_DISPLAY_COL			(16)
 uint8_t		lcd_module_display_content[MAX_LCD_CONTENT_PAGE][LCM_DISPLAY_ROW][LCM_DISPLAY_COL];
 uint8_t 	lcd_module_display_enable[MAX_LCD_CONTENT_PAGE];
 uint32_t	lcd_module_auto_switch_timer;
-uint8_t		lcm_current_page, lcm_current_row, lcm_current_col;
+static uint8_t		lcm_current_page, lcm_current_row, lcm_current_col;
 
 static void inline Delay125ns(void)
 {
@@ -472,6 +469,20 @@ void lcm_auto_display_refresh_task(void)
 		lcd_module_auto_switch_timer = SYSTICK_COUNT_VALUE_MS(LCM_AUTO_DISPLAY_SWITCH_PAGE_MS);
 		lcd_module_auto_switch_timer_timeout = false;
 	}
+}
+
+void lcm_content_init(void)
+{
+	strcpy((void *)&lcd_module_display_content[0][0][0], "Elapse: 0000 Sec");
+	strcpy((void *)&lcd_module_display_content[0][1][0], "OK detecting... ");
+	strcpy((void *)&lcd_module_display_content[1][0][0], "ADC0:           ");
+	strcpy((void *)&lcd_module_display_content[1][1][0], "ADC1:           ");
+	strcpy((void *)&lcd_module_display_content[2][0][0], "Ver:            ");
+	strcpy((void *)&lcd_module_display_content[2][1][0], "detecting...    ");
+//	strcpy((void *)&lcd_module_display_content[3][0][0], "(C) 2018/12/10  ");
+//	strcpy((void *)&lcd_module_display_content[3][1][0], "Taipei, Taiwan  ");
+	memset((void *)lcd_module_display_enable, 0x01, 3);
+	lcd_module_display_enable[3] = 0x00;
 }
 
 void lcm_demo(void)

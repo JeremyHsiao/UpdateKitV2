@@ -21,4 +21,7 @@ extern bool			lcd_module_auto_switch_timer_timeout;
 extern uint32_t		time_elapse;
 extern uint32_t		SW_delay_cnt;
 
+extern uint8_t time_elapse_str[];
+extern void Update_Elapse_Timer(void);
+
 #endif /* SW_TIMER_H_ */
