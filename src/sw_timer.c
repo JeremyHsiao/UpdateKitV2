@@ -12,8 +12,12 @@
 bool 		SysTick_1s_timeout = false;
 bool 		SysTick_100ms_timeout = false;
 bool 		SysTick_led_7seg_refresh_timeout = false;
+bool		SW_delay_timeout = false;
+bool		lcd_module_auto_switch_timer_timeout = false;
+
 uint32_t	time_elapse=0;
 uint32_t	SW_delay_cnt = 0;
+uint32_t	lcd_module_auto_switch_timer = 0;
 
 uint32_t	sys_tick_1s_cnt = SYSTICK_COUNT_VALUE_MS(1000);
 uint32_t	sys_tick_100_ms_cnt = SYSTICK_COUNT_VALUE_MS(100);
@@ -48,12 +52,6 @@ void SysTick_Handler(void)
 		SysTick_led_7seg_refresh_timeout = true;
 	}
 
-	// For software delay loop -- decrement each tick
-	if(SW_delay_cnt>0)
-	{
-		SW_delay_cnt--;
-	}
-
 	// 1s
 	if(sys_tick_1s_cnt)
 	{
@@ -65,6 +63,26 @@ void SysTick_Handler(void)
 		SysTick_1s_timeout = true;
 		time_elapse++;
 	}
+
+	// For software delay loop -- decrement each tick
+	if(SW_delay_cnt>0)
+	{
+		SW_delay_cnt--;
+	}
+	else
+	{
+		SW_delay_timeout = true;
+	}
+	// For lcd module delay loop -- decrement each tick
+	if(lcd_module_auto_switch_timer>0)
+	{
+		lcd_module_auto_switch_timer--;
+	}
+	else
+	{
+		lcd_module_auto_switch_timer_timeout = true;
+	}
+
 }
 
 

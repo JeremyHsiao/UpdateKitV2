@@ -56,4 +56,10 @@ extern void lcm_write_ram_data(uint8_t c);
 extern uint8_t lcd_read_busy_and_address(void);
 extern uint8_t lcd_read_data_from_RAM(void);
 
+extern void lcm_auto_display_init(void);
+extern void lcm_auto_display_refresh_task(void);
+#define LCM_AUTO_DISPLAY_SWITCH_PAGE_MS		(5000)
+
+extern void lcm_demo(void);
+
 #endif /* LCD_MODULE_H_ */

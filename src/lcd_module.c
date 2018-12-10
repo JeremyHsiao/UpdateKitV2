@@ -9,6 +9,15 @@
 #include "lcd_module.h"
 #include "sw_timer.h"
 #include "uart_0_rb.h"
+#include "string.h"
+
+#define	MAX_LCD_CONTENT_PAGE	(4)
+#define LCM_DISPLAY_ROW			(2)
+#define LCM_DISPLAY_COL			(16)
+uint8_t		lcd_module_display_content[MAX_LCD_CONTENT_PAGE][LCM_DISPLAY_ROW][LCM_DISPLAY_COL];
+uint8_t 	lcd_module_display_enable[MAX_LCD_CONTENT_PAGE];
+uint32_t	lcd_module_auto_switch_timer;
+uint8_t		lcm_current_page, lcm_current_row, lcm_current_col;
 
 static void inline Delay125ns(void)
 {
@@ -23,10 +32,11 @@ static void inline Delay125ns(void)
 static void inline Add_LCM_Delay_Tick(uint32_t delay_us)
 {
 	SW_delay_cnt += ((delay_us*(SYSTICK_PER_SECOND/1000))/1000);
+	SW_delay_timeout=false;
 }
 static void inline Wait_until_No_More_Delay_Tick(void)
 {
-	while(SW_delay_cnt!=0);
+	while(SW_delay_timeout==false);
 }
 
 //void DelayMS(uint32_t delayms)
@@ -229,6 +239,29 @@ uint8_t lcd_read_busy_and_address(void)
 	return read_value;
 }
 
+bool wait_for_not_busy(uint8_t retry)
+{
+	uint8_t	retry_cnt = retry;
+	bool	b_ret = false;
+
+	do
+	{
+		Wait_until_No_More_Delay_Tick();
+		if((lcd_read_busy_and_address()&0x80)==0x00)
+		{
+			b_ret = true;
+			break;
+		}
+		else
+		{
+			Add_LCM_Delay_Tick(SHORTER_DELAY_US);
+		}
+	}
+	while(retry_cnt-->0);
+
+	return b_ret;
+}
+
 uint8_t lcd_read_data_from_RAM(void)
 {
 	uint8_t		read_value, temp_nibble;
@@ -301,10 +334,10 @@ void lcm_initialize_to_4_bit_mode()
 {
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x38);    // force back to 8-bit modes to make sure initial stage
+	lcm_write_cmd(0x33);    // force back to 8-bit modes to make sure initial stage
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x22);    // send 2x 0x20 (for 4-bit) to make sure entering 4-bit mode
+	lcm_write_cmd(0x02);    // send 2x 0x20 (for 4-bit) to make sure entering 4-bit mode
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
 	lcm_write_cmd(0x28);    // Setup 4 bit mode, 2 lines, 5x8
@@ -348,8 +381,6 @@ void lcm_goto(uint8_t pos, uint8_t line)		// pos / line
 	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 }
 
-extern void lcm_demo(void);
-
 void lcm_init(void)
 {
 	lcd_gpio_init();	// All port are configured as output, set as low
@@ -365,11 +396,103 @@ void lcm_init(void)
 	//lcm_entry_mode(true,false);		// I/D high, SH low
 	lcm_display_on_off_control(true,false,false);       // Display ON, Cursor off, Cursor Blink off
 	//lcm_cursor_display_shift(true,true);        		// S/C high & R/L high
+}
 
-	lcm_demo();
+void lcm_auto_display_page_visible(uint8_t page, uint8_t visible)
+{
+	if(page<MAX_LCD_CONTENT_PAGE)
+	{
+		lcd_module_display_enable[page] = visible;
+	}
+}
+
+// return if cursor reaches end of row/col and move back to (0,0)
+bool lcm_move_to_next_pos(void)
+{
+	if(++lcm_current_col<LCM_DISPLAY_COL)
+	{
+		return false;
+	}
+
+	lcm_current_col = 0;
+	if(++lcm_current_row<LCM_DISPLAY_ROW)
+	{
+		wait_for_not_busy(15);
+		lcm_goto(0,lcm_current_row);
+		return false;
+	}
+
+	// end of row/col has been reached.
+	lcm_current_row=0;
+	wait_for_not_busy(15);
+	lcm_goto(0,0);
+	if(++lcm_current_page>=MAX_LCD_CONTENT_PAGE)
+	{
+		lcm_current_page = 0;
+	}
+	return true;
+}
+
+void lcm_auto_display_clear_all_page(void)
+{
+	memset((void *)lcd_module_display_content, ' ', sizeof(lcd_module_display_content));
+}
+
+void lcm_auto_disable_all_page(void)
+{
+	memset((void *)lcd_module_display_enable, 0x00, sizeof(lcd_module_display_enable));
+}
+
+void lcm_auto_display_init(void)
+{
+	lcd_module_auto_switch_timer = 0;
+	lcm_current_page = lcm_current_row = lcm_current_col = 0;
+	lcm_auto_display_clear_all_page();
+	lcm_auto_disable_all_page();
+}
+
+void lcm_auto_display_refresh_task(void)
+{
+	uint8_t	temp;
+
+	if(lcd_module_auto_switch_timer_timeout==false)
+	{
+		return;
+	}
+
+	// If all pages are disabled, simply return
+	for(temp=0; temp < MAX_LCD_CONTENT_PAGE; temp++)
+	{
+		if(lcd_module_display_enable[temp]!=0x0)
+			break;
+	}
+	if(temp==MAX_LCD_CONTENT_PAGE)
+		return;								// If all pages are disabled, simply return
+
+	wait_for_not_busy(15);
+	lcm_write_ram_data(lcd_module_display_content[lcm_current_page][lcm_current_row][lcm_current_col]);
+
+	if(lcm_move_to_next_pos()==true)		// end of current page, need to find next visible page
+	{
+		lcd_module_auto_switch_timer = SYSTICK_COUNT_VALUE_MS(LCM_AUTO_DISPLAY_SWITCH_PAGE_MS);
+		lcd_module_auto_switch_timer_timeout = false;
+	}
 }
 
 void lcm_demo(void)
+{
+	strcpy((void *)&lcd_module_display_content[0][0][0], "TPV Technology  ");
+	strcpy((void *)&lcd_module_display_content[0][1][0], "UpdateKit V002  ");
+	strcpy((void *)&lcd_module_display_content[1][0][0], "Developed By:   ");
+	strcpy((void *)&lcd_module_display_content[1][1][0], "I&D TV-FW-SPP   ");
+	strcpy((void *)&lcd_module_display_content[2][0][0], "HW Hsu          ");
+	strcpy((void *)&lcd_module_display_content[2][1][0], "Jeremy Hsiao    ");
+	strcpy((void *)&lcd_module_display_content[3][0][0], "(C) 2018/12/10  ");
+	strcpy((void *)&lcd_module_display_content[3][1][0], "Taipei, Taiwan  ");
+	memset((void *)lcd_module_display_enable, 0x01, sizeof(lcd_module_display_enable));
+}
+
+void lcm_demo_old(void)
 {
 	uint8_t 	readback_value, index;
 	uint8_t		brand_string[] = "TPV Technology";

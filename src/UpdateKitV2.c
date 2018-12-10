@@ -60,11 +60,15 @@ int main(void)
 	ADC1_value = ADC_SAMPLE_ERROR_VALUE;
 	reset_string_detector();
 	lcm_init();
+	lcm_auto_display_init();
+	lcm_demo();
 
 	while (key != 27) {
 
 		/* Sleep until something happens */
 		__WFI();
+
+		lcm_auto_display_refresh_task();
 
 		bytes = UART0_GetChar(&key);
 		if (bytes > 0) {
@@ -105,7 +109,7 @@ int main(void)
 		if(SysTick_led_7seg_refresh_timeout==true)
 		{
 			SysTick_led_7seg_refresh_timeout = false;
-			refresh_LED_7SEG_periodic_task();
+//			refresh_LED_7SEG_periodic_task();
 		}
 
 		if(SysTick_1s_timeout==true)

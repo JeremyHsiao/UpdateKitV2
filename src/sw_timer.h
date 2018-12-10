@@ -15,6 +15,9 @@
 extern bool 		SysTick_1s_timeout;
 extern bool 		SysTick_100ms_timeout;
 extern bool 		SysTick_led_7seg_refresh_timeout;
+extern bool			SW_delay_timeout;
+extern bool			lcd_module_auto_switch_timer_timeout;
+
 extern uint32_t		time_elapse;
 extern uint32_t		SW_delay_cnt;
 
