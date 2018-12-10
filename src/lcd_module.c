@@ -483,16 +483,16 @@ void lcm_auto_display_refresh_task(void)
 
 void lcm_content_init(void)
 {
-	strcpy((void *)&lcd_module_display_content[0][0][0], "Elapse: 0000 Sec");
-	strcpy((void *)&lcd_module_display_content[0][1][0], "Power detecting.");
+	strcpy((void *)&lcd_module_display_content[0][0][0], "TPV UpdateKit V2");
+	strcpy((void *)&lcd_module_display_content[0][1][0], "Elapse: 0000 Sec");
 	strcpy((void *)&lcd_module_display_content[1][0][0], "ADC0:           ");
 	strcpy((void *)&lcd_module_display_content[1][1][0], "ADC1:           ");
 	strcpy((void *)&lcd_module_display_content[2][0][0], "Ver:            ");
 	strcpy((void *)&lcd_module_display_content[2][1][0], "detecting...    ");
-	strcpy((void *)&lcd_module_display_content[3][0][0], "OK detecting... ");
- 	strcpy((void *)&lcd_module_display_content[3][1][0], "                ");
-	memset((void *)lcd_module_display_enable, 0x01, 3);
-	lcd_module_display_enable[3] = 0x00;
+	strcpy((void *)&lcd_module_display_content[3][0][0], "PWR detecting...");
+ 	strcpy((void *)&lcd_module_display_content[3][1][0], "OK detecting... ");
+	memset((void *)lcd_module_display_enable, 0x01, 4);
+	//lcd_module_display_enable[3] = 0x00;
 }
 
 void lcm_demo(void)

@@ -123,7 +123,7 @@ int main(void)
 		if(SysTick_1s_timeout==true)
 		{
 			Update_Elapse_Timer(); // Can be removed if this demo is not required
-			memcpy((void *)&lcd_module_display_content[0][0][8], time_elapse_str, 4);
+			memcpy((void *)&lcd_module_display_content[0][1][8], time_elapse_str, 4);
 			//Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
 		}
 
