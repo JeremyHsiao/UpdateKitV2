@@ -123,13 +123,13 @@ void Init_PWM(void)
 
 	/* For CTOUT0 to CTOUT2, event 1 is used to clear the output */
 	LPC_SCT1->OUT[0].CLR = (1 << 0);
-	LPC_SCT1->OUT[1].CLR = (1 << 0);
-	LPC_SCT1->OUT[2].CLR = (1 << 0);
+	//LPC_SCT1->OUT[1].CLR = (1 << 0);
+	//LPC_SCT1->OUT[2].CLR = (1 << 0);
 
 	/* Setup PWM0(CTOUT0), PWM1(CTOUT1), and PWM2(CTOUT2) to 50% dutycycle */
 	setPWMRate(0, default_duty_cycle);	/* On match 1 */
-	setPWMRate(1, default_duty_cycle);	/* On match 2 */
-	setPWMRate(2, default_duty_cycle);	/* On match 3 */
+	//setPWMRate(1, default_duty_cycle);	/* On match 2 */
+	//setPWMRate(2, default_duty_cycle);	/* On match 3 */
 
 	/* Setup event 1 to trigger on match 1 and set CTOUT0 high */
 	LPC_SCT1->EVENT[1].CTRL = (1 << 0) | (1 << 12);
@@ -137,14 +137,14 @@ void Init_PWM(void)
 	LPC_SCT1->OUT[0].SET = (1 << 1);
 
 	/* Setup event 2 trigger on match 2 and set CTOUT1 high */
-	LPC_SCT1->EVENT[2].CTRL = (2 << 0) | (1 << 12);
-	LPC_SCT1->EVENT[2].STATE = 1;
-	LPC_SCT1->OUT[1].SET = (1 << 2);
+	//LPC_SCT1->EVENT[2].CTRL = (2 << 0) | (1 << 12);
+	//LPC_SCT1->EVENT[2].STATE = 1;
+	//LPC_SCT1->OUT[1].SET = (1 << 2);
 
 	/* Setup event 3 trigger on match 3 and set CTOUT2 high */
-	LPC_SCT1->EVENT[3].CTRL = (3 << 0) | (1 << 12);
-	LPC_SCT1->EVENT[3].STATE = 1;
-	LPC_SCT1->OUT[2].SET = (1 << 3);
+	//LPC_SCT1->EVENT[3].CTRL = (3 << 0) | (1 << 12);
+	//LPC_SCT1->EVENT[3].STATE = 1;
+	//LPC_SCT1->OUT[2].SET = (1 << 3);
 
 	/* Don't use states */
 	LPC_SCT1->STATE_L = 0;
