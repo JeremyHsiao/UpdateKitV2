@@ -165,8 +165,8 @@ int main(void)
 
 			/* Update duty cycle in SCT/PWM by change match 1 reload time */
 			setPWMRate(0, dutyCycle);
-			setPWMRate(1, dutyCycle);
-			setPWMRate(2, dutyCycle);
+			//setPWMRate(1, dutyCycle);
+			//setPWMRate(2, dutyCycle);
 			temp_str_len = itoa_10(dutyCycle, temp_str);
 			memset((void *)&lcd_module_display_content[1][1][9], ' ', LCM_DISPLAY_COL-9);
 			memcpy((void *)&lcd_module_display_content[1][1][9], temp_str, temp_str_len);
