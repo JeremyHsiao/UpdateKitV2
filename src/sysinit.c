@@ -50,7 +50,7 @@
 /* Set up and initialize hardware prior to call to main */
 void SystemInit(void)
 {
-#if defined(NO_BOARD_LIB)
+#if defined(NO_BOARD_LIB) || defined (_REAL_UPDATEKIT_V2_BOARD_)
 	/* Chip specific SystemInit */
 	Chip_SystemInit();
 #else
