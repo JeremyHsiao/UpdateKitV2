@@ -78,14 +78,16 @@ int main(void)
 			temp=locate_OK_pattern_process(key);
 			if(temp==10)
 			{
-				OutputHexValue_with_newline(temp);
+				//OutputHexValue_with_newline(temp);
+			 	memcpy((void *)&lcd_module_display_content[3][1][0], "OK is detected! ",LCM_DISPLAY_COL);
 			}
 
 			// To identify @POWERON
 			locate_POWERON_pattern_process(key);
 			if(Get_POWERON_pattern()==true)
 			{
-				OutputString_with_newline("POWER_ON_DETECTED");
+				//OutputString_with_newline("POWER_ON_DETECTED");
+				memcpy((void *)&lcd_module_display_content[3][0][0], "POWERON detected", LCM_DISPLAY_COL);
 				Clear_POWERON_pattern();
 			}
 
@@ -93,8 +95,28 @@ int main(void)
 			locate_VER_pattern_process(key);
 			if(Found_VER_string()==true)
 			{
-				OutputString("Version:");
-				OutputString_with_newline((char *)Get_VER_string());
+				//OutputString("Version:");
+				//OutputString_with_newline((char *)Get_VER_string());
+				char	*temp_str = (char *) Get_VER_string();
+				uint8_t	temp_len = strlen(temp_str);
+				if(temp_len<=LCM_DISPLAY_COL)
+				{
+					strcpy((void *)&lcd_module_display_content[2][1][0], temp_str);
+				}
+				else
+				{
+					memcpy((void *)&lcd_module_display_content[2][0][4], temp_str, 12);
+					temp_len-=12;
+					if(temp_len>LCM_DISPLAY_COL)
+					{
+						memcpy((void *)&lcd_module_display_content[2][1][0], temp_str+12, LCM_DISPLAY_COL);
+					}
+					else
+					{
+						memcpy((void *)&lcd_module_display_content[2][1][0], temp_str+12, temp_len);
+						memset((void *)&lcd_module_display_content[2][1][temp_len], ' ', LCM_DISPLAY_COL-temp_len);
+					}
+				}
 				Clear_VER_string();
 			}
 		}
@@ -132,7 +154,10 @@ int main(void)
 		// Process when button is pressed
 		if(GPIOGoup0_Int==true)
 		{
+			char temp_str[LCM_DISPLAY_COL+1];
+			int  temp_str_len;
 
+			GPIOGoup0_Int = false;
 			dutyCycle += countdir;
 			if ((dutyCycle  == 0) || (dutyCycle >= 100)) {
 				countdir = -countdir;
@@ -142,8 +167,9 @@ int main(void)
 			setPWMRate(0, dutyCycle);
 			setPWMRate(1, dutyCycle);
 			setPWMRate(2, dutyCycle);
-
-			GPIOGoup0_Int = false;
+			temp_str_len = itoa_10(dutyCycle, temp_str);
+			memset((void *)&lcd_module_display_content[1][1][9], ' ', LCM_DISPLAY_COL-9);
+			memcpy((void *)&lcd_module_display_content[1][1][9], temp_str, temp_str_len);
 		}
 
 

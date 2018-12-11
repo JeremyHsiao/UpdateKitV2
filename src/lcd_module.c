@@ -486,7 +486,7 @@ void lcm_content_init(void)
 	strcpy((void *)&lcd_module_display_content[0][0][0], "TPV UpdateKit V2");
 	strcpy((void *)&lcd_module_display_content[0][1][0], "Elapse: 0000 Sec");
 	strcpy((void *)&lcd_module_display_content[1][0][0], "ADC: 1024 / 1024");
-	strcpy((void *)&lcd_module_display_content[1][1][0], "PWM Duty:       ");
+	strcpy((void *)&lcd_module_display_content[1][1][0], "PWM Duty:50     ");
 	strcpy((void *)&lcd_module_display_content[2][0][0], "Ver:            ");
 	strcpy((void *)&lcd_module_display_content[2][1][0], "detecting...    ");
 	strcpy((void *)&lcd_module_display_content[3][0][0], "PWR detecting...");
@@ -513,7 +513,6 @@ void lcm_demo_old(void)
 	uint8_t 	readback_value, index;
 	uint8_t		brand_string[] = "TPV Technology";
 	uint8_t		product_string[] = "UpdateKit V002";
-
 
 	readback_value = lcd_read_busy_and_address();
 

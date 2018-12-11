@@ -154,7 +154,7 @@ void Read_ADC(void)
 	//}
 
 		uint32_t rawSample;
-		char temp_str[LCM_DISPLAY_COL-5+1];
+		char temp_str[LCM_DISPLAY_COL];
 		int  temp_str_len;
 
 		sequenceComplete = false;
@@ -166,7 +166,7 @@ void Read_ADC(void)
 			ADC0_value = ADC_DR_RESULT(rawSample);
 			temp_str_len = itoa_10(ADC0_value, temp_str);
 			memset((void *)&lcd_module_display_content[1][0][5], ' ', 4);
-			memcpy((void *)&lcd_module_display_content[1][0][5], temp_str, temp_str_len-1);
+			memcpy((void *)&lcd_module_display_content[1][0][5], temp_str, temp_str_len);
 		}
 		else
 		{
