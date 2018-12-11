@@ -59,6 +59,12 @@ const char inst2[] = "Press a key to echo it back or ESC to quit\r\n";
  ****************************************************************************/
 static void Init_UART_PinMux(void)
 {
+#ifdef _REAL_UPDATEKIT_V2_BOARD_
+
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 18, (IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_DIGMODE_EN));
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 19, (IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_DIGMODE_EN));
+
+#else
 #if defined(BOARD_MANLEY_11U68)
 	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 18, (IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_DIGMODE_EN));
 	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 19, (IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_DIGMODE_EN));
@@ -70,6 +76,7 @@ static void Init_UART_PinMux(void)
 #else
 #error "No UART setup defined"
 #endif
+#endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
 }
 
 /*****************************************************************************
