@@ -30,6 +30,9 @@
  */
 
 #include "board.h"
+#include "lcd_module.h"
+#include "uart_0_rb.h"
+#include "string.h"
 #include "adc.h"
 
 /*****************************************************************************
@@ -57,7 +60,6 @@ void ADCA_IRQHandler(void)
 {
 	uint32_t pending;
 
-	/* Get pending interrupts */
 	pending = Chip_ADC_GetFlags(LPC_ADC);
 
 	/* Sequence A completion interrupt */
@@ -140,4 +142,64 @@ void DeInit_ADC(void)
 {
 	NVIC_EnableIRQ(ADC_A_IRQn);
 	Chip_ADC_DeInit(LPC_ADC);
+}
+
+void Read_ADC(void)
+{
+	uint16_t	ADC0_value, ADC1_value;
+
+	// Is an ADC conversion overflow/underflow?
+	//if (thresholdCrossed) {
+	//	thresholdCrossed = false;
+	//}
+
+		uint32_t rawSample;
+		char temp_str[LCM_DISPLAY_COL-5+1];
+		int  temp_str_len;
+
+		sequenceComplete = false;
+
+		/* Get raw sample data for channels 6 */
+		rawSample = Chip_ADC_GetDataReg(LPC_ADC, 6);
+		/* Show some ADC data */
+		if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
+			ADC0_value = ADC_DR_RESULT(rawSample);
+			temp_str_len = itoa_10(ADC0_value, temp_str);
+			memset((void *)&lcd_module_display_content[1][0][5], ' ', 4);
+			memcpy((void *)&lcd_module_display_content[1][0][5], temp_str, temp_str_len-1);
+		}
+		else
+		{
+			ADC0_value = ADC_SAMPLE_ERROR_VALUE;
+		}
+
+		/* Get raw sample data for channels 8 */
+		rawSample = Chip_ADC_GetDataReg(LPC_ADC, 8);
+		/* Show some ADC data */
+		if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
+			ADC1_value = ADC_DR_RESULT(rawSample);
+			temp_str_len = itoa_10(ADC1_value, temp_str);
+			memset((void *)&lcd_module_display_content[1][0][12], ' ', 4);
+			memcpy((void *)&lcd_module_display_content[1][0][12], temp_str, temp_str_len-1);
+		}
+		else
+		{
+			ADC1_value = ADC_SAMPLE_ERROR_VALUE;
+		}
+
+		// Overtun example code
+//			DEBUGOUT("Overrun    = %d\r\n", ((rawSample & ADC_DR_OVERRUN) != 0));
+//			DEBUGOUT("Data valid = %d\r\n", ((rawSample & ADC_SEQ_GDAT_DATAVALID) != 0));
+//			DEBUGSTR("\r\n");
+		//			if(ADC0_value!=ADC_SAMPLE_ERROR_VALUE)
+		//			{
+		//				OutputString("ADC_6:");
+		//				OutputHexValue_with_newline(ADC0_value);
+		//			}
+		//			if(ADC1_value!=ADC_SAMPLE_ERROR_VALUE)
+		//			{
+		//				OutputString("ADC_8:");
+		//				OutputHexValue_with_newline(ADC1_value);
+		//			}
+
 }

@@ -27,7 +27,6 @@
 /*****************************************************************************
  * Private functions
  ****************************************************************************/
-#define		ADC_SAMPLE_ERROR_VALUE		(0xffff)	// length is 16 bits
 
 /*****************************************************************************
  * Public functions
@@ -41,7 +40,6 @@ int main(void)
 {
 	uint8_t key, dutyCycle = 50, temp;  	/* Start at 50% duty cycle */
 	int bytes, countdir = 10;
-	uint16_t	ADC0_value, ADC1_value;
 
 	SystemCoreClockUpdate();
 	/* Enable and setup SysTick Timer at a periodic rate */
@@ -56,8 +54,6 @@ int main(void)
 
 	/* Poll the receive ring buffer for the ESC (ASCII 27) key */
 	key = 0;
-	ADC0_value = ADC_SAMPLE_ERROR_VALUE;
-	ADC1_value = ADC_SAMPLE_ERROR_VALUE;
 	reset_string_detector();
 	lcm_init();
 	lcm_auto_display_init();
@@ -103,13 +99,19 @@ int main(void)
 			}
 		}
 
-		// ADC coversion every 100ms
+		// ADC conversion is triggered every 100ms
 		if(SysTick_100ms_timeout==true)
 		{
 			SysTick_100ms_timeout = false;
 
 			/* Manual start for ADC conversion sequence A */
 			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
+		}
+
+		/* Is an ADC conversion sequence complete? */
+		if (sequenceComplete)
+		{
+			Read_ADC();
 		}
 
 		// Refresh each char of 7 Segment LED every 100ms
@@ -142,67 +144,9 @@ int main(void)
 			setPWMRate(2, dutyCycle);
 
 			GPIOGoup0_Int = false;
-
-//			if(ADC0_value!=ADC_SAMPLE_ERROR_VALUE)
-//			{
-//				OutputString("ADC_6:");
-//				OutputHexValue_with_newline(ADC0_value);
-//			}
-//			if(ADC1_value!=ADC_SAMPLE_ERROR_VALUE)
-//			{
-//				OutputString("ADC_8:");
-//				OutputHexValue_with_newline(ADC1_value);
-//			}
-
 		}
 
 
-		// Is an ADC conversion overflow/underflow?
-		//if (thresholdCrossed) {
-		//	thresholdCrossed = false;
-		//}
-
-		/* Is an ADC conversion sequence complete? */
-		if (sequenceComplete) {
-			uint32_t rawSample;
-			char temp_str[LCM_DISPLAY_COL-5+1];
-			int  temp_str_len;
-
-			sequenceComplete = false;
-
-			/* Get raw sample data for channels 6 */
-			rawSample = Chip_ADC_GetDataReg(LPC_ADC, 6);
-			/* Show some ADC data */
-			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
-				ADC0_value = ADC_DR_RESULT(rawSample);
-				temp_str_len = itoa_10(ADC0_value, temp_str);
-				memset((void *)&lcd_module_display_content[1][0][5], ' ', LCM_DISPLAY_COL-5);
-				memcpy((void *)&lcd_module_display_content[1][0][5], temp_str, temp_str_len-1);
-			}
-			else
-			{
-				ADC0_value = ADC_SAMPLE_ERROR_VALUE;
-			}
-
-			/* Get raw sample data for channels 8 */
-			rawSample = Chip_ADC_GetDataReg(LPC_ADC, 8);
-			/* Show some ADC data */
-			if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
-				ADC1_value = ADC_DR_RESULT(rawSample);
-				temp_str_len = itoa_10(ADC1_value, temp_str);
-				memset((void *)&lcd_module_display_content[1][1][5], ' ', LCM_DISPLAY_COL-5);
-				memcpy((void *)&lcd_module_display_content[1][1][5], temp_str, temp_str_len-1);
-			}
-			else
-			{
-				ADC1_value = ADC_SAMPLE_ERROR_VALUE;
-			}
-
-			// Overtun example code
-//			DEBUGOUT("Overrun    = %d\r\n", ((rawSample & ADC_DR_OVERRUN) != 0));
-//			DEBUGOUT("Data valid = %d\r\n", ((rawSample & ADC_SEQ_GDAT_DATAVALID) != 0));
-//			DEBUGSTR("\r\n");
-		}
 	}
 
 	/* DeInitialize peripherals before ending */

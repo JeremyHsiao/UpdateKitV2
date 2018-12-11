@@ -61,6 +61,7 @@ extern void lcm_auto_display_refresh_task(void);
 #define LCM_AUTO_DISPLAY_SWITCH_PAGE_MS		(5000)
 
 extern void lcm_demo(void);
+extern void lcm_content_init(void);
 
 #define	MAX_LCD_CONTENT_PAGE	(4)
 #define LCM_DISPLAY_ROW			(2)

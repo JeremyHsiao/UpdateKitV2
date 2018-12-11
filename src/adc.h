@@ -11,8 +11,10 @@
 extern bool sequenceComplete, thresholdCrossed;
 
 #define BOARD_ADC_CH 0
+#define	ADC_SAMPLE_ERROR_VALUE		(0xffff)	// length is 16 bits
 
-void Init_ADC(void);
-void DeInit_ADC(void);
+extern void Init_ADC(void);
+extern void DeInit_ADC(void);
+extern void Read_ADC(void);
 
 #endif /* ADC_H_ */
