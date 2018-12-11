@@ -49,6 +49,12 @@ void Init_GPIO(void)
 	Chip_GPIOGP_SelectAndMode(LPC_GPIOGROUP, 0);
 	Chip_GPIOGP_SelectEdgeMode(LPC_GPIOGROUP, 0);
 
+
+	// Set as gpio without pull-up/down/open-drain.
+	Chip_IOCON_PinMuxSet(LPC_IOCON, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN, (IOCON_FUNC0 | IOCON_MODE_INACT ));
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+	Chip_GPIO_SetPortOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+
 	GPIOGoup0_Int = false;
 
 	/* Enable Group GPIO interrupt 0 */

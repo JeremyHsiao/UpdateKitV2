@@ -15,6 +15,15 @@
 #define ISP_KEY_GPIO_PORT		(0)
 #define ISP_KEY_GPIO_PIN		(1)
 
+#ifdef _REAL_UPDATEKIT_V2_BOARD_
+// 5-8V enable
+#define VOUT_ENABLE_GPIO_PORT	(2)
+#define VOUT_ENABLE_GPIO_PIN	(7)
+#else
+#define VOUT_ENABLE_GPIO_PORT	(2)
+#define VOUT_ENABLE_GPIO_PIN	(7)
+#endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
+
 /* These two inputs for GROUP GPIO Interrupt 0. */
 #define GINT0_GPIO_PORT0    (SWITCH_KEY_GPIO_PORT)
 #define GINT0_GPIO_BIT0     (SWITCH_KEY_GPIO_PIN)
