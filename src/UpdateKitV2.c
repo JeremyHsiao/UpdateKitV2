@@ -80,6 +80,7 @@ int main(void)
 			{
 				//OutputHexValue_with_newline(temp);
 			 	memcpy((void *)&lcd_module_display_content[3][1][0], "OK is detected! ",LCM_DISPLAY_COL);
+				lcm_force_to_display_page(3);
 			}
 
 			// To identify @POWERON
@@ -88,6 +89,7 @@ int main(void)
 			{
 				//OutputString_with_newline("POWER_ON_DETECTED");
 				memcpy((void *)&lcd_module_display_content[3][0][0], "POWERON detected", LCM_DISPLAY_COL);
+				lcm_force_to_display_page(3);
 				Clear_POWERON_pattern();
 			}
 
@@ -117,6 +119,7 @@ int main(void)
 						memset((void *)&lcd_module_display_content[2][1][temp_len], ' ', LCM_DISPLAY_COL-temp_len);
 					}
 				}
+				lcm_force_to_display_page(2);
 				Clear_VER_string();
 			}
 		}
@@ -170,6 +173,7 @@ int main(void)
 			temp_str_len = itoa_10(dutyCycle, temp_str);
 			memset((void *)&lcd_module_display_content[1][1][9], ' ', LCM_DISPLAY_COL-9);
 			memcpy((void *)&lcd_module_display_content[1][1][9], temp_str, temp_str_len);
+			lcm_force_to_display_page(1);
 		}
 
 

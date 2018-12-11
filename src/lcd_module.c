@@ -444,6 +444,14 @@ void lcm_auto_display_init(void)
 	lcm_auto_disable_all_page();
 }
 
+void lcm_force_to_display_page(uint8_t page_no)
+{
+	lcd_module_auto_switch_timer = SYSTICK_COUNT_VALUE_MS(LCM_AUTO_DISPLAY_SWITCH_PAGE_MS);
+	lcd_module_auto_switch_timer_timeout = false;
+	lcm_current_row=lcm_current_col=0;
+	lcm_current_page=page_no;
+}
+
 void lcm_auto_display_refresh_task(void)
 {
 	uint8_t	temp;
