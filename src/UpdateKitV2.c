@@ -143,7 +143,7 @@ int main(void)
 		if(SysTick_led_7seg_refresh_timeout==true)
 		{
 			SysTick_led_7seg_refresh_timeout = false;
-//			refresh_LED_7SEG_periodic_task();
+			refresh_LED_7SEG_periodic_task();
 		}
 
 		// This is update every second
@@ -151,7 +151,31 @@ int main(void)
 		{
 			Update_Elapse_Timer(); // Can be removed if this demo is not required
 			memcpy((void *)&lcd_module_display_content[0][1][8], time_elapse_str, 4);
-			//Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
+			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
+
+			switch(time_elapse&0x03)
+			{
+				case 0:
+					LED_R_HIGH;
+					LED_G_LOW;
+					LED_Y_LOW;
+					break;
+				case 1:
+					LED_R_LOW;
+					LED_G_HIGH;
+					LED_Y_LOW;
+					break;
+				case 2:
+					LED_R_LOW;
+					LED_G_LOW;
+					LED_Y_HIGH;
+					break;
+				case 3:
+					LED_R_LOW;
+					LED_G_LOW;
+					LED_Y_LOW;
+					break;
+			}
 		}
 
 		// Process when button is pressed
@@ -160,7 +184,6 @@ int main(void)
 			char temp_str[LCM_DISPLAY_COL+1];
 			int  temp_str_len;
 
-			GPIOGoup0_Int = false;
 			dutyCycle += countdir;
 			if ((dutyCycle  == 0) || (dutyCycle >= 100)) {
 				countdir = -countdir;
@@ -174,6 +197,7 @@ int main(void)
 			memset((void *)&lcd_module_display_content[1][1][9], ' ', LCM_DISPLAY_COL-9);
 			memcpy((void *)&lcd_module_display_content[1][1][9], temp_str, temp_str_len);
 			lcm_force_to_display_page(1);
+			GPIOGoup0_Int = false;
 		}
 
 
