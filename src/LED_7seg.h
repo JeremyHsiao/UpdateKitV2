@@ -11,51 +11,51 @@
 #ifdef _REAL_UPDATEKIT_V2_BOARD_
 
 	#define LED_7SEG_SEG1_PORT		(0)
-	#define LED_7SEG_SEG1_PIN		(20)
+	#define LED_7SEG_SEG1_PIN		(21)
 	#define	LED_7SEG_SEG1_IO_FUNC	(IOCON_FUNC0)
 
 	#define LED_7SEG_SEG2_PORT		(0)
-	#define LED_7SEG_SEG2_PIN		(5)
+	#define LED_7SEG_SEG2_PIN		(4)
 	#define	LED_7SEG_SEG2_IO_FUNC	(IOCON_FUNC0)
 
 	#define LED_7SEG_SEG3_PORT		(0)
-	#define LED_7SEG_SEG3_PIN		(21)
+	#define LED_7SEG_SEG3_PIN		(17)
 	#define	LED_7SEG_SEG3_IO_FUNC	(IOCON_FUNC0)
 
 	#define LED_7SEG_SEG4_PORT		(2)
-	#define LED_7SEG_SEG4_PIN		(2)
+	#define LED_7SEG_SEG4_PIN		(0)
 	#define	LED_7SEG_SEG4_IO_FUNC	(IOCON_FUNC0)
 
 	#define LED_7SEG_SEGa_PORT		(0)
-	#define LED_7SEG_SEGa_PIN		(2)
+	#define LED_7SEG_SEGa_PIN		(5)
 	#define	LED_7SEG_SEGa_IO_FUNC	(IOCON_FUNC0)
 
-	#define LED_7SEG_SEGb_PORT		(0)
-	#define LED_7SEG_SEGb_PIN		(22)
+	#define LED_7SEG_SEGb_PORT		(2)
+	#define LED_7SEG_SEGb_PIN		(2)
 	#define	LED_7SEG_SEGb_IO_FUNC	(IOCON_FUNC0)
 
-	#define LED_7SEG_SEGc_PORT		(2)
-	#define LED_7SEG_SEGc_PIN		(1)
+	#define LED_7SEG_SEGc_PORT		(0)
+	#define LED_7SEG_SEGc_PIN		(22)
 	#define	LED_7SEG_SEGc_IO_FUNC	(IOCON_FUNC0)
 
-	#define LED_7SEG_SEGd_PORT		(1)
-	#define LED_7SEG_SEGd_PIN		(23)
+	#define LED_7SEG_SEGd_PORT		(2)
+	#define LED_7SEG_SEGd_PIN		(5)
 	#define	LED_7SEG_SEGd_IO_FUNC	(IOCON_FUNC0)
 
 	#define LED_7SEG_SEGdp_PORT		(2)
-	#define LED_7SEG_SEGdp_PIN		(0)
+	#define LED_7SEG_SEGdp_PIN		(1)
 	#define	LED_7SEG_SEGdp_IO_FUNC	(IOCON_FUNC0)
 
 	#define LED_7SEG_SEGe_PORT		(0)
-	#define LED_7SEG_SEGe_PIN		(17)
+	#define LED_7SEG_SEGe_PIN		(2)
 	#define	LED_7SEG_SEGe_IO_FUNC	(IOCON_FUNC0)
 
-	#define LED_7SEG_SEGf_PORT		(0)
-	#define LED_7SEG_SEGf_PIN		(4)
+	#define LED_7SEG_SEGf_PORT		(1)
+	#define LED_7SEG_SEGf_PIN		(23)
 	#define	LED_7SEG_SEGf_IO_FUNC	(IOCON_FUNC0)
 
-	#define LED_7SEG_SEGg_PORT		(2)
-	#define LED_7SEG_SEGg_PIN		(5)
+	#define LED_7SEG_SEGg_PORT		(0)
+	#define LED_7SEG_SEGg_PIN		(20)
 	#define	LED_7SEG_SEGg_IO_FUNC	(IOCON_FUNC0)
 
 #else
