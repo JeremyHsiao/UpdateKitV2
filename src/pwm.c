@@ -46,6 +46,116 @@ static uint32_t cycleTicks;
  * Private functions
  ****************************************************************************/
 
+#ifdef _REAL_UPDATEKIT_V2_BOARD_
+
+void setPWMRate(int pwnNum, uint8_t percentage)
+{
+	uint32_t value;
+
+	/* Limit valid PWMs to 3 */
+	if ((pwnNum < 0) || (pwnNum > 3)) {
+		return;
+	}
+
+	if (percentage >= 100) {
+		value = 1;
+	}
+	else if (percentage == 0) {
+		value = cycleTicks + 1;
+	}
+	else {
+		uint32_t newTicks;
+
+		newTicks = (cycleTicks * percentage) / 100;
+
+		/* Approximate duty cycle rate */
+		value = cycleTicks - newTicks;
+	}
+
+	LPC_SCT0->MATCHREL[pwnNum + 1].U = value;
+}
+
+/*****************************************************************************
+ * Public functions
+ ****************************************************************************/
+/**
+ * @brief	Handle interrupt from State Configurable Timer
+ * @return	Nothing
+ */
+void SCT_IRQHandler(void)
+{
+	/* Clear the Interrupt */
+	Chip_SCT_ClearEventFlag(LPC_SCT0, SCT_EVT_0);
+}
+
+// Added/modified by Jeremy
+void Init_PWM(void)
+{
+	/* Chip specific SCT setup - clocks and peripheral reset
+	   There are a lot of registers in the SCT peripheral. Performing
+	   the reset allows the default states of the SCT to be loaded, so
+	   we don't need to set them all and rely on defaults when needed. */
+	Chip_SCT_Init(LPC_SCT0);
+
+	/* SCT0_OUT3 on PIO1_13 mapped to FUNC2 */
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 13, (IOCON_FUNC2 | IOCON_MODE_INACT /*| IOCON_ADMODE_EN */));
+
+
+	/* Configure the SCT as a 32bit counter using the bus clock */
+	LPC_SCT0->CONFIG = SCT_CONFIG_32BIT_COUNTER | SCT_CONFIG_CLKMODE_BUSCLK;
+
+	/* Initial CTOUT3 state is high */
+	LPC_SCT0->OUTPUT = (1 << 3);
+
+	/* The PWM will use a cycle time of (PWMCYCLERATE)Hz based off the bus clock */
+	cycleTicks = Chip_Clock_GetSystemClockRate() / PWMCYCLERATE;
+
+	/* Setup for match mode */
+	LPC_SCT0->REGMODE_L = 0;
+
+	/* Setup match counter 0 for the number of ticks in a PWM sweep, event 0
+	    will be used with the match 0 count to reset the counter.  */
+	LPC_SCT0->MATCH[0].U = cycleTicks;
+	LPC_SCT0->MATCHREL[0].U = cycleTicks;
+	LPC_SCT0->EVENT[0].CTRL = 0x00001000;
+	LPC_SCT0->EVENT[0].STATE = 0xFFFFFFFF;
+	LPC_SCT0->LIMIT_L = (1 << 0);
+
+	/* For CTOUT3, event 1 is used to clear the output */
+	LPC_SCT0->OUT[3].CLR = (1 << 0);
+
+	/* Setup PWM3(CTOUT3) to 50% dutycycle */
+	setPWMRate(3, default_duty_cycle);	/* On match 1 */
+
+	/* Setup event 1 to trigger on match 1 and set CTOUT0 high */
+	LPC_SCT0->EVENT[1].CTRL = (1 << 0) | (1 << 12);
+	LPC_SCT0->EVENT[1].STATE = 1;
+	LPC_SCT0->OUT[3].SET = (1 << 1);
+
+	/* Setup event 2 trigger on match 2 and set CTOUT1 high */
+	//LPC_SCT1->EVENT[2].CTRL = (2 << 0) | (1 << 12);
+	//LPC_SCT1->EVENT[2].STATE = 1;
+	//LPC_SCT1->OUT[1].SET = (1 << 2);
+
+	/* Setup event 3 trigger on match 3 and set CTOUT2 high */
+	//LPC_SCT1->EVENT[3].CTRL = (3 << 0) | (1 << 12);
+	//LPC_SCT1->EVENT[3].STATE = 1;
+	//LPC_SCT1->OUT[2].SET = (1 << 3);
+
+	/* Don't use states */
+	LPC_SCT0->STATE_L = 0;
+
+	/* Unhalt the counter to start */
+	LPC_SCT0->CTRL_U &= ~(1 << 2);
+}
+
+void DeInit_PWM(void)
+{
+	NVIC_DisableIRQ(GINT0_IRQn);
+	Chip_SCT_DeInit(LPC_SCT0);
+}
+
+#else
 /* Set SCT PWM 'high' period based on passed percentage */
 void setPWMRate(int pwnNum, uint8_t percentage)
 {
@@ -158,3 +268,4 @@ void DeInit_PWM(void)
 	NVIC_DisableIRQ(GINT0_IRQn);
 	Chip_SCT_DeInit(LPC_SCT1);
 }
+#endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
