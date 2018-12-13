@@ -51,11 +51,12 @@ int main(void)
 	Init_PWM();
 	Init_UART0();
 	Init_ADC();
+	Init_LCD_Module_GPIO();
 
 	/* Poll the receive ring buffer for the ESC (ASCII 27) key */
 	key = 0;
 	reset_string_detector();
-	lcm_init();
+	lcm_sw_init();
 	lcm_auto_display_init();
 	//lcm_demo();
 	lcm_content_init();

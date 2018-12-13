@@ -80,7 +80,7 @@ void lcd_module_db_gpio_as_input(void)
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, LCD_DB4_7_PORT, DB7_PIN);
 }
 
-void lcd_gpio_init(void)
+void Init_LCD_Module_GPIO(void)
 {
 	uint8_t const 	*prt_gpio_lut, *prt_gpio_iofunc_lut;
 
@@ -329,20 +329,6 @@ void lcm_cursor_display_shift(bool SC, bool RL)
 	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 }
 
-void lcm_initialize_to_4_bit_mode()
-{
-	Add_LCM_Delay_Tick(LONGER_DELAY_US);
-	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd_direct(0x33);    // force back to 8-bit modes to make sure initial stage
-	Add_LCM_Delay_Tick(LONGER_DELAY_US);
-	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd_direct(0x02);    // send 2x 0x20 (for 4-bit) to make sure entering 4-bit mode
-	Add_LCM_Delay_Tick(LONGER_DELAY_US);
-	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd_direct(0x28);    // Setup 4 bit mode, 2 lines, 5x8
-	Add_LCM_Delay_Tick(LONGER_DELAY_US);
-}
-
 void lcm_puts(uint8_t *s)
 {
  	while(*s)
@@ -380,12 +366,19 @@ void lcm_goto(uint8_t pos, uint8_t line)		// pos / line
 	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 }
 
-void lcm_init(void)
+void lcm_sw_init(void)
 {
-	lcd_gpio_init();	// All port are configured as output, set as low
-
 #ifdef WRITE_4BITS
-	lcm_initialize_to_4_bit_mode();
+	Add_LCM_Delay_Tick(LONGER_DELAY_US);
+	Wait_until_No_More_Delay_Tick();
+	lcm_write_cmd_direct(0x33);    // force back to 8-bit modes to make sure initial stage
+	Add_LCM_Delay_Tick(LONGER_DELAY_US);
+	Wait_until_No_More_Delay_Tick();
+	lcm_write_cmd_direct(0x02);    // send 2x 0x20 (for 4-bit) to make sure entering 4-bit mode
+	Add_LCM_Delay_Tick(LONGER_DELAY_US);
+	Wait_until_No_More_Delay_Tick();
+	lcm_write_cmd_direct(0x28);    // Setup 4 bit mode, 2 lines, 5x8
+	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 #else
 	// lcm_write_cmd_direct(0x38);	// Function set	8 bits
 #endif
@@ -397,6 +390,7 @@ void lcm_init(void)
 	//lcm_cursor_display_shift(true,true);        		// S/C high & R/L high
 }
 
+/*
 void lcm_auto_display_page_visible(uint8_t page, uint8_t visible)
 {
 	if(page<MAX_LCD_CONTENT_PAGE)
@@ -427,6 +421,7 @@ bool lcm_move_to_next_pos(void)
 	lcm_goto(0,0);
 	return true;
 }
+*/
 
 void lcm_auto_display_clear_all_page(void)
 {
@@ -448,10 +443,14 @@ void lcm_auto_display_init(void)
 
 void lcm_force_to_display_page(uint8_t page_no)
 {
-	lcd_module_auto_switch_timer = SYSTICK_COUNT_VALUE_MS(LCM_AUTO_DISPLAY_SWITCH_PAGE_MS);
-	lcd_module_auto_switch_timer_timeout = false;
-	lcm_current_row=lcm_current_col=0;
-	lcm_current_page=page_no;
+	// First is checking whether current page is enabled
+	if(lcd_module_display_enable[lcm_current_page]!=0x0)
+	{
+		lcd_module_auto_switch_timer = SYSTICK_COUNT_VALUE_MS(LCM_AUTO_DISPLAY_SWITCH_PAGE_MS);
+		lcd_module_auto_switch_timer_timeout = false;
+//		lcm_current_row=lcm_current_col=0;
+		lcm_current_page=page_no;
+	}
 }
 
 void lcm_auto_display_refresh_task(void)
@@ -517,6 +516,7 @@ void lcm_auto_display_refresh_task(void)
 	}
 }
 
+/*
 void lcm_auto_display_refresh_task_old(void)
 {
 	uint8_t	temp;
@@ -553,6 +553,7 @@ void lcm_auto_display_refresh_task_old(void)
 		}
 	}
 }
+*/
 
 void lcm_content_init(void)
 {

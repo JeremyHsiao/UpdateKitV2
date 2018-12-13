@@ -71,14 +71,13 @@
 #define LCM_RW_1	Chip_GPIO_SetPinOutHigh(LPC_GPIO, LCD_GPIO_RW_PORT, LCD_GPIO_RW_PIN)
 #define LCM_EN_1	Chip_GPIO_SetPinOutHigh(LPC_GPIO, LCD_GPIO_EN_PORT, LCD_GPIO_EN_PIN)
 
-extern void lcm_clear(void);
-extern void lcm_puts(uint8_t *s);
-extern void lcm_putch(uint8_t c);
-extern void lcm_goto(uint8_t pos, uint8_t line);
-extern void lcm_init(void);
-extern void lcm_clear_display(void);
-extern void lcm_return_home(void);
-extern void lcm_entry_mode(bool ID, bool SH);
+//extern void lcm_clear(void);
+//extern void lcm_puts(uint8_t *s);
+//extern void lcm_putch(uint8_t c);
+//extern void lcm_goto(uint8_t pos, uint8_t line);
+//extern void lcm_clear_display(void);
+//extern void lcm_return_home(void);
+//extern void lcm_entry_mode(bool ID, bool SH);
 
 extern void lcm_write_ram_data(uint8_t c);
 extern uint8_t lcd_read_busy_and_address(void);
@@ -91,6 +90,8 @@ extern void lcm_force_to_display_page(uint8_t page_no);
 
 extern void lcm_demo(void);
 extern void lcm_content_init(void);
+extern void lcm_sw_init(void);
+extern void Init_LCD_Module_GPIO(void);
 
 #define	MAX_LCD_CONTENT_PAGE	(4)
 #define LCM_DISPLAY_ROW			(2)
