@@ -7,6 +7,7 @@
 
 #include "board.h"
 #include "LED_7seg.h"
+#include "sw_timer.h"
 
 uint32_t	gpio_mask[3];
 uint8_t		led_7seg_message[4], dp_point, next_refresh_index;
@@ -124,8 +125,8 @@ void Init_LED_7seg_GPIO(void)
 		Chip_GPIO_SetPinDIROutput(LPC_GPIO, port_no, pin_no);
 		gpio_mask[port_no] |= 1L<<(pin_no);
 
-		// Set as gpio without pull-up/down/open-drain.
-		Chip_IOCON_PinMuxSet(LPC_IOCON, port_no, pin_no, (*prt_7seg_gpio_iofunc_lut | IOCON_MODE_INACT ));
+		// Set as gpio
+		Chip_IOCON_PinMuxSet(LPC_IOCON, port_no, pin_no, (*prt_7seg_gpio_iofunc_lut));
 		prt_7seg_gpio_iofunc_lut++;
 	}
 
@@ -218,4 +219,45 @@ void refresh_LED_7SEG_periodic_task(void)
 		LPC_GPIO->MASK[temp_index] = ~gpio_mask[temp_index];
 		LPC_GPIO->MPIN[temp_index] = out_port[temp_index];
 	}
+}
+
+void LED_7seg_self_test(void)
+{
+	uint32_t 		out_port[3];
+	uint8_t			temp_io_index, *temp_io_data_ptr;
+	uint8_t			test_pin_high_low[12] = { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0}; // a b c d e f g dp 1 2 3 4
+
+	out_port[0]=0;
+	out_port[1]=0;
+	out_port[2]=0;
+	temp_io_index = sizeof(test_pin_high_low);
+	temp_io_data_ptr = (uint8_t *) LED_7SEG_GPIO_LUT+(temp_io_index*2);
+	do
+	{
+		temp_io_index--;
+		if(test_pin_high_low[temp_io_index]!=0)
+		{
+			uint8_t		port, pin;
+
+			pin  = *--temp_io_data_ptr;
+			port = *--temp_io_data_ptr;
+			out_port[port] = (1L<<pin);
+		}
+		else
+		{
+			temp_io_data_ptr-=2;
+		}
+	}
+	while(temp_io_index>0);
+
+	// output to gpio with mask
+	temp_io_index = 3;
+	while(temp_io_index-->0)
+	{
+		LPC_GPIO->MASK[temp_io_index] = ~gpio_mask[temp_io_index];
+		LPC_GPIO->MPIN[temp_io_index] = out_port[temp_io_index];
+	}
+	SW_delay_cnt += (SYSTICK_PER_SECOND*1);
+	SW_delay_timeout=false;
+	while(SW_delay_timeout==false);
 }
