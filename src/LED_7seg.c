@@ -28,7 +28,7 @@ uint8_t const LED_7SEG_GPIO_LUT[] =
 	LED_7SEG_SEG4_PORT,  LED_7SEG_SEG4_PIN,
 };
 
-uint8_t const LED_7SEG_GPIO_IOFUNC_LUT[] =
+uint32_t const LED_7SEG_GPIO_IOFUNC_LUT[] =
 {
 	LED_7SEG_SEGa_IO_FUNC,
 	LED_7SEG_SEGb_IO_FUNC,
@@ -102,7 +102,8 @@ uint8_t const LED_character_index_LUT[] =
 
 void Init_LED_7seg_GPIO(void)
 {
-	uint8_t const 	*prt_7seg_gpio_lut, *prt_7seg_gpio_iofunc_lut;
+	uint8_t const 	*prt_7seg_gpio_lut;
+	uint32_t const 	*prt_7seg_gpio_iofunc_lut;
 
 	// Init variables
 	next_refresh_index=0;
@@ -112,7 +113,7 @@ void Init_LED_7seg_GPIO(void)
 	// Init all LED 7SEG IO port by using table LED_7SEG_GPIO_LUT & LED_7SEG_GPIO_IOFUNC_LUT
 	prt_7seg_gpio_lut = LED_7SEG_GPIO_LUT;
 	prt_7seg_gpio_iofunc_lut = LED_7SEG_GPIO_IOFUNC_LUT;
-	while (prt_7seg_gpio_iofunc_lut<LED_7SEG_GPIO_IOFUNC_LUT+sizeof(LED_7SEG_GPIO_IOFUNC_LUT))
+	while (prt_7seg_gpio_iofunc_lut<LED_7SEG_GPIO_IOFUNC_LUT+(sizeof(LED_7SEG_GPIO_IOFUNC_LUT)/sizeof(uint32_t)))
 	{
 		uint8_t	port_no, pin_no;
 
@@ -241,7 +242,7 @@ void LED_7seg_self_test(void)
 
 			pin  = *--temp_io_data_ptr;
 			port = *--temp_io_data_ptr;
-			out_port[port] = (1L<<pin);
+			out_port[port] |= (1L<<pin);
 		}
 		else
 		{
