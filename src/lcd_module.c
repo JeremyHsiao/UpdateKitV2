@@ -156,7 +156,7 @@ void lcm_write_4bit(uint8_t high_nibble, bool rs_high)
 	Delay125ns(); // DelayMS(1); // DelayMS(10);
 }
 
-void lcm_write_cmd(uint8_t c)
+void lcm_write_cmd_direct(uint8_t c)
 {
 #ifdef WRITE_4BITS
 	lcm_write_4bit((c&0xf0), false);			// RS is low
@@ -164,17 +164,19 @@ void lcm_write_cmd(uint8_t c)
 #endif // #ifdef WRITE_4BITS
 }
 
-void lcm_write_ram_data(uint8_t c)
+static void inline lcm_write_ram_data_no_delay(uint8_t c)
 {
-	Wait_until_No_More_Delay_Tick();
-
 #ifdef WRITE_4BITS
 	lcm_write_4bit((c&0xf0), true);				// RS is high
 	lcm_write_4bit(((c<<4)&0xf0), true);		// RS is high
 #endif // #ifdef WRITE_4BITS
+}
 
+void lcm_write_ram_data(uint8_t c)
+{
+	Wait_until_No_More_Delay_Tick();
+	lcm_write_ram_data_no_delay(c);
 	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
-
 }
 
 uint8_t lcm_read_4bit_wo_setting_gpio_input(bool rs_high)
@@ -282,14 +284,14 @@ uint8_t lcd_read_data_from_RAM(void)
 void lcm_clear_display(void)
 {
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x01);        // Clear Display
+	lcm_write_cmd_direct(0x01);        // Clear Display
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 }
 
 void lcm_return_home(void)
 {
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x02);        // Clear Display
+	lcm_write_cmd_direct(0x02);        // Clear Display
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 }
 
@@ -300,7 +302,7 @@ void lcm_entry_mode(bool ID, bool SH)
 	if(ID) out_data|= 0x02;
 	if(SH) out_data|= 0x01;
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(out_data);
+	lcm_write_cmd_direct(out_data);
 	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 }
 
@@ -312,7 +314,7 @@ void lcm_display_on_off_control(bool Disply, bool Cursor, bool Blinking)
 	if(Cursor) out_data|= 0x02;
 	if(Blinking) out_data|= 0x01;
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(out_data);
+	lcm_write_cmd_direct(out_data);
 	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 }
 
@@ -323,7 +325,7 @@ void lcm_cursor_display_shift(bool SC, bool RL)
 	if(SC) out_data|= 0x08;
 	if(RL) out_data|= 0x04;
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(out_data);
+	lcm_write_cmd_direct(out_data);
 	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 }
 
@@ -331,13 +333,13 @@ void lcm_initialize_to_4_bit_mode()
 {
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x33);    // force back to 8-bit modes to make sure initial stage
+	lcm_write_cmd_direct(0x33);    // force back to 8-bit modes to make sure initial stage
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x02);    // send 2x 0x20 (for 4-bit) to make sure entering 4-bit mode
+	lcm_write_cmd_direct(0x02);    // send 2x 0x20 (for 4-bit) to make sure entering 4-bit mode
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 	Wait_until_No_More_Delay_Tick();
-	lcm_write_cmd(0x28);    // Setup 4 bit mode, 2 lines, 5x8
+	lcm_write_cmd_direct(0x28);    // Setup 4 bit mode, 2 lines, 5x8
 	Add_LCM_Delay_Tick(LONGER_DELAY_US);
 }
 
@@ -362,17 +364,17 @@ void lcm_goto(uint8_t pos, uint8_t line)		// pos / line
 	if( line <2 )
  	{
  		LineTmp = ((( line * 40) + pos) & 0x7F);
- 		lcm_write_cmd(0x80+LineTmp);
+ 		lcm_write_cmd_direct(0x80+LineTmp);
  	}
  	else if( line ==2 )
  	{
  		LineTmp = ( pos  & 0x7F);
- 		lcm_write_cmd(0x94+LineTmp);
+ 		lcm_write_cmd_direct(0x94+LineTmp);
  	}
  	else
  	{
  		LineTmp = ( pos  & 0x7F);
- 		lcm_write_cmd(0xD4+LineTmp);
+ 		lcm_write_cmd_direct(0xD4+LineTmp);
  	}
 
 	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
@@ -385,7 +387,7 @@ void lcm_init(void)
 #ifdef WRITE_4BITS
 	lcm_initialize_to_4_bit_mode();
 #else
-	// lcm_write_cmd(0x38);	// Function set	8 bits
+	// lcm_write_cmd_direct(0x38);	// Function set	8 bits
 #endif
 
 	lcm_clear_display();
@@ -453,6 +455,69 @@ void lcm_force_to_display_page(uint8_t page_no)
 }
 
 void lcm_auto_display_refresh_task(void)
+{
+	uint8_t	temp;
+
+	// First is checking whether current page has been disabled
+	if(lcd_module_display_enable[lcm_current_page]==0x0)
+	{
+		// Find next enabled page
+		for(temp=0; temp < MAX_LCD_CONTENT_PAGE; temp++)
+		{
+			if(++lcm_current_page>=MAX_LCD_CONTENT_PAGE)
+			{
+				lcm_current_page = 0;
+			}
+			if(lcd_module_display_enable[lcm_current_page]!=0x0)
+				return;	// Found enabled page to leave now
+		}
+		return;	// not-found, simply return
+	}
+
+	// if still not end of each line
+	if(lcm_current_col<LCM_DISPLAY_COL)
+	{
+		wait_for_not_busy(3);
+		lcm_write_ram_data_no_delay(lcd_module_display_content[lcm_current_page][lcm_current_row][lcm_current_col]);
+		++lcm_current_col;
+		return;
+	}
+
+	// Go to the beginning of next line if still not end of page
+	lcm_current_col=0;
+	lcm_current_row++;
+	if(lcm_current_row<LCM_DISPLAY_ROW)
+	{
+		uint8_t	LineTmp;
+ 		LineTmp = ((( lcm_current_row * 40)) & 0x7F);
+		wait_for_not_busy(3);
+ 		lcm_write_cmd_direct(0x80+LineTmp);
+ 		return;
+	}
+
+	// Go to the (0,0) and check if need to start showing next page
+	wait_for_not_busy(3);
+ 	lcm_write_cmd_direct(0x80+0);		// Go back to 0,0 for next page
+	lcm_current_row = 0;
+	if(lcd_module_auto_switch_timer_timeout==true)
+	{
+		lcd_module_auto_switch_timer = SYSTICK_COUNT_VALUE_MS(LCM_AUTO_DISPLAY_SWITCH_PAGE_MS);
+		lcd_module_auto_switch_timer_timeout = false;
+
+		// Move to next display-enabled page
+		for(temp=0; temp < MAX_LCD_CONTENT_PAGE; temp++)
+		{
+			if(++lcm_current_page>=MAX_LCD_CONTENT_PAGE)
+			{
+				lcm_current_page = 0;
+			}
+			if(lcd_module_display_enable[lcm_current_page]!=0x0)
+				break;
+		}
+	}
+}
+
+void lcm_auto_display_refresh_task_old(void)
 {
 	uint8_t	temp;
 

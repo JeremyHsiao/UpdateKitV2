@@ -8,9 +8,11 @@
 #ifndef SW_TIMER_H_
 #define SW_TIMER_H_
 
-#define 	SYSTICK_PER_SECOND			(40000)		// 40000 ticks per second == 25us each tick
+#define 	SYSTICK_PER_SECOND			(10000)		// 10000 ticks per second == 100us each tick --> make sure deviation of delay is M 50us
+//#define     SYSTICK_PER_SECOND            (40000)        // 40000 ticks per second == 25us each tick
 #define     SYSTICK_COUNT_VALUE_MS(x)	((SYSTICK_PER_SECOND*x/1000)-1)
 #define     SYSTICK_COUNT_VALUE_US(x)	((SYSTICK_PER_SECOND*x/1000000)-1)
+#define		SW_TIMER_NO_IN_USE	6
 
 extern bool 		SysTick_1s_timeout;
 extern bool 		SysTick_100ms_timeout;
