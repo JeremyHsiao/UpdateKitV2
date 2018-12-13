@@ -60,6 +60,8 @@ int main(void)
 	//lcm_demo();
 	lcm_content_init();
 
+	LED_7seg_self_test();
+
 	while (key != 27) {
 
 		/* Sleep until interrupt/sys_tick happens */
@@ -157,23 +159,23 @@ int main(void)
 			{
 				case 0:
 					LED_R_HIGH;
-					LED_G_LOW;
 					LED_Y_LOW;
+					LED_G_LOW;
 					break;
 				case 1:
 					LED_R_LOW;
-					LED_G_HIGH;
-					LED_Y_LOW;
+					LED_Y_HIGH;
+					LED_G_LOW;
 					break;
 				case 2:
 					LED_R_LOW;
-					LED_G_LOW;
-					LED_Y_HIGH;
+					LED_Y_LOW;
+					LED_G_HIGH;
 					break;
 				case 3:
 					LED_R_LOW;
-					LED_G_LOW;
 					LED_Y_LOW;
+					LED_G_LOW;
 					break;
 			}
 		}
