@@ -98,7 +98,7 @@ void Init_PWM(void)
 	Chip_SCT_Init(LPC_SCT0);
 
 	/* SCT0_OUT3 on PIO1_13 mapped to FUNC2 */
-	Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 13, (IOCON_FUNC2 | IOCON_MODE_INACT /*| IOCON_ADMODE_EN */));
+	Chip_IOCON_PinMuxSet(LPC_IOCON, PWM0_GPIO_PORT, PWM0_GPIO_PIN, PWM0_PIN_MUX);  // P1.0-2, 4-8. 10-21, 23-28, 30-31
 
 
 	/* Configure the SCT as a 32bit counter using the bus clock */

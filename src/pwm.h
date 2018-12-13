@@ -16,6 +16,11 @@
 
 #define default_duty_cycle	(50)
 
+// PWM PIO
+#define PWM0_GPIO_PORT		(1)
+#define PWM0_GPIO_PIN		(13)
+#define PWM0_PIN_MUX		(IOCON_FUNC2 | IOCON_MODE_INACT | (1L<<7))					// P1.0-2, 4-8. 10-21, 23-28, 30-31
+
 extern void Init_PWM(void);
 extern void DeInit_PWM(void);
 extern void setPWMRate(int pwnNum, uint8_t percentage);
