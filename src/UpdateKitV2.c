@@ -59,8 +59,7 @@ int main(void)
 	lcm_auto_display_init();
 	//lcm_demo();
 	lcm_content_init();
-
-	LED_7seg_self_test();
+	//LED_7seg_self_test();
 
 	while (key != 27) {
 
