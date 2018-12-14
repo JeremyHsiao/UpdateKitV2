@@ -6,6 +6,7 @@
  */
 
 #include "board.h"
+#include "sw_timer.h"
 #include "gpio.h"
 
 /*****************************************************************************
@@ -55,7 +56,8 @@ void Init_GPIO(void)
 	// Set as gpio without pull-up/down/open-drain.
 	Chip_IOCON_PinMuxSet(LPC_IOCON, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN, VOUT_ENABLE_PIN_MUX);
 	Chip_GPIO_SetPinDIROutput(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+	//Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+	Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
 
 	// Set as gpio without pull-up/down/open-drain for LED_R
 	Chip_IOCON_PinMuxSet(LPC_IOCON, LED_R_GPIO_PORT, LED_R_GPIO_PIN, LED_R_GPIO_PIN_MUX);
@@ -90,13 +92,55 @@ void Init_GPIO(void)
 	GPIOGoup0_Int = false;
 
 	/* Enable Group GPIO interrupt 0 */
-	NVIC_EnableIRQ(GINT0_IRQn);
+//	NVIC_EnableIRQ(GINT0_IRQn);
+// Use SW debounce now
 
 }
 
 bool Get_GPIO_Switch_Key(void)
 {
 	return (Chip_GPIO_GetPinState(LPC_GPIO, SWITCH_KEY_GPIO_PORT, SWITCH_KEY_GPIO_PIN));
+}
+
+bool		negFlag = false;
+bool    	posFlag = false;
+uint32_t	count;
+
+bool Debounce_Button(void)
+{
+	count++;
+
+	//check switch
+	if(!(Get_GPIO_Switch_Key()) && !negFlag && !posFlag)
+	{
+	    count = 0;         		//first debounce count start.
+	    negFlag = true;     	//fall edge debounce
+	    return true;
+	}
+
+	//if falling-edge debounce time-out
+	if(negFlag && !posFlag && (count > DEBOUNCE_COUNT))
+	{
+	    if(!Get_GPIO_Switch_Key())
+	        posFlag = true;      //  rising edge debounce is required later when button is released
+	    else
+	        negFlag = false;     // already back-to-high, no need to debounce low-to-high when release pressing
+	}
+
+	//wait switch pull high when neg/pos debounce are done
+	if(Get_GPIO_Switch_Key() && negFlag && posFlag)
+	{
+	    count = 0;          //rise edge debounce count start.
+	    negFlag = false;
+	}
+
+	//switch rise edge debounce success.
+	if(!negFlag && posFlag && (count > DEBOUNCE_COUNT) )
+	{
+	    posFlag = false; //finish rising-edge Debounce cycle.
+	}
+
+	return false;
 }
 
 void DeInit_GPIO(void)

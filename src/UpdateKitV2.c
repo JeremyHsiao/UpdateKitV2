@@ -181,7 +181,8 @@ int main(void)
 		}
 
 		// Process when button is pressed
-		if(GPIOGoup0_Int==true)
+//		if(GPIOGoup0_Int==true)
+		if(Debounce_Button()==true)
 		{
 			char temp_str[LCM_DISPLAY_COL+1];
 			int  temp_str_len;
