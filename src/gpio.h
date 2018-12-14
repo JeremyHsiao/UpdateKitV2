@@ -62,11 +62,19 @@ extern bool Get_GPIO_Switch_Key(void);
 extern bool Debounce_Button(void);
 #define DEBOUNCE_COUNT	SYSTICK_COUNT_VALUE_MS(50)		// It should be in fact less but not so much less
 
-#define LED_R_LOW	Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_R_GPIO_PORT, LED_R_GPIO_PIN)
-#define LED_G_LOW	Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_G_GPIO_PORT, LED_G_GPIO_PIN)
-#define LED_Y_LOW	Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN)
-#define LED_R_HIGH	Chip_GPIO_SetPinOutHigh(LPC_GPIO, LED_R_GPIO_PORT, LED_R_GPIO_PIN)
-#define LED_G_HIGH	Chip_GPIO_SetPinOutHigh(LPC_GPIO, LED_G_GPIO_PORT, LED_G_GPIO_PIN)
-#define LED_Y_HIGH	Chip_GPIO_SetPinOutHigh(LPC_GPIO, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN)
+extern void LED_G_setting(uint8_t flashing_100ms);
+extern void LED_R_setting(uint8_t flashing_100ms);
+extern void LED_Y_setting(uint8_t flashing_100ms);
+extern void LED_Status_Update_Process(void);
+
+#define LED_R_LOW		Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_R_GPIO_PORT, LED_R_GPIO_PIN)
+#define LED_G_LOW		Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_G_GPIO_PORT, LED_G_GPIO_PIN)
+#define LED_Y_LOW		Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN)
+#define LED_R_HIGH		Chip_GPIO_SetPinOutHigh(LPC_GPIO, LED_R_GPIO_PORT, LED_R_GPIO_PIN)
+#define LED_G_HIGH		Chip_GPIO_SetPinOutHigh(LPC_GPIO, LED_G_GPIO_PORT, LED_G_GPIO_PIN)
+#define LED_Y_HIGH		Chip_GPIO_SetPinOutHigh(LPC_GPIO, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN)
+#define LED_R_TOGGLE	Chip_GPIO_SetPinToggle(LPC_GPIO, LED_R_GPIO_PORT, LED_R_GPIO_PIN)
+#define LED_G_TOGGLE	Chip_GPIO_SetPinToggle(LPC_GPIO, LED_G_GPIO_PORT, LED_G_GPIO_PIN)
+#define LED_Y_TOGGLE	Chip_GPIO_SetPinToggle(LPC_GPIO, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN)
 
 #endif /* GPIO_H_ */

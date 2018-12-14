@@ -61,6 +61,9 @@ int main(void)
 	//lcm_demo();
 	lcm_content_init();
 	//LED_7seg_self_test();
+	LED_G_setting(0);
+	LED_R_setting(0xff);
+	LED_Y_setting(5);
 
 	while (key != 27) {
 
@@ -148,36 +151,13 @@ int main(void)
 			refresh_LED_7SEG_periodic_task();
 		}
 
-		// This is update every second
+		LED_Status_Update_Process();
+
 		if(SysTick_1s_timeout==true)
 		{
 			Update_Elapse_Timer(); // Can be removed if this demo is not required
 			memcpy((void *)&lcd_module_display_content[0][1][8], time_elapse_str, 4);
 			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
-
-			switch(time_elapse_in_sec&0x03)
-			{
-				case 0:
-					LED_R_HIGH;
-					LED_Y_LOW;
-					LED_G_LOW;
-					break;
-				case 1:
-					LED_R_LOW;
-					LED_Y_HIGH;
-					LED_G_LOW;
-					break;
-				case 2:
-					LED_R_LOW;
-					LED_Y_LOW;
-					LED_G_HIGH;
-					break;
-				case 3:
-					LED_R_LOW;
-					LED_Y_LOW;
-					LED_G_LOW;
-					break;
-			}
 		}
 
 		// Process when button is pressed

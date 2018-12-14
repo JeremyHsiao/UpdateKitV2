@@ -18,10 +18,16 @@ extern bool 		SysTick_100ms_timeout;
 extern bool 		SysTick_led_7seg_refresh_timeout;
 extern bool			SW_delay_timeout;
 extern bool			lcd_module_auto_switch_timer_timeout;
+extern bool			lcd_g_toggle_timeout;
+extern bool			lcd_r_toggle_timeout;
+extern bool			lcd_y_toggle_timeout;
 
 extern uint32_t		time_elapse_in_sec;
 extern uint32_t		SW_delay_sys_tick_cnt;
 extern uint32_t		lcd_module_auto_switch_in_ms;
+extern uint32_t		led_g_toggle_timer_in_100ms;
+extern uint32_t		led_r_toggle_timer_in_100ms;
+extern uint32_t		led_y_toggle_timer_in_100ms;
 
 extern uint8_t time_elapse_str[];
 extern void Update_Elapse_Timer(void);

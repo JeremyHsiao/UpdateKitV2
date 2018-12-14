@@ -144,8 +144,122 @@ bool Debounce_Button(void)
 	return false;
 }
 
+uint8_t	LED_G_flashing = 0, LED_R_flashing = 0, LED_Y_flashing = 0;
+// flashing_period 0: always low
+// flashing_period 0xff: always high
+// flashing_period others: toggle every flashing_period 100ms (max 25.4 s)
+void LED_G_setting(uint8_t flashing_100ms)
+{
+	LED_G_flashing = flashing_100ms;
+	lcd_g_toggle_timeout=true;
+}
+void LED_R_setting(uint8_t flashing_100ms)
+{
+	LED_R_flashing = flashing_100ms;
+	lcd_g_toggle_timeout=true;
+}
+void LED_Y_setting(uint8_t flashing_100ms)
+{
+	LED_Y_flashing = flashing_100ms;
+	lcd_g_toggle_timeout=true;
+}
+void LED_Status_Update_Process(void)
+{
+	if(lcd_g_toggle_timeout)
+	{
+		lcd_g_toggle_timeout=false;
+
+		if(LED_G_flashing==0)
+		{
+			LED_G_LOW;
+			led_g_toggle_timer_in_100ms = ~1;
+		}
+		else if (LED_G_flashing==0xff)
+		{
+			LED_G_HIGH;
+			led_g_toggle_timer_in_100ms = ~1;
+		}
+		else
+		{
+			LED_G_TOGGLE;
+			led_g_toggle_timer_in_100ms = LED_G_flashing;
+		}
+	}
+
+	if(lcd_r_toggle_timeout)
+	{
+		lcd_r_toggle_timeout=false;
+
+		if(LED_R_flashing==0)
+		{
+			LED_R_LOW;
+			led_r_toggle_timer_in_100ms = ~1;
+		}
+		else if (LED_R_flashing==0xff)
+		{
+			LED_R_HIGH;
+			led_r_toggle_timer_in_100ms = ~1;
+		}
+		else
+		{
+			LED_R_TOGGLE;
+			led_r_toggle_timer_in_100ms = LED_R_flashing;
+		}
+	}
+
+	if(lcd_y_toggle_timeout)
+	{
+		lcd_y_toggle_timeout=false;
+
+		if(LED_Y_flashing==0)
+		{
+			LED_Y_LOW;
+			led_y_toggle_timer_in_100ms = ~1;
+		}
+		else if (LED_Y_flashing==0xff)
+		{
+			LED_Y_HIGH;
+			led_y_toggle_timer_in_100ms = ~1;
+		}
+		else
+		{
+			LED_Y_TOGGLE;
+			led_y_toggle_timer_in_100ms = LED_Y_flashing;
+		}
+	}
+
+}
+
 void DeInit_GPIO(void)
 {
 	NVIC_DisableIRQ(USART0_IRQn);
 	Chip_UART0_DeInit(LPC_USART0);
+}
+
+
+void LED_demo(void)
+{
+		switch(time_elapse_in_sec&0x03)
+		{
+			case 0:
+				LED_R_HIGH;
+				LED_Y_LOW;
+				LED_G_LOW;
+				break;
+			case 1:
+				LED_R_LOW;
+				LED_Y_HIGH;
+				LED_G_LOW;
+				break;
+			case 2:
+				LED_R_LOW;
+				LED_Y_LOW;
+				LED_G_HIGH;
+				break;
+			case 3:
+				LED_R_LOW;
+				LED_Y_LOW;
+				LED_G_LOW;
+				break;
+		}
 }
