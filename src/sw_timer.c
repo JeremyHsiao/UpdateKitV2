@@ -19,9 +19,9 @@ uint32_t	time_elapse_in_sec=0;
 uint32_t	SW_delay_sys_tick_cnt = 0;
 uint32_t	lcd_module_auto_switch_in_ms = 0;
 
-uint32_t	sys_tick_1s_cnt = SYSTICK_COUNT_VALUE_MS(1000);
-uint32_t	sys_tick_100_ms_cnt = SYSTICK_COUNT_VALUE_MS(100);
-uint32_t	sys_tick_1ms_cnt = SYSTICK_COUNT_VALUE_MS(1);
+uint8_t		sys_tick_1ms_cnt =  SYSTICK_COUNT_VALUE_MS(1);
+uint8_t		Counter_1s_cnt_in_100ms  = 10;
+uint8_t		Counter_100_ms_cnt_in_ms = 100;
 
 /**
  * @brief    Handle interrupt from SysTick timer
@@ -29,19 +29,18 @@ uint32_t	sys_tick_1ms_cnt = SYSTICK_COUNT_VALUE_MS(1);
  */
 void SysTick_Handler(void)
 {
-	// 100ms timeout timer
-	if(sys_tick_100_ms_cnt)
+	// For software delay loop -- decrement each tick
+	if(SW_delay_sys_tick_cnt>0)
 	{
-		sys_tick_100_ms_cnt--;
+		SW_delay_sys_tick_cnt--;
 	}
 	else
 	{
-		sys_tick_100_ms_cnt = SYSTICK_COUNT_VALUE_MS(100);
-		SysTick_100ms_timeout = true;
+		SW_delay_timeout = true;
 	}
 
-	// 1ms timeout timer for SysTick_led_7seg_refresh_timeout
-	// temporarily 1ms delay timer
+
+	// For regular timer
 	if(sys_tick_1ms_cnt)
 	{
 		sys_tick_1ms_cnt--;
@@ -49,9 +48,11 @@ void SysTick_Handler(void)
 	else
 	{
 		sys_tick_1ms_cnt = SYSTICK_COUNT_VALUE_MS(1);
+
+		// 1ms timeout timer for SysTick_led_7seg_refresh_timeout
 		SysTick_led_7seg_refresh_timeout = true;
 
-		// For lcd module page-rotate -- decrement each ms
+		// Timer for lcd module page-rotate -- decrement each ms
 		if(lcd_module_auto_switch_in_ms>0)
 		{
 			lcd_module_auto_switch_in_ms--;
@@ -61,28 +62,28 @@ void SysTick_Handler(void)
 			lcd_module_auto_switch_timer_timeout = true;
 		}
 
-	}
+		// 100ms timeout timer
+		if(Counter_100_ms_cnt_in_ms)
+		{
+			Counter_100_ms_cnt_in_ms--;
+		}
+		else
+		{
+			Counter_100_ms_cnt_in_ms = 100;
+			SysTick_100ms_timeout = true;
 
-	// 1s
-	if(sys_tick_1s_cnt)
-	{
-		sys_tick_1s_cnt--;
-	}
-	else
-	{
-		sys_tick_1s_cnt = SYSTICK_COUNT_VALUE_MS(1000);
-		SysTick_1s_timeout = true;
-		time_elapse_in_sec++;
-	}
-
-	// For software delay loop -- decrement each tick
-	if(SW_delay_sys_tick_cnt>0)
-	{
-		SW_delay_sys_tick_cnt--;
-	}
-	else
-	{
-		SW_delay_timeout = true;
+			// 1s timeout timer
+			if(Counter_1s_cnt_in_100ms)
+			{
+				Counter_1s_cnt_in_100ms--;
+			}
+			else
+			{
+				Counter_1s_cnt_in_100ms = 10;
+				SysTick_1s_timeout = true;
+				time_elapse_in_sec++;
+			}
+		}
 	}
 }
 
