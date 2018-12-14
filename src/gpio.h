@@ -60,7 +60,7 @@ extern void Init_GPIO(void);
 extern void DeInit_GPIO(void);
 extern bool Get_GPIO_Switch_Key(void);
 extern bool Debounce_Button(void);
-#define DEBOUNCE_COUNT	SYSTICK_COUNT_VALUE_MS(10)		// It should be in fact less but not so much less
+#define DEBOUNCE_COUNT	SYSTICK_COUNT_VALUE_MS(50)		// It should be in fact less but not so much less
 
 #define LED_R_LOW	Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_R_GPIO_PORT, LED_R_GPIO_PIN)
 #define LED_G_LOW	Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_G_GPIO_PORT, LED_G_GPIO_PIN)

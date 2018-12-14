@@ -127,11 +127,12 @@ bool Debounce_Button(void)
 	        negFlag = false;     // already back-to-high, no need to debounce low-to-high when release pressing
 	}
 
-	//wait switch pull high when neg/pos debounce are done
+	// falling debounce is done & now start a rising debounce
 	if(Get_GPIO_Switch_Key() && negFlag && posFlag)
 	{
 	    count = 0;          //rise edge debounce count start.
 	    negFlag = false;
+	    return false;
 	}
 
 	//switch rise edge debounce success.
