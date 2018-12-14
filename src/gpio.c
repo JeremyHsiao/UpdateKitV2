@@ -182,7 +182,7 @@ void LED_Status_Update_Process(void)
 		else
 		{
 			LED_G_TOGGLE;
-			led_g_toggle_timer_in_100ms = LED_G_flashing;
+			led_g_toggle_timer_in_100ms = LED_G_flashing-1;
 		}
 	}
 
@@ -203,7 +203,7 @@ void LED_Status_Update_Process(void)
 		else
 		{
 			LED_R_TOGGLE;
-			led_r_toggle_timer_in_100ms = LED_R_flashing;
+			led_r_toggle_timer_in_100ms = LED_R_flashing-1;
 		}
 	}
 
@@ -224,7 +224,7 @@ void LED_Status_Update_Process(void)
 		else
 		{
 			LED_Y_TOGGLE;
-			led_y_toggle_timer_in_100ms = LED_Y_flashing;
+			led_y_toggle_timer_in_100ms = LED_Y_flashing-1;
 		}
 	}
 
