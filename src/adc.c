@@ -34,6 +34,7 @@
 #include "uart_0_rb.h"
 #include "string.h"
 #include "adc.h"
+#include "UpdateKitV2.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -153,7 +154,7 @@ void Read_ADC(void)
 	//	thresholdCrossed = false;
 	//}
 
-		uint32_t rawSample;
+		uint32_t rawSample, temp_value;
 		char temp_str[LCM_DISPLAY_COL];
 		int  temp_str_len;
 
@@ -164,6 +165,9 @@ void Read_ADC(void)
 		/* Show some ADC data */
 		if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
 			ADC0_value = ADC_DR_RESULT(rawSample);
+			temp_value = ADC0_value;
+			temp_value = (temp_value * 4 * 33) / 4096; // use 0.1V as unit
+			SetDisplayVoltageCurrent(temp_value,0);
 			temp_str_len = itoa_10(ADC0_value, temp_str);
 			memset((void *)&lcd_module_display_content[1][0][5], ' ', (4-temp_str_len));
 			memcpy((void *)&lcd_module_display_content[1][0][5+(4-temp_str_len)], temp_str, temp_str_len);

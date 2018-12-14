@@ -30,7 +30,7 @@ uint32_t	led_y_toggle_timer_in_100ms = 0;
 uint32_t	led_g_toggle_timer_reload = 0;
 uint32_t	led_r_toggle_timer_reload = 0;
 uint32_t	led_y_toggle_timer_reload = 0;
-uint8_t		LED_Voltage_Current_Refresh_reload = 2;		// 2 second
+uint8_t		LED_Voltage_Current_Refresh_reload = 0;
 
 uint8_t		sys_tick_1ms_cnt =  SYSTICK_COUNT_VALUE_MS(1);
 uint8_t		Counter_1s_cnt_in_100ms  = (10-1);

@@ -15,6 +15,7 @@
 #include "lcd_module.h"
 #include "sw_timer.h"
 #include "string.h"
+#include "UpdateKitV2.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -86,4 +87,45 @@ void UpdateKitV2_LED_7_Segment_Task(void)
 		final_str[3] = 'A';
 	}
 	Update_LED_7SEG_Message_Buffer((uint8_t*)final_str,dp_point);
+}
+
+
+uint8_t		current_output_stage = DEFAULT_POWER_OUTPUT_STEP;
+//uint8_t		pwm_table[25] = { 100, 77, 76, 75, 74,   73, 72,  71, 70, 65,    64, 63, 54, 53, 52,     34, 33, 32, 31, 5,   4, 3, 2, 1, 0};
+uint8_t		pwm_table[9] = { 100, 76, 75,   71,   65,    55,   35,   5,   0};
+//Key toggle :				 0V, 6.5V, 7V,  7.5V, 8V,   8.5V, 9V,  9.5V, 10V
+						//	0 / 680 / 702 / 749 / 799 / 852 / 909 / 948/ 980
+
+void PowerOutputSetting(uint8_t current_step)
+{
+	if(current_step==0)
+	{
+		setPWMRate(0, pwm_table[current_output_stage]);
+		Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+	}
+	else
+	{
+		setPWMRate(0, pwm_table[current_output_stage]);
+		Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+	}
+}
+
+void ButtonPressedTask(void)
+{
+	if(++current_output_stage>=(sizeof(pwm_table)/sizeof(uint8_t)))
+	{
+		current_output_stage = 0;
+
+	}
+
+	PowerOutputSetting(current_output_stage);
+	// temp for debug purpose
+	{
+					char temp_str[LCM_DISPLAY_COL+1];
+					int  temp_str_len;
+					temp_str_len = itoa_10(pwm_table[current_output_stage], temp_str);
+					memcpy((void *)&lcd_module_display_content[1][1][9], temp_str, temp_str_len);
+					memset((void *)&lcd_module_display_content[1][1][9+temp_str_len], ' ', LCM_DISPLAY_COL-9-temp_str_len);
+					lcm_force_to_display_page(1);
+	}
 }

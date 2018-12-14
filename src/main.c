@@ -39,8 +39,8 @@
  */
 int main(void)
 {
-	uint8_t key, dutyCycle = 50, temp;  	/* Start at 50% duty cycle */
-	int bytes, countdir = 10;
+	uint8_t key, temp; //, dutyCycle = 50;  	/* Start at 50% duty cycle */
+	int bytes; //, countdir = 10;
 
 	SystemCoreClockUpdate();
 	/* Enable and setup SysTick Timer at a periodic rate */
@@ -65,6 +65,8 @@ int main(void)
 	LED_G_setting(0);
 	LED_R_setting(0xff);
 	LED_Y_setting(5);
+	LED_Voltage_Current_Refresh_reload = DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC;		// 2 second
+	PowerOutputSetting(DEFAULT_POWER_OUTPUT_STEP);
 
 	while (key != 27) {
 
@@ -173,23 +175,24 @@ int main(void)
 //		if(GPIOGoup0_Int==true)
 		if(Debounce_Button()==true)
 		{
-			char temp_str[LCM_DISPLAY_COL+1];
-			int  temp_str_len;
-
-			dutyCycle += countdir;
-			if ((dutyCycle  == 0) || (dutyCycle >= 100)) {
-				countdir = -countdir;
-			}
-
-			/* Update duty cycle in SCT/PWM by change match 1 reload time */
-			setPWMRate(0, dutyCycle);
-			//setPWMRate(1, dutyCycle);
-			//setPWMRate(2, dutyCycle);
-			temp_str_len = itoa_10(dutyCycle, temp_str);
-			memcpy((void *)&lcd_module_display_content[1][1][9], temp_str, temp_str_len);
-			memset((void *)&lcd_module_display_content[1][1][9+temp_str_len], ' ', LCM_DISPLAY_COL-9-temp_str_len);
-			lcm_force_to_display_page(1);
-			GPIOGoup0_Int = false;
+			ButtonPressedTask();
+//			char temp_str[LCM_DISPLAY_COL+1];
+//			int  temp_str_len;
+//
+//			dutyCycle += countdir;
+//			if ((dutyCycle  == 0) || (dutyCycle >= 100)) {
+//				countdir = -countdir;
+//			}
+//
+//			/* Update duty cycle in SCT/PWM by change match 1 reload time */
+//			setPWMRate(0, dutyCycle);
+//			//setPWMRate(1, dutyCycle);
+//			//setPWMRate(2, dutyCycle);
+//			temp_str_len = itoa_10(dutyCycle, temp_str);
+//			memcpy((void *)&lcd_module_display_content[1][1][9], temp_str, temp_str_len);
+//			memset((void *)&lcd_module_display_content[1][1][9+temp_str_len], ' ', LCM_DISPLAY_COL-9-temp_str_len);
+//			lcm_force_to_display_page(1);
+//			GPIOGoup0_Int = false;
 		}
 
 	}
