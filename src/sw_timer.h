@@ -21,6 +21,7 @@ extern bool			lcd_module_auto_switch_timer_timeout;
 extern bool			lcd_g_toggle_timeout;
 extern bool			lcd_r_toggle_timeout;
 extern bool			lcd_y_toggle_timeout;
+extern bool			LED_Voltage_Current_Refresh_in_sec_timeout;
 
 extern uint32_t		time_elapse_in_sec;
 extern uint32_t		SW_delay_sys_tick_cnt;
@@ -31,6 +32,8 @@ extern uint32_t		led_y_toggle_timer_in_100ms;
 extern uint32_t		led_g_toggle_timer_reload;
 extern uint32_t		led_r_toggle_timer_reload;
 extern uint32_t		led_y_toggle_timer_reload;
+extern uint8_t		LED_Voltage_Current_Refresh_in_sec;
+extern uint8_t		LED_Voltage_Current_Refresh_reload;
 
 extern uint8_t time_elapse_str[];
 extern void Update_Elapse_Timer(void);

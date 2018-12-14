@@ -15,6 +15,7 @@
 #include "lcd_module.h"
 #include "sw_timer.h"
 #include "string.h"
+#include "UpdateKitV2.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -144,7 +145,14 @@ int main(void)
 			Read_ADC();
 		}
 
-		// Refresh each char of 7 Segment LED every 100ms
+		// Time to refresh LED-7Segment content?
+		if(LED_Voltage_Current_Refresh_in_sec_timeout==true)
+		{
+			LED_Voltage_Current_Refresh_in_sec_timeout = false;
+			UpdateKitV2_LED_7_Segment_Task();
+		}
+
+		// Refresh each char of 7 Segment LED every 1ms
 		if(SysTick_led_7seg_refresh_timeout==true)
 		{
 			SysTick_led_7seg_refresh_timeout = false;
@@ -155,9 +163,10 @@ int main(void)
 
 		if(SysTick_1s_timeout==true)
 		{
-			Update_Elapse_Timer(); // Can be removed if this demo is not required
+			SysTick_1s_timeout = false;
+			Update_Elapse_Timer();
 			memcpy((void *)&lcd_module_display_content[0][1][8], time_elapse_str, 4);
-			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
+//			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
 		}
 
 		// Process when button is pressed
@@ -182,7 +191,6 @@ int main(void)
 			lcm_force_to_display_page(1);
 			GPIOGoup0_Int = false;
 		}
-
 
 	}
 
