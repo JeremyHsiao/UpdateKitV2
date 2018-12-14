@@ -165,8 +165,8 @@ void Read_ADC(void)
 		if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
 			ADC0_value = ADC_DR_RESULT(rawSample);
 			temp_str_len = itoa_10(ADC0_value, temp_str);
-			memset((void *)&lcd_module_display_content[1][0][5], ' ', 4);
-			memcpy((void *)&lcd_module_display_content[1][0][5], temp_str, temp_str_len);
+			memset((void *)&lcd_module_display_content[1][0][5], ' ', (4-temp_str_len));
+			memcpy((void *)&lcd_module_display_content[1][0][5+(4-temp_str_len)], temp_str, temp_str_len);
 		}
 		else
 		{
@@ -179,8 +179,8 @@ void Read_ADC(void)
 		if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
 			ADC1_value = ADC_DR_RESULT(rawSample);
 			temp_str_len = itoa_10(ADC1_value, temp_str);
-			memset((void *)&lcd_module_display_content[1][0][12], ' ', 4);
-			memcpy((void *)&lcd_module_display_content[1][0][12], temp_str, temp_str_len-1);
+			memset((void *)&lcd_module_display_content[1][0][12], ' ', (4-temp_str_len));
+			memcpy((void *)&lcd_module_display_content[1][0][12+(4-temp_str_len)], temp_str, temp_str_len-1);
 		}
 		else
 		{
