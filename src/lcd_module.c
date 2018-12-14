@@ -64,7 +64,7 @@ uint8_t const LCD_LCM_GPIO_IOFUNC_LUT[] =
 	LCD_GPIO_EN_IO_FUNC,
 };
 
-void lcd_module_db_gpio_as_output(void)
+static void inline lcd_module_db_gpio_as_output(void)
 {
 	Chip_GPIO_SetPinDIROutput(LPC_GPIO, LCD_DB4_7_PORT, DB4_PIN);
 	Chip_GPIO_SetPinDIROutput(LPC_GPIO, LCD_DB4_7_PORT, DB5_PIN);
@@ -72,7 +72,7 @@ void lcd_module_db_gpio_as_output(void)
 	Chip_GPIO_SetPinDIROutput(LPC_GPIO, LCD_DB4_7_PORT, DB7_PIN);
 }
 
-void lcd_module_db_gpio_as_input(void)
+static void inline lcd_module_db_gpio_as_input(void)
 {
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, LCD_DB4_7_PORT, DB4_PIN);
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, LCD_DB4_7_PORT, DB5_PIN);
@@ -104,7 +104,7 @@ void Init_LCD_Module_GPIO(void)
 	}
 }
 
-uint32_t PACK_LCD_4BITS(uint8_t high_nibble)
+static uint32_t inline PACK_LCD_4BITS(uint8_t high_nibble)
 {
 	uint32_t	ret_value = 0;
 
@@ -134,7 +134,7 @@ uint32_t PACK_LCD_4BITS(uint8_t high_nibble)
 	return ret_value;
 }
 
-void lcm_write_4bit(uint8_t high_nibble, bool rs_high)
+static void inline lcm_write_4bit(uint8_t high_nibble, bool rs_high)
 {
 	Chip_GPIO_SetPortMask(LPC_GPIO, LCD_DB4_7_PORT, ~HIGH_NIBBLE_MASK);
 	Chip_GPIO_SetMaskedPortValue(LPC_GPIO, LCD_DB4_7_PORT, PACK_LCD_4BITS(high_nibble&0xf0));
@@ -156,7 +156,7 @@ void lcm_write_4bit(uint8_t high_nibble, bool rs_high)
 	Delay125ns(); // DelayMS(1); // DelayMS(10);
 }
 
-void lcm_write_cmd_direct(uint8_t c)
+static void inline lcm_write_cmd_direct(uint8_t c)
 {
 #ifdef WRITE_4BITS
 	lcm_write_4bit((c&0xf0), false);			// RS is low
@@ -179,7 +179,7 @@ void lcm_write_ram_data(uint8_t c)
 	Add_LCM_Delay_Tick(SHORTER_DELAY_US);
 }
 
-uint8_t lcm_read_4bit_wo_setting_gpio_input(bool rs_high)
+static uint8_t inline lcm_read_4bit_wo_setting_gpio_input(bool rs_high)
 {
 	uint32_t	gpio_value;
 	uint8_t		return_value = 0;
