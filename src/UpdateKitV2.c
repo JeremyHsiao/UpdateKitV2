@@ -155,7 +155,7 @@ int main(void)
 			memcpy((void *)&lcd_module_display_content[0][1][8], time_elapse_str, 4);
 			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
 
-			switch(time_elapse&0x03)
+			switch(time_elapse_in_sec&0x03)
 			{
 				case 0:
 					LED_R_HIGH;

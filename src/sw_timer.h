@@ -12,7 +12,6 @@
 #define 	SYSTICK_PER_SECOND			(8000)		// 8000 ticks per second == 125us each tick
 #define     SYSTICK_COUNT_VALUE_MS(x)	((SYSTICK_PER_SECOND*x/1000)-1)
 #define     SYSTICK_COUNT_VALUE_US(x)	((SYSTICK_PER_SECOND*x/1000000)-1)
-#define		SW_TIMER_NO_IN_USE	6
 
 extern bool 		SysTick_1s_timeout;
 extern bool 		SysTick_100ms_timeout;
@@ -20,8 +19,9 @@ extern bool 		SysTick_led_7seg_refresh_timeout;
 extern bool			SW_delay_timeout;
 extern bool			lcd_module_auto_switch_timer_timeout;
 
-extern uint32_t		time_elapse;
-extern uint32_t		SW_delay_cnt;
+extern uint32_t		time_elapse_in_sec;
+extern uint32_t		SW_delay_sys_tick_cnt;
+extern uint32_t		lcd_module_auto_switch_in_ms;
 
 extern uint8_t time_elapse_str[];
 extern void Update_Elapse_Timer(void);

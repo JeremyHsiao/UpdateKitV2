@@ -258,7 +258,7 @@ void LED_7seg_self_test(void)
 		LPC_GPIO->MASK[temp_io_index] = ~gpio_mask[temp_io_index];
 		LPC_GPIO->MPIN[temp_io_index] = out_port[temp_io_index];
 	}
-	SW_delay_cnt += (SYSTICK_PER_SECOND*1);
+	SW_delay_sys_tick_cnt += (SYSTICK_PER_SECOND*1);
 	SW_delay_timeout=false;
 	while(SW_delay_timeout==false);
 }

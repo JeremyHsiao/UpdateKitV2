@@ -28,7 +28,7 @@ static void inline Delay125ns(void)
 
 static void inline Add_LCM_Delay_Tick(uint32_t delay_us)
 {
-	SW_delay_cnt += ((delay_us*(SYSTICK_PER_SECOND/1000))/1000);
+	SW_delay_sys_tick_cnt += ((delay_us*(SYSTICK_PER_SECOND/1000))/1000);
 	SW_delay_timeout=false;
 }
 static void inline Wait_until_No_More_Delay_Tick(void)
@@ -435,7 +435,7 @@ void lcm_auto_disable_all_page(void)
 
 void lcm_auto_display_init(void)
 {
-	lcd_module_auto_switch_timer = 0;
+	lcd_module_auto_switch_in_ms = 0;
 	lcm_current_page = lcm_current_row = lcm_current_col = 0;
 	lcm_auto_display_clear_all_page();
 	lcm_auto_disable_all_page();
@@ -446,7 +446,7 @@ void lcm_force_to_display_page(uint8_t page_no)
 	// First is checking whether current page is enabled
 	if(lcd_module_display_enable[lcm_current_page]!=0x0)
 	{
-		lcd_module_auto_switch_timer = SYSTICK_COUNT_VALUE_MS(LCM_AUTO_DISPLAY_SWITCH_PAGE_MS);
+		lcd_module_auto_switch_in_ms = LCM_AUTO_DISPLAY_SWITCH_PAGE_MS;
 		lcd_module_auto_switch_timer_timeout = false;
 //		lcm_current_row=lcm_current_col=0;
 		lcm_current_page=page_no;
@@ -505,7 +505,7 @@ void lcm_auto_display_refresh_task(void)
 	lcm_current_row = 0;
 	if(lcd_module_auto_switch_timer_timeout==true)
 	{
-		lcd_module_auto_switch_timer = SYSTICK_COUNT_VALUE_MS(LCM_AUTO_DISPLAY_SWITCH_PAGE_MS);
+		lcd_module_auto_switch_in_ms = LCM_AUTO_DISPLAY_SWITCH_PAGE_MS;
 		lcd_module_auto_switch_timer_timeout = false;
 
 		// Move to next display-enabled page
@@ -540,9 +540,9 @@ void lcm_auto_display_refresh_task_old(void)
 
 	if(lcm_move_to_next_pos()==true)		// end of current page, need to find next visible page
 	{
-		if(lcd_module_auto_switch_timer_timeout==true)
+		if(lcd_module_auto_switch_in_ms==true)
 		{
-			lcd_module_auto_switch_timer = SYSTICK_COUNT_VALUE_MS(LCM_AUTO_DISPLAY_SWITCH_PAGE_MS);
+			lcd_module_auto_switch_in_ms = LCM_AUTO_DISPLAY_SWITCH_PAGE_MS;
 			lcd_module_auto_switch_timer_timeout = false;
 
 			// Move to next display-enabled page
