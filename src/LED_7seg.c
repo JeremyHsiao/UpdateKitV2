@@ -170,8 +170,7 @@ void Update_LED_7SEG_Message_Buffer(uint8_t *msg, uint8_t new_dp_point)
 void refresh_LED_7SEG_periodic_task(void)
 {
 	uint32_t 		out_port[3];
-	uint8_t			temp_index;
-	uint8_t const 	*ptr_char_def_lut, *prt_7seg_gpio_lut;
+	uint8_t const 	*ptr_char_def_lut;
 
 	// Go to next index
 	next_refresh_index--;
@@ -183,43 +182,35 @@ void refresh_LED_7SEG_periodic_task(void)
 	// Init port data & pointer to LUT
 	out_port[0] = out_port[1] = out_port[2] = 0;
 	ptr_char_def_lut = LED_character_definition_LUT + (led_7seg_message[next_refresh_index-1]*LED_character_definition_LUT_width);
-	prt_7seg_gpio_lut = LED_7SEG_GPIO_LUT;
 
 	// Please note that first 7 element of LED_7SEG_GPIO_LUT is LED_a~g
-	for(temp_index=0;temp_index<7;temp_index++)
-	{
-		if(*ptr_char_def_lut++)
-		{
-			out_port[*prt_7seg_gpio_lut] |= 1L<<(*(prt_7seg_gpio_lut+1));
-		}
-		prt_7seg_gpio_lut+=2;
-	}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[0]] |= 1L<<(LED_7SEG_GPIO_LUT[1]);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[2]] |= 1L<<(LED_7SEG_GPIO_LUT[3]);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[4]] |= 1L<<(LED_7SEG_GPIO_LUT[5]);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[6]] |= 1L<<(LED_7SEG_GPIO_LUT[7]);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[8]] |= 1L<<(LED_7SEG_GPIO_LUT[9]);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[10]] |= 1L<<(LED_7SEG_GPIO_LUT[11]);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[12]] |= 1L<<(LED_7SEG_GPIO_LUT[13]);}
 
 	// Please note that next element of LED_7SEG_GPIO_LUT is LED_dp
 	if (dp_point==next_refresh_index)
 	{
-		out_port[*prt_7seg_gpio_lut] |= 1L<<(*(prt_7seg_gpio_lut+1));
+		out_port[LED_7SEG_GPIO_LUT[14]] |= 1L<<(LED_7SEG_GPIO_LUT[15]);
 	}
-	prt_7seg_gpio_lut+=2;
 
 	// Please note that next 4 element of LED_7SEG_GPIO_LUT is LED_1~4
 	// The GPIO for the digit to be displayed should be set to low; others is keep as high
-	for(temp_index=1; temp_index<=4; temp_index++)
-	{
-		if(temp_index!=next_refresh_index)
-		{
-			out_port[*prt_7seg_gpio_lut] |= 1L<<(*(prt_7seg_gpio_lut+1));
-		}
-		prt_7seg_gpio_lut+=2;
-	}
+	if(1!=next_refresh_index) {out_port[LED_7SEG_GPIO_LUT[16]] |= 1L<<(LED_7SEG_GPIO_LUT[17]);}
+	if(2!=next_refresh_index) {out_port[LED_7SEG_GPIO_LUT[18]] |= 1L<<(LED_7SEG_GPIO_LUT[19]);}
+	if(3!=next_refresh_index) {out_port[LED_7SEG_GPIO_LUT[20]] |= 1L<<(LED_7SEG_GPIO_LUT[21]);}
+	if(4!=next_refresh_index) {out_port[LED_7SEG_GPIO_LUT[22]] |= 1L<<(LED_7SEG_GPIO_LUT[23]);}
 
-	// output to gpio with mask
-	temp_index = 3;
-	while(temp_index-->0)
-	{
-		LPC_GPIO->MASK[temp_index] = ~gpio_mask[temp_index];
-		LPC_GPIO->MPIN[temp_index] = out_port[temp_index];
-	}
+	LPC_GPIO->MASK[0] = ~gpio_mask[0];
+	LPC_GPIO->MPIN[0] = out_port[0];
+	LPC_GPIO->MASK[1] = ~gpio_mask[1];
+	LPC_GPIO->MPIN[1] = out_port[1];
+	LPC_GPIO->MASK[2] = ~gpio_mask[2];
+	LPC_GPIO->MPIN[2] = out_port[2];
 }
 
 void LED_7seg_self_test(void)
