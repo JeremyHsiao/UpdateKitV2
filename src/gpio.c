@@ -172,17 +172,17 @@ void LED_Status_Update_Process(void)
 		if(LED_G_flashing==0)
 		{
 			LED_G_LOW;
-			led_g_toggle_timer_in_100ms = ~1;
+			led_g_toggle_timer_reload = ~1;
 		}
 		else if (LED_G_flashing==0xff)
 		{
 			LED_G_HIGH;
-			led_g_toggle_timer_in_100ms = ~1;
+			led_g_toggle_timer_reload = ~1;
 		}
 		else
 		{
 			LED_G_TOGGLE;
-			led_g_toggle_timer_in_100ms = LED_G_flashing-1;
+			led_g_toggle_timer_reload = LED_G_flashing-1;
 		}
 	}
 
@@ -193,17 +193,17 @@ void LED_Status_Update_Process(void)
 		if(LED_R_flashing==0)
 		{
 			LED_R_LOW;
-			led_r_toggle_timer_in_100ms = ~1;
+			led_r_toggle_timer_reload = ~1;
 		}
 		else if (LED_R_flashing==0xff)
 		{
 			LED_R_HIGH;
-			led_r_toggle_timer_in_100ms = ~1;
+			led_r_toggle_timer_reload = ~1;
 		}
 		else
 		{
 			LED_R_TOGGLE;
-			led_r_toggle_timer_in_100ms = LED_R_flashing-1;
+			led_r_toggle_timer_reload = LED_R_flashing-1;
 		}
 	}
 
@@ -214,17 +214,17 @@ void LED_Status_Update_Process(void)
 		if(LED_Y_flashing==0)
 		{
 			LED_Y_LOW;
-			led_y_toggle_timer_in_100ms = ~1;
+			led_y_toggle_timer_reload = ~1;
 		}
 		else if (LED_Y_flashing==0xff)
 		{
 			LED_Y_HIGH;
-			led_y_toggle_timer_in_100ms = ~1;
+			led_y_toggle_timer_reload = ~1;
 		}
 		else
 		{
 			LED_Y_TOGGLE;
-			led_y_toggle_timer_in_100ms = LED_Y_flashing-1;
+			led_y_toggle_timer_reload = LED_Y_flashing-1;
 		}
 	}
 

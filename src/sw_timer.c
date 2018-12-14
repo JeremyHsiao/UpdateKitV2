@@ -21,9 +21,13 @@ bool		lcd_y_toggle_timeout = false;
 uint32_t	time_elapse_in_sec=0;
 uint32_t	SW_delay_sys_tick_cnt = 0;
 uint32_t	lcd_module_auto_switch_in_ms = 0;
+
 uint32_t	led_g_toggle_timer_in_100ms = 0;
 uint32_t	led_r_toggle_timer_in_100ms = 0;
 uint32_t	led_y_toggle_timer_in_100ms = 0;
+uint32_t	led_g_toggle_timer_reload = 0;
+uint32_t	led_r_toggle_timer_reload = 0;
+uint32_t	led_y_toggle_timer_reload = 0;
 
 uint8_t		sys_tick_1ms_cnt =  SYSTICK_COUNT_VALUE_MS(1);
 uint8_t		Counter_1s_cnt_in_100ms  = (10-1);
@@ -85,6 +89,7 @@ void SysTick_Handler(void)
 			}
 			else
 			{
+				led_g_toggle_timer_in_100ms = led_g_toggle_timer_reload;
 				lcd_g_toggle_timeout = true;
 			}
 
@@ -95,6 +100,7 @@ void SysTick_Handler(void)
 			}
 			else
 			{
+				led_r_toggle_timer_in_100ms = led_r_toggle_timer_reload;
 				lcd_r_toggle_timeout = true;
 			}
 
@@ -105,6 +111,7 @@ void SysTick_Handler(void)
 			}
 			else
 			{
+				led_y_toggle_timer_in_100ms = led_y_toggle_timer_reload;
 				lcd_y_toggle_timeout = true;
 			}
 
