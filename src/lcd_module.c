@@ -473,10 +473,15 @@ void lcm_auto_display_refresh_task(void)
 		return;	// not-found, simply return
 	}
 
+	if((lcd_read_busy_and_address()&0x80)!=0x00)
+	{
+		return;		// If busy then simply return
+	}
+
 	// if still not end of each line
 	if(lcm_current_col<LCM_DISPLAY_COL)
 	{
-		wait_for_not_busy(3);
+		//wait_for_not_busy(3);
 		lcm_write_ram_data_no_delay(lcd_module_display_content[lcm_current_page][lcm_current_row][lcm_current_col]);
 		++lcm_current_col;
 		return;
@@ -489,13 +494,13 @@ void lcm_auto_display_refresh_task(void)
 	{
 		uint8_t	LineTmp;
  		LineTmp = ((( lcm_current_row * 40)) & 0x7F);
-		wait_for_not_busy(3);
+		//wait_for_not_busy(3);
  		lcm_write_cmd_direct(0x80+LineTmp);
  		return;
 	}
 
 	// Go to the (0,0) and check if need to start showing next page
-	wait_for_not_busy(3);
+	//wait_for_not_busy(3);
  	lcm_write_cmd_direct(0x80+0);		// Go back to 0,0 for next page
 	lcm_current_row = 0;
 	if(lcd_module_auto_switch_timer_timeout==true)
