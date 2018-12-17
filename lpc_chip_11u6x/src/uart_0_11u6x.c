@@ -137,7 +137,7 @@ int Chip_UART0_ReadBlocking(LPC_USART0_T *pUART, void *data, int numBytes)
 /* Determines and sets best dividers to get a target bit rate */
 uint32_t Chip_UART0_SetBaud(LPC_USART0_T *pUART, uint32_t baudrate)
 {
-	uint32_t div, divh, divl, clkin;
+	uint32_t div, divh, divl, clkin, dval, mval;
 
 	/* USART clock input divider of 1 */
 	Chip_Clock_SetUSART0ClockDiv(1);
@@ -154,9 +154,31 @@ uint32_t Chip_UART0_SetBaud(LPC_USART0_T *pUART, uint32_t baudrate)
 	Chip_UART0_SetDivisorLatches(pUART, divl, divh);
 	Chip_UART0_DisableDivisorAccess(pUART);
 
-	/* Fractional FDR already setup for 1 in UART init */
+#ifdef _REAL_UPDATEKIT_V2_BOARD_
+	if(baudrate>=115200)
+	{
+		/* Set best fractional divider */
+		dval=1;
+		mval=12;
+		pUART->FDR = (UART0_FDR_MULVAL(mval) | UART0_FDR_DIVADDVAL(dval));
+		/* Return actual baud rate */
+		return ( clkin / (16 * div + 16 * div * dval / mval) );
+	}
+	else
+	{
+		/* Set best fractional divider */
+		dval=0;
+		mval=1;
+		pUART->FDR = (UART0_FDR_MULVAL(mval) | UART0_FDR_DIVADDVAL(dval));
 
+		/* Return actual baud rate */
+		return ( clkin / (16 * div + 16 * div * dval / mval) );
+	}
+#else
+	/* Fractional FDR already setup for 1 in UART init */
 	return clkin / (div * 16);
+#endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
+
 }
 
 /* UART receive-only interrupt handler for ring buffers */
