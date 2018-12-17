@@ -8,13 +8,13 @@
 #ifndef PWM_H_
 #define PWM_H_
 
-/* Systick is used for general timing */
-#define TICKRATE_HZ (33)	/* 33% rate of change per second */
+///* Systick is used for general timing */
+//#define TICKRATE_HZ (33)	/* 33% rate of change per second */
 
 /* PWM cycle time - time of a single PWM sweep */
-#define PWMCYCLERATE (1000)
+#define PWMCYCLERATE (15000UL)
 
-#define default_duty_cycle	(50)
+#define default_duty_cycle	(100)
 
 // PWM PIO
 #define PWM0_GPIO_PORT		(1)
