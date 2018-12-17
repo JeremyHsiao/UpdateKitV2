@@ -9,7 +9,8 @@
 #define UPDATEKITV2_H_
 
 extern void SetDisplayVoltageCurrent(uint16_t voltage_new, uint16_t current_new);
-extern void UpdateKitV2_LED_7_Segment_Task(void);
+extern void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void);
+extern void UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task(void);
 extern void ButtonPressedTask(void);
 extern void PowerOutputSetting(uint8_t current_step);
 

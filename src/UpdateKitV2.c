@@ -47,7 +47,19 @@ void SetDisplayVoltageCurrent(uint16_t voltage_new, uint16_t current_new)
 	current = current_new;
 }
 
-void UpdateKitV2_LED_7_Segment_Task(void)
+void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void)
+{
+	if(showing_current==false)		// showing voltage // 0.00v ~ 10.0v
+	{
+		showing_current=true;
+	}
+	else
+	{
+		showing_current=false;
+	}
+}
+
+void UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task(void)
 {
 	char 	 temp_str[4+1], final_str[4];		// For storing 0x0 at the end of string by +1
 	int 	 temp_str_len;
@@ -56,8 +68,6 @@ void UpdateKitV2_LED_7_Segment_Task(void)
 
 	if(showing_current==false)		// showing voltage // 0.00v ~ 10.0v
 	{
-		showing_current=true;
-
 		temp_value = voltage;
 		if(temp_value>=100)
 		{
@@ -72,8 +82,6 @@ void UpdateKitV2_LED_7_Segment_Task(void)
 	}
 	else
 	{
-		showing_current=false;
-
 		temp_value = current;
 		if(temp_value>999)
 		{

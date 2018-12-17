@@ -145,13 +145,14 @@ int main(void)
 		if (sequenceComplete)
 		{
 			Read_ADC();
+			UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task();
 		}
 
 		// Time to refresh LED-7Segment content?
 		if(LED_Voltage_Current_Refresh_in_sec_timeout==true)
 		{
 			LED_Voltage_Current_Refresh_in_sec_timeout = false;
-			UpdateKitV2_LED_7_Segment_Task();
+			UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task();
 		}
 
 		// Refresh each char of 7 Segment LED every 1ms
