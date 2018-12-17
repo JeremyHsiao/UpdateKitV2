@@ -100,7 +100,7 @@ void UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task(void)
 
 uint8_t		current_output_stage = DEFAULT_POWER_OUTPUT_STEP;
 //uint8_t		pwm_table[25] = { 100, 77, 76, 75, 74,   73, 72,  71, 70, 65,    64, 63, 54, 53, 52,     34, 33, 32, 31, 5,   4, 3, 2, 1, 0};
-uint8_t		pwm_table[9] = { 100, 76, 75,   71,   65,    55,   35,   5,   0};
+uint8_t		pwm_table[9] = { 100, 49, 41,   33,   26,    19,   12,   4,   0};
 //Key toggle :				 0V, 6.5V, 7V,  7.5V, 8V,   8.5V, 9V,  9.5V, 10V
 						//	0 / 680 / 702 / 749 / 799 / 852 / 909 / 948/ 980
 
