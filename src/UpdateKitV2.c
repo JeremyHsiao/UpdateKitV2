@@ -41,9 +41,13 @@ uint16_t	voltage = 0;		//  0.0v ~ 10.0v --> 0-100
 uint16_t	current = 0;		// .000A ~ .999A --> 0-999
 bool		showing_current = false;
 
-void SetDisplayVoltageCurrent(uint16_t voltage_new, uint16_t current_new)
+void SetDisplayVoltage(uint16_t voltage_new)
 {
 	voltage = voltage_new;
+}
+
+void SetDisplayCurrent(uint16_t current_new)
+{
 	current = current_new;
 }
 
