@@ -182,9 +182,11 @@ void Read_ADC(void)
 		/* Show some ADC data */
 		if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
 			ADC1_value = ADC_DR_RESULT(rawSample);
+			temp_value = ADC1_value;
+			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 1024 / ADC_VREFP_DIVIDER; // use 0.001V as unit == (adc/4096) * (343/100) * (4) * 1000
 			temp_str_len = itoa_10(ADC1_value, temp_str);
 			memset((void *)&lcd_module_display_content[1][0][12], ' ', (4-temp_str_len));
-			memcpy((void *)&lcd_module_display_content[1][0][12+(4-temp_str_len)], temp_str, temp_str_len-1);
+			memcpy((void *)&lcd_module_display_content[1][0][12+(4-temp_str_len)], temp_str, temp_str_len);
 		}
 		else
 		{
