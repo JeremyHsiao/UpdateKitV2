@@ -148,10 +148,11 @@ int main(void)
 			UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task();
 		}
 
-		// Time to refresh LED-7Segment content?
+		// Time to switch LED-7Segment content?
 		if(LED_Voltage_Current_Refresh_in_sec_timeout==true)
 		{
 			LED_Voltage_Current_Refresh_in_sec_timeout = false;
+			UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent();
 			UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task();
 		}
 
