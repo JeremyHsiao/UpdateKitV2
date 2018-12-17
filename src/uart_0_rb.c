@@ -82,12 +82,12 @@ static void Init_UART_PinMux(void)
 /*****************************************************************************
  * Public functions
  ****************************************************************************/
-void SCT_IRQHandler(void)
-{
-	/* Clear the Interrupt */
-	Chip_SCT_ClearEventFlag(LPC_SCT1, SCT_EVT_0);
-}
-
+//void SCT_IRQHandler(void)
+//{
+//	/* Clear the Interrupt */
+//	Chip_SCT_ClearEventFlag(LPC_SCT1, SCT_EVT_0);
+//}
+//
 /**
  * @brief	UART interrupt handler using ring buffers
  * @return	Nothing
