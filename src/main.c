@@ -68,6 +68,8 @@ int main(void)
 	LED_Voltage_Current_Refresh_reload = DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC;		// 2 second
 	PowerOutputSetting(DEFAULT_POWER_OUTPUT_STEP);
 
+	init_filtered_input_current();
+
 	while (key != 27) {
 
 		/* Sleep until interrupt/sys_tick happens */

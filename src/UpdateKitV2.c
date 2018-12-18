@@ -95,7 +95,7 @@ void UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task(void)
 		final_str[0] = '0';	// Manually filled for .000A
 		final_str[1] = '0';
 		memcpy((void *)&final_str[3-temp_str_len], temp_str, temp_str_len);
-		dp_point = 1;
+		dp_point = 0;
 		final_str[3] = 'A';
 	}
 	Update_LED_7SEG_Message_Buffer((uint8_t*)final_str,dp_point);
@@ -140,4 +140,31 @@ void ButtonPressedTask(void)
 					memset((void *)&lcd_module_display_content[1][1][9+temp_str_len], ' ', LCM_DISPLAY_COL-9-temp_str_len);
 					lcm_force_to_display_page(1);
 	}
+}
+
+#define	CURRENT_HISTORY_DATA_SIZE	128
+static RINGBUFF_T current_history;
+static uint16_t current_history_data[CURRENT_HISTORY_DATA_SIZE];
+static uint32_t	total_current_value;
+
+void init_filtered_input_current(void)
+{
+	total_current_value = 0;
+	RingBuffer_Init(&current_history, current_history_data, sizeof(uint16_t), CURRENT_HISTORY_DATA_SIZE);
+	RingBuffer_Flush(&current_history);
+}
+
+uint16_t Filtered_Input_current(uint16_t latest_current)
+{
+	uint16_t	temp;
+
+	if(RingBuffer_IsFull(&current_history))
+	{
+		RingBuffer_Pop(&current_history, &temp);
+		total_current_value -= temp;
+	}
+	total_current_value += latest_current;
+	RingBuffer_Insert(&current_history, &latest_current);
+
+	return (total_current_value/CURRENT_HISTORY_DATA_SIZE);
 }
