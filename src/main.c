@@ -50,8 +50,8 @@ int main(void)
 	Init_UART0();
 
 	/* Send initial messages */
-	OutputString_with_newline(inst1);
-	OutputString_with_newline(inst2);
+	OutputString_with_newline((char*)inst1);
+	OutputString_with_newline((char*)inst2);
 
 	Init_GPIO();
 	Init_LED_7seg_GPIO();
@@ -72,9 +72,10 @@ int main(void)
 	LED_Voltage_Current_Refresh_reload = DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC;		// 2 second
 
 	init_filtered_input_current();
+	init_filtered_input_voltage();
 	reset_string_detector();
 
-	OutputString_with_newline(inst3);	// Relocate here can use fewer send buffer
+	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer
 
 	// Endless loop at the moment
 	while (1) {
