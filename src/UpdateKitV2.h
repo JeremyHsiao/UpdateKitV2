@@ -22,6 +22,19 @@ extern void init_filtered_input_voltage(void);
 extern uint16_t Filtered_Input_voltage(uint16_t latest_voltage);
 
 #define	DEFAULT_POWER_OUTPUT_STEP	(0)
-#define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(2)
+#define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(3-1)
+
+enum
+{
+	LCM_WELCOME_PAGE = 0,
+	LCM_PC_MODE,
+	LCM_REMINDER_BEFORE_OUTPUT,
+	LCM_INPUT_MEASURE_PAGE,
+	LCM_VERSION_PAGE,
+	LCM_TV_IN_STANDBY_PAGE,
+	LCM_ENTER_ISP_PAGE,
+	LCM_MAX_PAGE_NO
+};
+
 
 #endif /* UPDATEKITV2_H_ */
