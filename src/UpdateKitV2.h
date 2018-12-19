@@ -16,6 +16,8 @@ extern void ButtonPressedTask(void);
 extern void PowerOutputSetting(uint8_t current_step);
 extern void init_filtered_input_current(void);
 extern uint16_t Filtered_Input_current(uint16_t latest_current);
+extern void init_filtered_input_voltage(void);
+extern uint16_t Filtered_Input_voltage(uint16_t latest_voltage);
 
 #define	DEFAULT_POWER_OUTPUT_STEP	(0)
 #define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(2)

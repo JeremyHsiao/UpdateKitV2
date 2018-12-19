@@ -168,3 +168,30 @@ uint16_t Filtered_Input_current(uint16_t latest_current)
 
 	return (total_current_value/CURRENT_HISTORY_DATA_SIZE);
 }
+
+#define	VOLTAGE_HISTORY_DATA_SIZE	16
+static RINGBUFF_T voltage_history;
+static uint16_t voltage_history_data[VOLTAGE_HISTORY_DATA_SIZE];
+static uint32_t	total_voltage_value;
+
+void init_filtered_input_voltage(void)
+{
+	total_voltage_value = 0;
+	RingBuffer_Init(&voltage_history, voltage_history_data, sizeof(uint16_t), VOLTAGE_HISTORY_DATA_SIZE);
+	RingBuffer_Flush(&voltage_history);
+}
+
+uint16_t Filtered_Input_voltage(uint16_t latest_voltage)
+{
+	uint16_t	temp;
+
+	if(RingBuffer_IsFull(&voltage_history))
+	{
+		RingBuffer_Pop(&voltage_history, &temp);
+		total_voltage_value -= temp;
+	}
+	total_voltage_value += latest_voltage;
+	RingBuffer_Insert(&voltage_history, &latest_voltage);
+
+	return (total_voltage_value/VOLTAGE_HISTORY_DATA_SIZE);
+}

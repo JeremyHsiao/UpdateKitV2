@@ -167,6 +167,7 @@ void Read_ADC(void)
 			ADC0_value = ADC_DR_RESULT(rawSample);
 			temp_value = ADC0_value;
 			temp_value = (temp_value * ADC_VREFP_VALUE) * 10 / 1024 / ADC_VREFP_DIVIDER; // use 0.1V as unit == (adc/4096) * (343/100) * (4) * 10
+			temp_value = Filtered_Input_voltage(temp_value);
 			SetDisplayVoltage(temp_value);
 			temp_str_len = itoa_10(ADC0_value, temp_str);
 			memset((void *)&lcd_module_display_content[1][0][5], ' ', (4-temp_str_len));
