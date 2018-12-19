@@ -142,7 +142,7 @@ void ButtonPressedTask(void)
 	}
 }
 
-#define	CURRENT_HISTORY_DATA_SIZE	128
+#define	CURRENT_HISTORY_DATA_SIZE	16
 static RINGBUFF_T current_history;
 static uint16_t current_history_data[CURRENT_HISTORY_DATA_SIZE];
 static uint32_t	total_current_value;
