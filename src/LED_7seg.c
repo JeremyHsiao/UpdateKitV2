@@ -184,26 +184,26 @@ void refresh_LED_7SEG_periodic_task(void)
 	ptr_char_def_lut = LED_character_definition_LUT + (led_7seg_message[next_refresh_index-1]*LED_character_definition_LUT_width);
 
 	// Please note that first 7 element of LED_7SEG_GPIO_LUT is LED_a~g
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[0]] |= 1L<<(LED_7SEG_GPIO_LUT[1]);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[2]] |= 1L<<(LED_7SEG_GPIO_LUT[3]);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[4]] |= 1L<<(LED_7SEG_GPIO_LUT[5]);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[6]] |= 1L<<(LED_7SEG_GPIO_LUT[7]);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[8]] |= 1L<<(LED_7SEG_GPIO_LUT[9]);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[10]] |= 1L<<(LED_7SEG_GPIO_LUT[11]);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_GPIO_LUT[12]] |= 1L<<(LED_7SEG_GPIO_LUT[13]);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGa_PORT] |= 1L<<(LED_7SEG_SEGa_PIN);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGb_PORT] |= 1L<<(LED_7SEG_SEGb_PIN);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGc_PORT] |= 1L<<(LED_7SEG_SEGc_PIN);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGd_PORT] |= 1L<<(LED_7SEG_SEGd_PIN);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGe_PORT] |= 1L<<(LED_7SEG_SEGe_PIN);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGf_PORT] |= 1L<<(LED_7SEG_SEGf_PIN);}
+	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGg_PORT] |= 1L<<(LED_7SEG_SEGg_PIN);}
 
 	// Please note that next element of LED_7SEG_GPIO_LUT is LED_dp
 	if (dp_point==next_refresh_index)
 	{
-		out_port[LED_7SEG_GPIO_LUT[14]] |= 1L<<(LED_7SEG_GPIO_LUT[15]);
+		out_port[LED_7SEG_SEGdp_PORT] |= 1L<<(LED_7SEG_SEGdp_PIN);
 	}
 
 	// Please note that next 4 element of LED_7SEG_GPIO_LUT is LED_1~4
 	// The GPIO for the digit to be displayed should be set to low; others is keep as high
-	if(1!=next_refresh_index) {out_port[LED_7SEG_GPIO_LUT[16]] |= 1L<<(LED_7SEG_GPIO_LUT[17]);}
-	if(2!=next_refresh_index) {out_port[LED_7SEG_GPIO_LUT[18]] |= 1L<<(LED_7SEG_GPIO_LUT[19]);}
-	if(3!=next_refresh_index) {out_port[LED_7SEG_GPIO_LUT[20]] |= 1L<<(LED_7SEG_GPIO_LUT[21]);}
-	if(4!=next_refresh_index) {out_port[LED_7SEG_GPIO_LUT[22]] |= 1L<<(LED_7SEG_GPIO_LUT[23]);}
+	if(1!=next_refresh_index) {out_port[LED_7SEG_SEG1_PORT] |= 1L<<(LED_7SEG_SEG1_PIN);}
+	if(2!=next_refresh_index) {out_port[LED_7SEG_SEG2_PORT] |= 1L<<(LED_7SEG_SEG2_PIN);}
+	if(3!=next_refresh_index) {out_port[LED_7SEG_SEG3_PORT] |= 1L<<(LED_7SEG_SEG3_PIN);}
+	if(4!=next_refresh_index) {out_port[LED_7SEG_SEG4_PORT] |= 1L<<(LED_7SEG_SEG4_PIN);}
 
 	LPC_GPIO->MASK[0] = ~gpio_mask[0];
 	LPC_GPIO->MPIN[0] = out_port[0];
