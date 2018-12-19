@@ -17,16 +17,20 @@ bool		lcd_module_auto_switch_timer_timeout = false;
 bool		lcd_g_toggle_timeout = false;
 bool		lcd_r_toggle_timeout = false;
 bool		lcd_y_toggle_timeout = false;
-bool		LED_Voltage_Current_Refresh_in_sec_timeout;
+bool		LED_Voltage_Current_Refresh_in_sec_timeout = false;
+bool		lcd_module_wait_finish_timeout = false;
 
 uint32_t	time_elapse_in_sec=0;
 uint32_t	SW_delay_sys_tick_cnt = 0;
-uint32_t	lcd_module_auto_switch_in_ms = 0;
+uint16_t	lcd_module_auto_switch_in_ms = 0;
 uint8_t		LED_Voltage_Current_Refresh_in_sec = 0;
+uint8_t		lcd_module_wait_finish_in_tick = 0;
 
 uint32_t	led_g_toggle_timer_in_100ms = 0;
 uint32_t	led_r_toggle_timer_in_100ms = 0;
 uint32_t	led_y_toggle_timer_in_100ms = 0;
+
+// Auto-reload value
 uint32_t	led_g_toggle_timer_reload = 0;
 uint32_t	led_r_toggle_timer_reload = 0;
 uint32_t	led_y_toggle_timer_reload = 0;
@@ -52,6 +56,14 @@ void SysTick_Handler(void)
 		SW_delay_timeout = true;
 	}
 
+	if(lcd_module_wait_finish_in_tick>0)
+	{
+		lcd_module_wait_finish_in_tick--;
+	}
+	else
+	{
+		lcd_module_wait_finish_timeout = true;
+	}
 
 	// For regular timer
 	if(sys_tick_1ms_cnt)
@@ -136,6 +148,7 @@ void SysTick_Handler(void)
 				}
 				else
 				{
+					LED_Voltage_Current_Refresh_in_sec = LED_Voltage_Current_Refresh_reload;
 					LED_Voltage_Current_Refresh_in_sec_timeout = true;
 				}
 			}
