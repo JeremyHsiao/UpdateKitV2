@@ -86,8 +86,8 @@ void UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task(void)
 	}
 	else
 	{
-		temp_value = current / 10; //  discard  last digit
-		if(temp_value>99)		// protection
+		temp_value = current;
+		if(temp_value>99)		// protection //  showing // 0.00A~0.99A
 		{
 			temp_value = 99;
 		}
