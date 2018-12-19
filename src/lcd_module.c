@@ -561,24 +561,24 @@ void lcm_auto_display_refresh_task_old(void)
 }
 */
 
-void lcm_content_init(void)
-{
-//	strcpy((void *)&lcd_module_display_content[0][0][0], "TPV UpdateKit V2" __TIME__);
-	strcpy((void *)&lcd_module_display_content[0][0][0], __DATE__);	// xxx xx xxxx
-	strcpy((void *)&lcd_module_display_content[0][0][7], __TIME__ " ");	// tt:tt:tt
-	strcpy((void *)&lcd_module_display_content[0][1][0], "Elapse: 0000 Sec");
-	strcpy((void *)&lcd_module_display_content[1][0][0], "ADC: 1024 / 1024");
-	strcpy((void *)&lcd_module_display_content[1][1][0], "PWM Duty:100    ");
-	strcpy((void *)&lcd_module_display_content[2][0][0], "Ver:            ");
-	strcpy((void *)&lcd_module_display_content[2][1][0], "detecting...    ");
-	strcpy((void *)&lcd_module_display_content[3][0][0], "PWR detecting...");
- 	strcpy((void *)&lcd_module_display_content[3][1][0], "OK detecting... ");
-	memset((void *)lcd_module_display_enable, 0x01, 4);
-	//lcd_module_display_enable[3] = 0x00;
- 	//memset((void *)lcd_module_display_enable, 0x00, 4);
- 	//lcd_module_display_enable[1]=1;
-}
-
+//void lcm_content_init(void)
+//{
+////	strcpy((void *)&lcd_module_display_content[0][0][0], "TPV UpdateKit V2" __TIME__);
+//	strcpy((void *)&lcd_module_display_content[0][0][0], __DATE__);	// xxx xx xxxx
+//	strcpy((void *)&lcd_module_display_content[0][0][7], __TIME__ " ");	// tt:tt:tt
+//	strcpy((void *)&lcd_module_display_content[0][1][0], "Elapse: 0000 Sec");
+//	strcpy((void *)&lcd_module_display_content[1][0][0], "ADC: 1024 / 1024");
+//	strcpy((void *)&lcd_module_display_content[1][1][0], "PWM Duty:100    ");
+//	strcpy((void *)&lcd_module_display_content[2][0][0], "Ver:            ");
+//	strcpy((void *)&lcd_module_display_content[2][1][0], "detecting...    ");
+//	strcpy((void *)&lcd_module_display_content[3][0][0], "PWR detecting...");
+// 	strcpy((void *)&lcd_module_display_content[3][1][0], "OK detecting... ");
+//	memset((void *)lcd_module_display_enable, 0x01, 4);
+//	//lcd_module_display_enable[3] = 0x00;
+// 	//memset((void *)lcd_module_display_enable, 0x00, 4);
+// 	//lcd_module_display_enable[1]=1;
+//}
+//
 void lcm_demo(void)
 {
 	strcpy((void *)&lcd_module_display_content[0][0][0], "TPV Technology  ");

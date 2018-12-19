@@ -24,6 +24,86 @@
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
+enum
+{
+	LCM_WELCOME_PAGE = 0,
+	LCM_PC_MODE,
+	LCM_INPUT_MEASURE_PAGE,
+	LCM_VERSION_PAGE,
+	LCM_TV_IN_STANDBY_PAGE,
+	LCM_ENTER_ISP_PAGE,
+	LCM_MAX_PAGE_NO
+};
+
+void lcm_content_init(void)
+{
+//    strcpy((void *)&lcd_module_display_content[0][0][0], "TPV UpdateKit V2" __TIME__);
+    strcpy((void *)&lcd_module_display_content[0][0][0], __DATE__);    // xxx xx xxxx
+    strcpy((void *)&lcd_module_display_content[0][0][7], __TIME__ " ");    // tt:tt:tt
+    strcpy((void *)&lcd_module_display_content[0][1][0], "Elapse: 0000 Sec");
+    strcpy((void *)&lcd_module_display_content[1][0][0], "ADC: 1024 / 1024");
+    strcpy((void *)&lcd_module_display_content[1][1][0], "PWM Duty:100    ");
+    strcpy((void *)&lcd_module_display_content[2][0][0], "Ver:            ");
+    strcpy((void *)&lcd_module_display_content[2][1][0], "detecting...    ");
+    strcpy((void *)&lcd_module_display_content[3][0][0], "PWR detecting...");
+    strcpy((void *)&lcd_module_display_content[3][1][0], "OK detecting... ");
+    //													  1234567890123456
+    memset((void *)lcd_module_display_enable, 0x01, 4);
+    //lcd_module_display_enable[3] = 0x00;
+     //memset((void *)lcd_module_display_enable, 0x00, 4);
+     //lcd_module_display_enable[1]=1;
+}
+
+void lcm_content_init_new(void)
+{
+	char const	*date = __DATE__,   							// mmm dd yyyy
+				*time = __TIME__,								// xx:xx:xx
+				*welcome_message_line1 =  "TPV UpdateKit V2";
+
+	uint8_t		welcome_message_line2[17];
+
+	// Welcome page														 1234567890123456
+	memcpy((void *)&welcome_message_line2[0], (date), 3);						// mmm
+	memcpy((void *)&welcome_message_line2[3], (date+4), 3);						// mmmdd
+	if(welcome_message_line2[3]==' ') {welcome_message_line2[3]='0';}
+	memcpy((void *)&welcome_message_line2[5], (date+7), 4);						// mmmddyyyy
+	welcome_message_line2[9] = '@';
+	memcpy((void *)&welcome_message_line2[10], time, 2);							// mmmddyyyy@hh
+	memcpy((void *)&welcome_message_line2[12], (time+3), 2);						// mmmddyyyy@hhmm
+	memcpy((void *)&welcome_message_line2[14], (time+6), 2);						// mmmddyyyy@hhmmss
+
+	memcpy((void *)&lcd_module_display_content[LCM_WELCOME_PAGE][0][0], welcome_message_line1, LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_WELCOME_PAGE][1][0], welcome_message_line2, LCM_DISPLAY_COL);
+
+	// Immediately display welcome page
+	wait_for_not_busy(3);
+	lcm_goto(0,0);			// Go back to 0,0 for confirming (pos:0, Line:0)
+	lcm_puts((uint8_t*)welcome_message_line1);
+	lcm_goto(0,1);			// Go to Next line (pos:0, Line:1)
+    lcm_puts(welcome_message_line2);
+
+	// PC Mode page		     										1234567890123456
+	memcpy((void *)&lcd_module_display_content[LCM_PC_MODE][0][0], "PC Mode: Press  ", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_PC_MODE][1][0], "button to change", LCM_DISPLAY_COL);
+
+	// Input Measurement page							  					   1234567890123456
+	memcpy((void *)&lcd_module_display_content[LCM_INPUT_MEASURE_PAGE][0][0], "Input:         V", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_INPUT_MEASURE_PAGE][1][0], "Current:       A", LCM_DISPLAY_COL);
+
+	// Show software version page						  				 1234567890123456
+	memcpy((void *)&lcd_module_display_content[LCM_VERSION_PAGE][0][0], "Firmware updated", LCM_DISPLAY_COL);
+	memset((void *)&lcd_module_display_content[LCM_VERSION_PAGE][1][0], ' ', LCM_DISPLAY_COL);
+
+	// TV in standby page		     										   1234567890123456
+	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][0][0], "TV is in Standby", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][1][0], "Turn-on your TV ", LCM_DISPLAY_COL);
+
+	// TV is entering ISP mode page		     							   1234567890123456
+	memcpy((void *)&lcd_module_display_content[LCM_ENTER_ISP_PAGE][0][0], "Enter ISP mode  ", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_ENTER_ISP_PAGE][1][0], "Off-On after ISP", LCM_DISPLAY_COL);
+
+	memset((void *)lcd_module_display_enable, 0x00, LCM_MAX_PAGE_NO);	// Initial only - later sw determine which page is to be displayed
+}
 
 /*****************************************************************************
  * Private functions
@@ -104,8 +184,8 @@ void UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task(void)
 
 uint8_t		current_output_stage = DEFAULT_POWER_OUTPUT_STEP;
 //uint8_t		pwm_table[25] = { 100, 77, 76, 75, 74,   73, 72,  71, 70, 65,    64, 63, 54, 53, 52,     34, 33, 32, 31, 5,   4, 3, 2, 1, 0};
-uint8_t		pwm_table[9] = { 100, 49, 41,   33,   26,    19,   12,   4,   0};
-//Key toggle :				 0V, 6.5V, 7V,  7.5V, 8V,   8.5V, 9V,  9.5V, 10V
+uint8_t		pwm_table[10] = { 100, 58,  49, 41,   33,   26,    19,   12,   4,   0};
+//Key toggle :				 0V, 6.0V ,6.5V, 7V,  7.5V, 8V,   8.5V, 9V,  9.5V, 10V
 						//	0 / 680 / 702 / 749 / 799 / 852 / 909 / 948/ 980
 
 void PowerOutputSetting(uint8_t current_step)

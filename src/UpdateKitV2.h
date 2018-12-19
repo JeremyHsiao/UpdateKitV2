@@ -8,6 +8,8 @@
 #ifndef UPDATEKITV2_H_
 #define UPDATEKITV2_H_
 
+extern void lcm_content_init(void);
+
 extern void SetDisplayVoltage(uint16_t voltage_new);
 extern void SetDisplayCurrent(uint16_t current_new);
 extern void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void);

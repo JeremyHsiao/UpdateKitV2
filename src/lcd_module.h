@@ -89,11 +89,10 @@ extern void lcm_force_to_display_page(uint8_t page_no);
 #define LCM_AUTO_DISPLAY_SWITCH_PAGE_MS		(5000)
 
 extern void lcm_demo(void);
-extern void lcm_content_init(void);
 extern void lcm_sw_init(void);
 extern void Init_LCD_Module_GPIO(void);
 
-#define	MAX_LCD_CONTENT_PAGE	(4)
+#define	MAX_LCD_CONTENT_PAGE	(7)
 #define LCM_DISPLAY_ROW			(2)
 #define LCM_DISPLAY_COL			(16)
 extern uint8_t lcd_module_display_content[MAX_LCD_CONTENT_PAGE][LCM_DISPLAY_ROW][LCM_DISPLAY_COL];
