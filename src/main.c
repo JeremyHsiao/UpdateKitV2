@@ -20,6 +20,9 @@
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
+const char inst1[] = "TPV UpdateKit";
+const char inst2[] = "HW: V2.0";
+const char inst3[] = "FW: "__DATE__ " " __TIME__;
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -39,22 +42,25 @@
  */
 int main(void)
 {
-	uint8_t temp; //, dutyCycle = 50;  	/* Start at 50% duty cycle */
-
 	SystemCoreClockUpdate();
 	/* Enable and setup SysTick Timer at a periodic rate */
 	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
 
 	Board_Init();
+	Init_UART0();
+
+	/* Send initial messages */
+	OutputString_with_newline(inst1);
+	OutputString_with_newline(inst2);
+
 	Init_GPIO();
 	Init_LED_7seg_GPIO();
 	Init_PWM();
-	Init_UART0();
+	PowerOutputSetting(DEFAULT_POWER_OUTPUT_STEP);
+
 	Init_ADC();
 	Init_LCD_Module_GPIO();
 
-	/* Poll the receive ring buffer for the ESC (ASCII 27) key */
-	reset_string_detector();
 	lcm_sw_init();
 	lcm_auto_display_init();
 	//lcm_demo();
@@ -64,21 +70,29 @@ int main(void)
 	LED_R_setting(0xff);
 	LED_Y_setting(5);
 	LED_Voltage_Current_Refresh_reload = DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC;		// 2 second
-	PowerOutputSetting(DEFAULT_POWER_OUTPUT_STEP);
 
 	init_filtered_input_current();
+	reset_string_detector();
+
+	OutputString_with_newline(inst3);	// Relocate here can use fewer send buffer
 
 	// Endless loop at the moment
 	while (1) {
+		uint8_t temp;
 
 		/* Sleep until interrupt/sys_tick happens */
 		__WFI();
 
-		// Update LCD module display from time-to-time
-		lcm_auto_display_refresh_task();
+		// Update LCD module display after each lcm command delay
+		if(lcd_module_wait_finish_timeout==true)
+		{
+			lcd_module_wait_finish_timeout = false;
+			lcm_auto_display_refresh_task();
+			lcd_module_wait_finish_in_tick = SYSTICK_COUNT_VALUE_US(250);
+		}
 
 		// Processing at most 4-char each ticks
-		temp = (115200/8)/SYSTICK_PER_SECOND+1;
+		temp = ((115200/8)/SYSTICK_PER_SECOND)+1;
 		do
 		{
 			uint8_t	key, bytes;

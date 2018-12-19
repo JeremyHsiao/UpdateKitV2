@@ -47,9 +47,6 @@ STATIC RINGBUFF_T txring, rxring;
 /* Transmit and receive buffers */
 static uint8_t rxbuff[UART_RRB_SIZE], txbuff[UART_SRB_SIZE];
 
-const char *inst1 = "TPV UpdateKit V2";
-const char *inst2 = __DATE__ " " __TIME__;
-
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
@@ -122,10 +119,6 @@ void Init_UART0(void)
 
 	/* Enable UART 0 interrupt */
 	NVIC_EnableIRQ(USART0_IRQn);
-
-	/* Send initial messages */
-	Chip_UART0_SendRB(LPC_USART0, &txring, inst1, sizeof(inst1) - 1);
-	Chip_UART0_SendRB(LPC_USART0, &txring, inst2, sizeof(inst2) - 1);
 }
 
 void DeInit_UART0(void)
