@@ -105,7 +105,7 @@ int main(void)
 				uint8_t	temp_ok_cnt;
 
 				/* Wrap value back around */
-				UART0_PutChar((char)key);
+				//UART0_PutChar((char)key);
 
 				// To identify 10x OK
 				temp_ok_cnt=locate_OK_pattern_process(key);
