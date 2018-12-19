@@ -41,14 +41,14 @@
 STATIC RINGBUFF_T txring, rxring;
 
 /* Transmit and receive ring buffer sizes */
-#define UART_SRB_SIZE 128	/* Send */
-#define UART_RRB_SIZE 32	/* Receive */
+#define UART_SRB_SIZE 32	/* Send */
+#define UART_RRB_SIZE 256	/* Receive */
 
 /* Transmit and receive buffers */
 static uint8_t rxbuff[UART_RRB_SIZE], txbuff[UART_SRB_SIZE];
 
-const char inst1[] = "LPC11u6x UART example using ring buffers\r\n";
-const char inst2[] = "Press a key to echo it back or ESC to quit\r\n";
+const char *inst1 = "TPV UpdateKit V2";
+const char *inst2 = __DATE__ " " __TIME__;
 
 /*****************************************************************************
  * Public types/enumerations/variables
