@@ -39,8 +39,7 @@
  */
 int main(void)
 {
-	uint8_t key, temp; //, dutyCycle = 50;  	/* Start at 50% duty cycle */
-	int bytes; //, countdir = 10;
+	uint8_t temp; //, dutyCycle = 50;  	/* Start at 50% duty cycle */
 
 	SystemCoreClockUpdate();
 	/* Enable and setup SysTick Timer at a periodic rate */
@@ -55,7 +54,6 @@ int main(void)
 	Init_LCD_Module_GPIO();
 
 	/* Poll the receive ring buffer for the ESC (ASCII 27) key */
-	key = 0;
 	reset_string_detector();
 	lcm_sw_init();
 	lcm_auto_display_init();
@@ -70,7 +68,8 @@ int main(void)
 
 	init_filtered_input_current();
 
-	while (key != 27) {
+	// Endless loop at the moment
+	while (1) {
 
 		/* Sleep until interrupt/sys_tick happens */
 		__WFI();
@@ -78,61 +77,77 @@ int main(void)
 		// Update LCD module display from time-to-time
 		lcm_auto_display_refresh_task();
 
-		// Process RS-232 input character
-		bytes = UART0_GetChar(&key);
-		if (bytes > 0) {
-			/* Wrap value back around */
-			UART0_PutChar((char)key);
+		// Processing at most 4-char each ticks
+		temp = (115200/8)/SYSTICK_PER_SECOND+1;
+		do
+		{
+			uint8_t	key, bytes;
 
-			// To identify 10x OK
-			temp=locate_OK_pattern_process(key);
-			if(temp==10)
+			// Process RS-232 input character
+			bytes = UART0_GetChar(&key);
+			if (bytes > 0)
 			{
-				//OutputHexValue_with_newline(temp);
-			 	memcpy((void *)&lcd_module_display_content[3][1][0], "OK is detected! ",LCM_DISPLAY_COL);
-				lcm_force_to_display_page(3);
-			}
+				uint8_t	temp_ok_cnt;
 
-			// To identify @POWERON
-			locate_POWERON_pattern_process(key);
-			if(Get_POWERON_pattern()==true)
-			{
-				//OutputString_with_newline("POWER_ON_DETECTED");
-				memcpy((void *)&lcd_module_display_content[3][0][0], "POWERON detected", LCM_DISPLAY_COL);
-				lcm_force_to_display_page(3);
-				Clear_POWERON_pattern();
-			}
+				/* Wrap value back around */
+				UART0_PutChar((char)key);
 
-			// To identify @VER
-			locate_VER_pattern_process(key);
-			if(Found_VER_string()==true)
-			{
-				//OutputString("Version:");
-				//OutputString_with_newline((char *)Get_VER_string());
-				char	*temp_str = (char *) Get_VER_string();
-				uint8_t	temp_len = strlen(temp_str);
-				if(temp_len<=LCM_DISPLAY_COL)
+				// To identify 10x OK
+				temp_ok_cnt=locate_OK_pattern_process(key);
+				if(temp_ok_cnt==10)
 				{
-					strcpy((void *)&lcd_module_display_content[2][1][0], temp_str);
+					//OutputHexValue_with_newline(temp);
+					memcpy((void *)&lcd_module_display_content[3][1][0], "OK is detected! ",LCM_DISPLAY_COL);
+					lcm_force_to_display_page(3);
 				}
-				else
+
+				// To identify @POWERON
+				locate_POWERON_pattern_process(key);
+				if(Get_POWERON_pattern()==true)
 				{
-					memcpy((void *)&lcd_module_display_content[2][0][4], temp_str, 12);
-					temp_len-=12;
-					if(temp_len>LCM_DISPLAY_COL)
+					//OutputString_with_newline("POWER_ON_DETECTED");
+					memcpy((void *)&lcd_module_display_content[3][0][0], "POWERON detected", LCM_DISPLAY_COL);
+					lcm_force_to_display_page(3);
+					Clear_POWERON_pattern();
+				}
+
+				// To identify @VER
+				locate_VER_pattern_process(key);
+				if(Found_VER_string()==true)
+				{
+					//OutputString("Version:");
+					//OutputString_with_newline((char *)Get_VER_string());
+					char	*temp_str = (char *) Get_VER_string();
+					uint8_t	temp_len = strlen(temp_str);
+					if(temp_len<=LCM_DISPLAY_COL)
 					{
-						memcpy((void *)&lcd_module_display_content[2][1][0], temp_str+12, LCM_DISPLAY_COL);
+						strcpy((void *)&lcd_module_display_content[2][1][0], temp_str);
 					}
 					else
 					{
-						memcpy((void *)&lcd_module_display_content[2][1][0], temp_str+12, temp_len);
-						memset((void *)&lcd_module_display_content[2][1][temp_len], ' ', LCM_DISPLAY_COL-temp_len);
+						memcpy((void *)&lcd_module_display_content[2][0][4], temp_str, 12);
+						temp_len-=12;
+						if(temp_len>LCM_DISPLAY_COL)
+						{
+							memcpy((void *)&lcd_module_display_content[2][1][0], temp_str+12, LCM_DISPLAY_COL);
+						}
+						else
+						{
+							memcpy((void *)&lcd_module_display_content[2][1][0], temp_str+12, temp_len);
+							memset((void *)&lcd_module_display_content[2][1][temp_len], ' ', LCM_DISPLAY_COL-temp_len);
+						}
 					}
+					lcm_force_to_display_page(2);
+					Clear_VER_string();
 				}
-				lcm_force_to_display_page(2);
-				Clear_VER_string();
+
+			}
+			else
+			{
+				break;
 			}
 		}
+		while(--temp>0);
 
 		// ADC conversion is triggered every 100ms
 		if(SysTick_100ms_timeout==true)
