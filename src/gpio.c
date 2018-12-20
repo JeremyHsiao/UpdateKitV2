@@ -144,23 +144,93 @@ bool Debounce_Button(void)
 }
 
 uint8_t	LED_G_flashing = 0, LED_R_flashing = 0, LED_Y_flashing = 0;
+#define 	DEFAULT_LED_TIMER_RELOAD_VALUE	(5)
 // flashing_period 0: always low
 // flashing_period 0xff: always high
 // flashing_period others: toggle every flashing_period 100ms (max 25.4 s)
 void LED_G_setting(uint8_t flashing_100ms)
 {
-	LED_G_flashing = flashing_100ms;
-	lcd_g_toggle_timeout=true;
+	if(LED_G_flashing!=flashing_100ms)
+	{
+		uint32_t		new_timer_reload_value;
+		bool			led_high;
+
+		if(flashing_100ms==0)
+		{
+			new_timer_reload_value = ~1;
+			led_high = false;
+		}
+		else if (flashing_100ms==0xff)
+		{
+			new_timer_reload_value = ~1;
+			led_high = true;
+		}
+		else
+		{
+			new_timer_reload_value = flashing_100ms - 1;
+			led_high = true;
+		}
+		if(led_high) { LED_G_HIGH; } else { LED_G_LOW; }
+		LED_G_flashing = flashing_100ms;
+		led_g_toggle_timer_in_100ms = led_g_toggle_timer_reload = new_timer_reload_value;
+		lcd_g_toggle_timeout=false;
+	}
 }
 void LED_R_setting(uint8_t flashing_100ms)
 {
-	LED_R_flashing = flashing_100ms;
-	lcd_g_toggle_timeout=true;
+	if(LED_R_flashing!=flashing_100ms)
+	{
+		uint32_t		new_timer_reload_value;
+		bool			led_high;
+
+		if(flashing_100ms==0)
+		{
+			new_timer_reload_value = ~1;
+			led_high = false;
+		}
+		else if (flashing_100ms==0xff)
+		{
+			new_timer_reload_value = ~1;
+			led_high = true;
+		}
+		else
+		{
+			new_timer_reload_value = flashing_100ms - 1;
+			led_high = true;
+		}
+		if(led_high) { LED_R_HIGH; } else { LED_R_LOW; }
+		LED_R_flashing = flashing_100ms;
+		led_r_toggle_timer_in_100ms = led_r_toggle_timer_reload = new_timer_reload_value;
+		lcd_r_toggle_timeout=false;
+	}
 }
 void LED_Y_setting(uint8_t flashing_100ms)
 {
-	LED_Y_flashing = flashing_100ms;
-	lcd_g_toggle_timeout=true;
+	if(LED_Y_flashing!=flashing_100ms)
+	{
+		uint32_t		new_timer_reload_value;
+		bool			led_high;
+
+		if(flashing_100ms==0)
+		{
+			new_timer_reload_value = ~1;
+			led_high = false;
+		}
+		else if (flashing_100ms==0xff)
+		{
+			new_timer_reload_value = ~1;
+			led_high = true;
+		}
+		else
+		{
+			new_timer_reload_value = flashing_100ms - 1;
+			led_high = true;
+		}
+		if(led_high) { LED_Y_HIGH; } else { LED_Y_LOW; }
+		LED_Y_flashing = flashing_100ms;
+		led_y_toggle_timer_in_100ms = led_y_toggle_timer_reload = new_timer_reload_value;
+		lcd_y_toggle_timeout=false;
+	}
 }
 void LED_Status_Update_Process(void)
 {
@@ -171,17 +241,14 @@ void LED_Status_Update_Process(void)
 		if(LED_G_flashing==0)
 		{
 			LED_G_LOW;
-			led_g_toggle_timer_reload = ~1;
 		}
 		else if (LED_G_flashing==0xff)
 		{
 			LED_G_HIGH;
-			led_g_toggle_timer_reload = ~1;
 		}
 		else
 		{
 			LED_G_TOGGLE;
-			led_g_toggle_timer_reload = LED_G_flashing-1;
 		}
 	}
 
@@ -192,17 +259,14 @@ void LED_Status_Update_Process(void)
 		if(LED_R_flashing==0)
 		{
 			LED_R_LOW;
-			led_r_toggle_timer_reload = ~1;
 		}
 		else if (LED_R_flashing==0xff)
 		{
 			LED_R_HIGH;
-			led_r_toggle_timer_reload = ~1;
 		}
 		else
 		{
 			LED_R_TOGGLE;
-			led_r_toggle_timer_reload = LED_R_flashing-1;
 		}
 	}
 
@@ -213,17 +277,14 @@ void LED_Status_Update_Process(void)
 		if(LED_Y_flashing==0)
 		{
 			LED_Y_LOW;
-			led_y_toggle_timer_reload = ~1;
 		}
 		else if (LED_Y_flashing==0xff)
 		{
 			LED_Y_HIGH;
-			led_y_toggle_timer_reload = ~1;
 		}
 		else
 		{
 			LED_Y_TOGGLE;
-			led_y_toggle_timer_reload = LED_Y_flashing-1;
 		}
 	}
 

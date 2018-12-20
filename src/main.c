@@ -66,9 +66,9 @@ int main(void)
 	//lcm_demo();
 	lcm_content_init();
 	//LED_7seg_self_test();
-	//LED_G_setting(0);
-	//LED_R_setting(0xff);
-	//LED_Y_setting(5);
+	LED_G_setting(0);
+	LED_R_setting(0);
+	LED_Y_setting(0);
 	LED_Voltage_Current_Refresh_reload = DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC;		// 2 second
 
 	init_filtered_input_current();
