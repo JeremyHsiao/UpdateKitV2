@@ -105,68 +105,17 @@ int main(void)
 		do
 		{
 			uint8_t	key, bytes;
+			bool	processor_event_detected;
 
 			// Process RS-232 input character
 			bytes = UART0_GetChar(&key);
 			if (bytes > 0)
 			{
-				uint8_t	temp_ok_cnt;
-
-				/* Wrap value back around */
-				//UART0_PutChar((char)key);
-
-				// To identify 10x OK
-				temp_ok_cnt=locate_OK_pattern_process(key);
-				if(temp_ok_cnt>=DEFAULT_OK_THRESHOLD)
+				processor_event_detected = UART_input_processor(key);
+				if(processor_event_detected!=false)
 				{
-					//OutputHexValue_with_newline(temp);
-					memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][1][0], "OK is detected! ",LCM_DISPLAY_COL);
-					lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
-					LED_G_setting(0xff);
-					LED_Y_setting(0);
-					LED_R_setting(0);
+					break;			// leave loop whenever event has been detected
 				}
-
-				// To identify @POWERON
-				locate_POWERON_pattern_process(key);
-				if(Get_POWERON_pattern()==true)
-				{
-					//OutputString_with_newline("POWER_ON_DETECTED");
-					memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][0][0], "POWERON detected", LCM_DISPLAY_COL);
-					lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
-					Clear_POWERON_pattern();
-				}
-
-				// To identify @VER
-				locate_VER_pattern_process(key);
-				if(Found_VER_string()==true)
-				{
-					//OutputString("Version:");
-					//OutputString_with_newline((char *)Get_VER_string());
-					char	*temp_str = (char *) Get_VER_string();
-					uint8_t	temp_len = strlen(temp_str);
-					if(temp_len<=LCM_DISPLAY_COL)
-					{
-						strcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str);
-					}
-					else
-					{
-						memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][0][4], temp_str, 12);
-						temp_len-=12;
-						if(temp_len>LCM_DISPLAY_COL)
-						{
-							memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, LCM_DISPLAY_COL);
-						}
-						else
-						{
-							memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, temp_len);
-							memset((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][temp_len], ' ', LCM_DISPLAY_COL-temp_len);
-						}
-					}
-					lcm_force_to_display_page(LCM_DEV_UPGRADE_VER_PAGE);
-					Clear_VER_string();
-				}
-
 			}
 			else
 			{
@@ -174,6 +123,58 @@ int main(void)
 			}
 		}
 		while(--temp>0);
+
+		if(EVENT_OK_string_confirmed)
+		{
+			EVENT_OK_string_confirmed = false;
+
+			//OutputHexValue_with_newline(temp);
+			memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][1][0], "OK is detected! ",LCM_DISPLAY_COL);
+			lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
+			LED_G_setting(0xff);
+			LED_Y_setting(0);
+			LED_R_setting(0);
+		}
+
+		if(EVENT_Version_string_confirmed)
+		{
+			//OutputString("Version:");
+			//OutputString_with_newline((char *)Get_VER_string());
+			char	*temp_str = (char *) Get_VER_string();
+			uint8_t	temp_len = strlen(temp_str);
+			if(temp_len<=LCM_DISPLAY_COL)
+			{
+				strcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str);
+			}
+			else
+			{
+				memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][0][4], temp_str, 12);
+				temp_len-=12;
+				if(temp_len>LCM_DISPLAY_COL)
+				{
+					memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, LCM_DISPLAY_COL);
+				}
+				else
+				{
+					memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, temp_len);
+					memset((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][temp_len], ' ', LCM_DISPLAY_COL-temp_len);
+				}
+			}
+			lcm_force_to_display_page(LCM_DEV_UPGRADE_VER_PAGE);
+			Clear_VER_string();
+			EVENT_Version_string_confirmed = false;
+		}
+
+		if(EVENT_POWERON_string_confirmed)
+		{
+
+			//OutputString_with_newline("POWER_ON_DETECTED");
+			memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][0][0], "POWERON detected", LCM_DISPLAY_COL);
+			lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
+			Clear_POWERON_pattern();
+			EVENT_POWERON_string_confirmed = false;
+		}
+
 
 		// ADC conversion is triggered every 100ms
 		if(SysTick_100ms_timeout==true)

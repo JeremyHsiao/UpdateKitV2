@@ -25,6 +25,13 @@
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
+bool		EVENT_raw_current_goes_above_threshold = false;
+bool		EVENT_raw_current_goes_below_threshold = false;
+bool		EVENT_filtered_current_goes_above_threshold = false;
+bool		EVENT_filtered_current_goes_below_threshold = false;
+bool		EVENT_OK_string_confirmed = false;
+bool		EVENT_Version_string_confirmed = false;
+bool		EVENT_POWERON_string_confirmed = false;
 
 /*****************************************************************************
  * Private functions
@@ -127,10 +134,6 @@ uint16_t	raw_voltage = 0;			//  0.00v ~ 9.99v --> 0-999
 uint16_t	raw_current = 0;			// .000A ~ .999A --> 0-999
 uint16_t	filtered_voltage = 0;		//  0.00v ~ 9.99v --> 0-999
 uint16_t	filtered_current = 0;		// .000A ~ .999A --> 0-999
-bool		EVENT_raw_current_goes_above_threshold = false;
-bool		EVENT_raw_current_goes_below_threshold = false;
-bool		EVENT_filtered_current_goes_above_threshold = false;
-bool		EVENT_filtered_current_goes_below_threshold = false;
 
 bool		LED_7_SEG_showing_current = false;
 
@@ -476,3 +479,43 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 
 	return return_next_state;
 }
+
+bool UART_input_processor(uint8_t key)
+{
+	uint8_t	temp_ok_cnt;
+	bool	bRet_any_event_raised = false;
+
+	/* Wrap value back around */
+	//UART0_PutChar((char)key);
+
+	// To identify 10x OK
+	temp_ok_cnt=locate_OK_pattern_process(key);
+	if(temp_ok_cnt==DEFAULT_OK_THRESHOLD)
+	{
+		EVENT_OK_string_confirmed = true;
+		bRet_any_event_raised = true;
+	}
+
+	// To identify @POWERON
+	locate_POWERON_pattern_process(key);
+	if(Get_POWERON_pattern()==true)
+	{
+		//OutputString_with_newline("POWER_ON_DETECTED");
+		memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][0][0], "POWERON detected", LCM_DISPLAY_COL);
+		lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
+		Clear_POWERON_pattern();
+		EVENT_Version_string_confirmed = true;
+		bRet_any_event_raised = true;
+	}
+
+	// To identify @VER
+	locate_VER_pattern_process(key);
+	if(Found_VER_string()==true)
+	{
+		EVENT_POWERON_string_confirmed = true;
+		bRet_any_event_raised = true;
+	}
+
+	return bRet_any_event_raised;
+}
+

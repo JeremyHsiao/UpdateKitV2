@@ -38,11 +38,15 @@ extern uint16_t Filtered_Input_current(uint16_t latest_current);
 extern void init_filtered_input_voltage(void);
 extern uint16_t Filtered_Input_voltage(uint16_t latest_voltage);
 extern UPDATE_STATE System_State_Proc(UPDATE_STATE current_state);
+extern bool UART_input_processor(uint8_t key);
 
 extern bool		EVENT_raw_current_goes_above_threshold;
 extern bool		EVENT_raw_current_goes_below_threshold;
 extern bool		EVENT_filtered_current_goes_above_threshold;
 extern bool		EVENT_filtered_current_goes_below_threshold;
+extern bool		EVENT_OK_string_confirmed;
+extern bool		EVENT_Version_string_confirmed;
+extern bool		EVENT_POWERON_string_confirmed;
 
 #define	DEFAULT_POWER_OUTPUT_STEP			(0)
 #define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(3-1)
