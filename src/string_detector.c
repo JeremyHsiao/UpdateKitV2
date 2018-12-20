@@ -52,7 +52,7 @@ void reset_string_detector(void)
 uint32_t locate_OK_pattern_process(char input_ch)
 {
 	// Skip '\r', '\n', ' '
-	if ((input_ch=='\r')||(input_ch=='\n')||(input_ch==' '))
+	if ((input_ch=='\r')||(input_ch=='\n')||(input_ch==' ')||(input_ch=='\t'))
 	{
 		return OK_cnt;
 	}
@@ -61,7 +61,7 @@ uint32_t locate_OK_pattern_process(char input_ch)
 		switch(OK_state)
 		{
 			case 0:
-				if(input_ch=='O') // Check "O"
+				if((input_ch=='O')||(input_ch=='o')) // Check "O"
 				{
 					OK_state = 1;
 				}
@@ -72,14 +72,14 @@ uint32_t locate_OK_pattern_process(char input_ch)
 				}
 				break;
 			case 1:
-				if(input_ch=='K') // Check "K"
+				if((input_ch=='K')||(input_ch=='k')) // Check "K"
 				{
 					OK_state = 2;
 					OK_cnt++;
 				}
 				else
 				{
-					if(input_ch=='O') // Check "O"
+					if((input_ch=='O')||(input_ch=='o')) // Check "O"
 					{
 						OK_state = 1;
 					}
@@ -91,7 +91,7 @@ uint32_t locate_OK_pattern_process(char input_ch)
 				}
 				break;
 			case 2:
-				if(input_ch=='O') // Check "O" -- after 1st OK
+				if((input_ch=='O')||(input_ch=='o')) // Check "O" -- after 1st OK
 				{
 					OK_state = 3;
 				}
@@ -102,7 +102,7 @@ uint32_t locate_OK_pattern_process(char input_ch)
 				}
 				break;
 			case 3:
-				if(input_ch=='K') // Check "K" -- after 1st OK
+				if((input_ch=='K')||(input_ch=='k')) // Check "K" -- after 1st OK
 				{
 					OK_state = 2;
 					OK_cnt++;
