@@ -234,30 +234,13 @@ int main(void)
 //			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
 		}
 
-		// Process when button is pressed
-//		if(GPIOGoup0_Int==true)
-		if(Debounce_Button()==true)
+		EVENT_Button_pressed_debounced = Debounce_Button();
+		if(EVENT_Button_pressed_debounced)
 		{
 			ButtonPressedTask();
 			UpdateKitV2_LED_7_StartDisplayVoltage();
 
-//			char temp_str[LCM_DISPLAY_COL+1];
-//			int  temp_str_len;
-//
-//			dutyCycle += countdir;
-//			if ((dutyCycle  == 0) || (dutyCycle >= 100)) {
-//				countdir = -countdir;
-//			}
-//
-//			/* Update duty cycle in SCT/PWM by change match 1 reload time */
-//			setPWMRate(0, dutyCycle);
-//			//setPWMRate(1, dutyCycle);
-//			//setPWMRate(2, dutyCycle);
-//			temp_str_len = itoa_10(dutyCycle, temp_str);
-//			memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][1][9], temp_str, temp_str_len);
-//			memset((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][1][9+temp_str_len], ' ', LCM_DISPLAY_COL-9-temp_str_len);
-//			lcm_force_to_display_page(1);
-//			GPIOGoup0_Int = false;
+			EVENT_Button_pressed_debounced = false;
 		}
 
 	}

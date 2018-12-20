@@ -32,6 +32,7 @@ bool		EVENT_filtered_current_goes_below_threshold = false;
 bool		EVENT_OK_string_confirmed = false;
 bool		EVENT_Version_string_confirmed = false;
 bool		EVENT_POWERON_string_confirmed = false;
+bool		EVENT_Button_pressed_debounced = false;
 
 /*****************************************************************************
  * Private functions

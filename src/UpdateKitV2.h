@@ -47,6 +47,7 @@ extern bool		EVENT_filtered_current_goes_below_threshold;
 extern bool		EVENT_OK_string_confirmed;
 extern bool		EVENT_Version_string_confirmed;
 extern bool		EVENT_POWERON_string_confirmed;
+extern bool		EVENT_Button_pressed_debounced;
 
 #define	DEFAULT_POWER_OUTPUT_STEP			(0)
 #define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(3-1)
