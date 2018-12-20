@@ -126,7 +126,7 @@ void lcd_module_update_message_by_state(uint8_t lcm_msg_state)
  */
 uint16_t	voltage = 0;		//  0.00v ~ 9.99v --> 0-999
 uint16_t	current = 0;		// .000A ~ .999A --> 0-999
-bool		showing_current = false;
+bool		LED_7_SEG_showing_current = false;
 
 void SetDisplayVoltage(uint16_t voltage_new)
 {
@@ -150,14 +150,7 @@ uint16_t GetDisplayCurrent(void)
 
 void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void)
 {
-	if(showing_current==false)		// showing voltage // 0.00v ~ 0.99v
-	{
-		showing_current=true;
-	}
-	else
-	{
-		showing_current=false;
-	}
+	LED_7_SEG_showing_current = !LED_7_SEG_showing_current;
 }
 
 void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
@@ -265,7 +258,7 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	//
 	// Update LED 7-segment
 	//
-	if(showing_current!=false)		// showing voltage // 0.00v ~ 9.99v
+	if(LED_7_SEG_showing_current!=false)		// showing voltage // 0.00v ~ 9.99v
 	{
 		memcpy((void *)&final_voltage_str[1], final_voltage_str+2, 2);	// overwrite '.'
 		final_voltage_str[3] = 'U';										// Change 'V' to 'U'
@@ -437,4 +430,6 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 		default:
 			break;
 	}
+
+	return return_next_state;
 }
