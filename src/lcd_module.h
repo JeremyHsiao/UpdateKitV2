@@ -92,7 +92,6 @@ extern void lcm_demo(void);
 extern void lcm_sw_init(void);
 extern void Init_LCD_Module_GPIO(void);
 
-#define	MAX_LCD_CONTENT_PAGE	(7)
 #define LCM_DISPLAY_ROW			(2)
 #define LCM_DISPLAY_COL			(16)
 extern uint8_t lcd_module_display_content[][LCM_DISPLAY_ROW][LCM_DISPLAY_COL];
