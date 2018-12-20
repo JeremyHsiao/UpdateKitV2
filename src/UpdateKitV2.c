@@ -16,6 +16,7 @@
 #include "sw_timer.h"
 #include "string.h"
 #include "UpdateKitV2.h"
+#include "build_defs.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -43,21 +44,13 @@ void lcm_content_init_old(void)
 
 void lcm_content_init(void)
 {
-	char const	*date = __DATE__,   							// mmm dd yyyy
-				*time = __TIME__,								// xx:xx:xx
-				*welcome_message_line1 =  "TPV UpdateKit V2";
-
-	uint8_t		welcome_message_line2[17];
+	char const		*welcome_message_line1 =  "TPV UpdateKit V2";
+	const uint8_t	welcome_message_line2[] =
+	{   'F', 'W', ':',
+	    BUILD_YEAR_CH2, BUILD_YEAR_CH3, BUILD_MONTH_CH0, BUILD_MONTH_CH1, BUILD_DAY_CH0, BUILD_DAY_CH1, '-',
+		BUILD_HOUR_CH0, BUILD_HOUR_CH1, BUILD_MIN_CH0, BUILD_MIN_CH1, BUILD_SEC_CH0, BUILD_SEC_CH1, '\0'};
 
 	// Prepare firmware version for welcome page
-	memcpy((void *)&welcome_message_line2[0], (date), 3);						// mmm
-	memcpy((void *)&welcome_message_line2[3], (date+4), 3);						// mmmdd
-	if(welcome_message_line2[3]==' ') {welcome_message_line2[3]='0';}
-	memcpy((void *)&welcome_message_line2[5], (date+7), 4);						// mmmddyyyy
-	welcome_message_line2[9] = '@';
-	memcpy((void *)&welcome_message_line2[10], time, 2);							// mmmddyyyy@hh
-	memcpy((void *)&welcome_message_line2[12], (time+3), 2);						// mmmddyyyy@hhmm
-	memcpy((void *)&welcome_message_line2[14], (time+6), 2);						// mmmddyyyy@hhmmss
 
 	// Welcome page														 1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_WELCOME_PAGE][0][0], welcome_message_line1, LCM_DISPLAY_COL);
@@ -85,8 +78,7 @@ void lcm_content_init(void)
 	// enable/disable some page/
 	memset((void *)lcd_module_display_enable, 0x00, LCM_MAX_PAGE_NO);	// Initial only - later sw determine which page is to be displayed
 
-    strcpy((void *)&lcd_module_display_content[LCM_DEV_TITLE_PAGE][0][0], __DATE__);    // xxx xx xxxx
-    memcpy((void *)&lcd_module_display_content[LCM_DEV_TITLE_PAGE][0][7], 		__TIME__ " ", 9);    // tt:tt:tt
+    memcpy((void *)&lcd_module_display_content[LCM_DEV_TITLE_PAGE][0][0], 		welcome_message_line2, LCM_DISPLAY_COL);
     memcpy((void *)&lcd_module_display_content[LCM_DEV_TITLE_PAGE][1][0], 		"Elapse: 0000 Sec", LCM_DISPLAY_COL);
     memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][0], 	"OUT: 0.00V 0.00A", LCM_DISPLAY_COL);
     memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][1][0], 	"PWM Duty:100    ", LCM_DISPLAY_COL);
