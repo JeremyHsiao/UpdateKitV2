@@ -10,6 +10,7 @@
 
 extern void reset_string_detector(void);
 extern uint32_t locate_OK_pattern_process(char input_ch);
+extern void Clear_OK_pattern_state(void);
 
 extern void locate_POWERON_pattern_process(char input_ch);
 extern bool Get_POWERON_pattern(void);

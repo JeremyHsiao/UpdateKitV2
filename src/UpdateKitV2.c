@@ -124,28 +124,62 @@ void lcd_module_update_message_by_state(uint8_t lcm_msg_state)
  * @brief
  * @return
  */
-uint16_t	voltage = 0;		//  0.00v ~ 9.99v --> 0-999
-uint16_t	current = 0;		// .000A ~ .999A --> 0-999
+uint16_t	raw_voltage = 0;			//  0.00v ~ 9.99v --> 0-999
+uint16_t	raw_current = 0;			// .000A ~ .999A --> 0-999
+uint16_t	filtered_voltage = 0;		//  0.00v ~ 9.99v --> 0-999
+uint16_t	filtered_current = 0;		// .000A ~ .999A --> 0-999
+bool		EVENT_raw_current_goes_above_threshold = false;
+bool		EVENT_raw_current_goes_below_threshold = false;
+bool		EVENT_filtered_current_goes_above_threshold = false;
+bool		EVENT_filtered_current_goes_below_threshold = false;
+
 bool		LED_7_SEG_showing_current = false;
 
-void SetDisplayVoltage(uint16_t voltage_new)
+void SetRawVoltage(uint16_t voltage_new)
 {
-	voltage = voltage_new;
+	filtered_voltage = Filtered_Input_voltage(voltage_new);
+	raw_voltage = voltage_new;
 }
 
-void SetDisplayCurrent(uint16_t current_new)
+void SetRawCurrent(uint16_t current_new)
 {
-	current = current_new;
+	uint16_t	previous_filtered_current;
+
+	// Event checker
+	if((current_new>=DEFAULT_INPUT_CURRENT_THRESHOLD)&&(raw_current<DEFAULT_INPUT_CURRENT_THRESHOLD))
+	{
+		EVENT_raw_current_goes_above_threshold = true;
+	}
+	// Event checker
+	if((current_new<DEFAULT_INPUT_CURRENT_THRESHOLD)&&(raw_current>=DEFAULT_INPUT_CURRENT_THRESHOLD))
+	{
+		EVENT_raw_current_goes_below_threshold = true;
+	}
+
+	previous_filtered_current = filtered_current;
+	filtered_current = Filtered_Input_current(current_new);
+	// Event checker
+	if((filtered_current>=DEFAULT_INPUT_CURRENT_THRESHOLD)&&(previous_filtered_current<DEFAULT_INPUT_CURRENT_THRESHOLD))
+	{
+		EVENT_filtered_current_goes_above_threshold = true;
+	}
+	// Event checker
+	if((filtered_current<DEFAULT_INPUT_CURRENT_THRESHOLD)&&(previous_filtered_current>=DEFAULT_INPUT_CURRENT_THRESHOLD))
+	{
+		EVENT_filtered_current_goes_below_threshold = true;
+	}
+
+	raw_current = current_new;
 }
 
 uint16_t GetDisplayVoltage(void)
 {
-	return voltage;
+	return filtered_voltage;
 }
 
 uint16_t GetDisplayCurrent(void)
 {
-	return current;
+	return filtered_current;
 }
 
 void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void)
@@ -160,40 +194,30 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	//uint16_t temp_value;
 	uint8_t	 dp_point;
 
-	// Update LED-Y for current >= 10ma or not
-	if(current>=DEFAULT_INPUT_CURRENT_THRESHOLD)
-	{
-		LED_Y_setting(5);  // 500ms as half-period (toggle period)
-	}
-	else
-	{
-		LED_Y_setting(0);
-	}
-
 	// Generate string
 	// showing voltage // 0.00v ~ 9.99v
 	{
-//		temp_value = voltage;			// 0.001V as unit
+//		temp_value = filtered_voltage;			// 0.001V as unit
 //		if(temp_value>9999)
 //		{
 //			temp_value = 9999;
 //		}
-		temp_voltage_str_len = itoa_10(voltage, temp_voltage_str);
+		temp_voltage_str_len = itoa_10(filtered_voltage, temp_voltage_str);
 	}
 	// showing current 0.00A~0.99A -- but current is 0.0001A as unit
 	{
-//		temp_value = current;
+//		temp_value = filtered_current;
 //		if(temp_value>999)		// protection //  showing // 0.00A~0.99A	// 0.001A as unit
 //		{
 //			temp_value = 999;
 //		}
-		temp_current_str_len = itoa_10(current, temp_current_str);
+		temp_current_str_len = itoa_10(filtered_current, temp_current_str);
 	}
 
 	//
 	// Update LCD module display
 	//
-	// Voltage
+	// filtered_voltage
 	final_voltage_str[4] = 'V';
 	switch(temp_voltage_str_len)
 	{
@@ -230,7 +254,7 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	}
 	memcpy((void *)&lcd_module_display_content[1][0][5], final_voltage_str, 5);
 
-	// current
+	// filtered_current
 	final_current_str[0] = '0';
 	final_current_str[1] = '.';
 	final_current_str[4] = 'A';
@@ -377,6 +401,7 @@ void lcd_module_display_enable_only_one_page(uint8_t enabled_page)
 		lcd_module_display_enable[temp_page] = (enabled_page==temp_page)?1:0;
 	}
 	while(temp_page>0);
+	lcm_force_to_display_page(enabled_page);
 }
 
 UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
@@ -387,43 +412,36 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 	{
 		case US_SYSTEM_STARTUP:
 			lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
-			SetDisplayCurrent(LCM_WELCOME_PAGE);
 			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
 			return_next_state = US_WELCOME_MESSAGE;
 			break;
 		case US_WELCOME_MESSAGE:
 			lcd_module_display_enable_only_one_page(LCM_PC_MODE);
-			SetDisplayCurrent(LCM_PC_MODE);
 			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
 			return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
 			break;
 		case US_PC_MODE_NO_VOLTAGE_OUTPUT:
 			lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
-			SetDisplayCurrent(LCM_REMINDER_BEFORE_OUTPUT);
 			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
 			return_next_state = US_REMINDER_BEFORE_VOLTAGE_OUTPUT;
 			break;
 		case US_REMINDER_BEFORE_VOLTAGE_OUTPUT:
 			lcd_module_display_enable_only_one_page(LCM_INPUT_MEASURE_PAGE);
-			SetDisplayCurrent(LCM_INPUT_MEASURE_PAGE);
 			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
 			return_next_state = US_WAITING_FW_UPGRADE;
 			break;
 		case US_WAITING_FW_UPGRADE:
 			lcd_module_display_enable_only_one_page(LCM_VERSION_PAGE);
-			SetDisplayCurrent(LCM_VERSION_PAGE);
 			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
 			return_next_state = US_FW_UPGRADE_DONE;
 			break;
 		case US_FW_UPGRADE_DONE:
 			lcd_module_display_enable_only_one_page(LCM_TV_IN_STANDBY_PAGE);
-			SetDisplayCurrent(LCM_TV_IN_STANDBY_PAGE);
 			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
 			return_next_state = US_TV_IN_STANDBY;
 			break;
 		case US_TV_IN_STANDBY:
 			lcd_module_display_enable_only_one_page(LCM_ENTER_ISP_PAGE);
-			SetDisplayCurrent(LCM_ENTER_ISP_PAGE);
 			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
 			return_next_state = US_SYSTEM_STARTUP;
 			break;

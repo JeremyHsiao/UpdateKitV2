@@ -24,6 +24,7 @@ bool    VER_string_detected;
 bool    VER_string_end_of_line;
 uint8_t ver_string_index;
 uint8_t VER_NO_str[MAX_VER_NO_LEN];
+uint8_t Previous_VER_NO_str[MAX_VER_NO_LEN];
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -47,6 +48,12 @@ void reset_string_detector(void)
 	VER_string_end_of_line = false;
 	VER_NO_str[0]='\0';
 	ver_string_index = 0;
+}
+
+void Clear_OK_pattern_state(void)
+{
+	OK_state = 0;
+	OK_cnt = 0;
 }
 
 uint32_t locate_OK_pattern_process(char input_ch)

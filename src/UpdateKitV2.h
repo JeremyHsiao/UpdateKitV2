@@ -24,8 +24,8 @@ typedef enum
 
 extern void lcm_content_init(void);
 
-extern void SetDisplayVoltage(uint16_t voltage_new);
-extern void SetDisplayCurrent(uint16_t current_new);
+extern void SetRawVoltage(uint16_t voltage_new);
+extern void SetRawCurrent(uint16_t current_new);
 extern uint16_t GetDisplayVoltage(void);
 extern uint16_t GetDisplayCurrent(void);
 extern void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void);
@@ -37,6 +37,11 @@ extern uint16_t Filtered_Input_current(uint16_t latest_current);
 extern void init_filtered_input_voltage(void);
 extern uint16_t Filtered_Input_voltage(uint16_t latest_voltage);
 extern UPDATE_STATE System_State_Proc(UPDATE_STATE current_state);
+
+extern bool		EVENT_raw_current_goes_above_threshold;
+extern bool		EVENT_raw_current_goes_below_threshold;
+extern bool		EVENT_filtered_current_goes_above_threshold;
+extern bool		EVENT_filtered_current_goes_below_threshold;
 
 #define	DEFAULT_POWER_OUTPUT_STEP			(0)
 #define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(3-1)

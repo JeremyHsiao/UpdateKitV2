@@ -115,6 +115,8 @@ int main(void)
 					memcpy((void *)&lcd_module_display_content[3][1][0], "OK is detected! ",LCM_DISPLAY_COL);
 					lcm_force_to_display_page(3);
 					LED_G_setting(0xff);
+					LED_Y_setting(0);
+					LED_R_setting(0);
 				}
 
 				// To identify @POWERON
@@ -179,6 +181,23 @@ int main(void)
 			/* Manual start for ADC conversion sequence A */
 			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
 			sequenceComplete=false;
+		}
+
+		if(EVENT_filtered_current_goes_above_threshold)
+		{
+			EVENT_filtered_current_goes_above_threshold = false;
+			LED_Y_setting(5);  // 500ms as half-period (toggle period)
+			//LED_G_setting(0);
+			//LED_R_setting(0);
+		}
+		if(EVENT_filtered_current_goes_below_threshold)
+		{
+			EVENT_filtered_current_goes_below_threshold = false;
+			LED_Y_setting(0);
+			LED_G_setting(0);
+			LED_R_setting(0);
+			Clear_OK_pattern_state();
+			Clear_VER_string();
 		}
 
 		// Time to switch LED-7Segment content?
