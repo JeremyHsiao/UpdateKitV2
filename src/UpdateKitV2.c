@@ -60,17 +60,21 @@ void lcm_content_init(void)
 	memcpy((void *)&lcd_module_display_content[LCM_PC_MODE][0][0], "PC Mode: Press  ", LCM_DISPLAY_COL);
 	memcpy((void *)&lcd_module_display_content[LCM_PC_MODE][1][0], "button to change", LCM_DISPLAY_COL);
 
-	// Input Measurement page							  					   1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_INPUT_MEASURE_PAGE][0][0], "Input:         V", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_INPUT_MEASURE_PAGE][1][0], "Current:       A", LCM_DISPLAY_COL);
+	// FW Upgrade mode reminder page											   1234567890123456
+	memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][0][0], "Please make sure", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][0], "TV is connected.", LCM_DISPLAY_COL);
 
-	// Show software version page						  				 1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_VERSION_PAGE][0][0], "Firmware updated", LCM_DISPLAY_COL);
-	memset((void *)&lcd_module_display_content[LCM_VERSION_PAGE][1][0], ' ', LCM_DISPLAY_COL);
+	// FW Upgrading page						  					          1234567890123456
+	memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][0], "Upgrade: 000 Sec", LCM_DISPLAY_COL);
+    memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][0], "OUT: 0.00V 0.00A", LCM_DISPLAY_COL);
+
+	// FW upgrade is done and show software version page				   1234567890123456
+    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][0], "Upgrade: 000 Sec", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][0], "FW:             ", LCM_DISPLAY_COL);
 
 	// TV in standby page		     										   1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][0][0], "TV is in Standby", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][1][0], "Turn-on your TV ", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][1][0], "Pls power on TV ", LCM_DISPLAY_COL);
 
 	// TV is entering ISP mode page		     							   1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_ENTER_ISP_PAGE][0][0], "Enter ISP mode  ", LCM_DISPLAY_COL);
@@ -87,7 +91,7 @@ void lcm_content_init(void)
     memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][0][0], 	"PWR detecting...", LCM_DISPLAY_COL);
     memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][1][0], 	"OK detecting... ", LCM_DISPLAY_COL);
     //													                      	 1234567890123456
-    memset((void *)lcd_module_display_enable+(uint8_t)LCM_DEV_TITLE_PAGE, 0x01, 4);
+    //memset((void *)lcd_module_display_enable+(uint8_t)LCM_DEV_TITLE_PAGE, 0x01, 4);
 
 
 }
@@ -102,9 +106,9 @@ void lcd_module_update_message_by_state(uint8_t lcm_msg_state)
 //			break;
 		case LCM_REMINDER_BEFORE_OUTPUT:
 			break;
-		case LCM_INPUT_MEASURE_PAGE:
+		case LCM_FW_UPGRADING_PAGE:
 			break;
-		case LCM_VERSION_PAGE:
+		case LCM_FW_OK_VER_PAGE:
 			break;
 		case LCM_TV_IN_STANDBY_PAGE:
 			break;
@@ -167,12 +171,12 @@ void SetRawCurrent(uint16_t current_new)
 	raw_current = current_new;
 }
 
-uint16_t GetDisplayVoltage(void)
+uint16_t GetFilteredVoltage(void)
 {
 	return filtered_voltage;
 }
 
-uint16_t GetDisplayCurrent(void)
+uint16_t GetFilteredCurrent(void)
 {
 	return filtered_current;
 }
@@ -248,6 +252,7 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 			break;
 	}
 	memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][5], final_voltage_str, 5);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][5], final_voltage_str, 5);
 
 	// filtered_current
 	final_current_str[0] = '0';
@@ -273,6 +278,7 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 			break;
 	}
 	memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][11], final_current_str, 5);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][11], final_current_str, 5);
 
 	//
 	// Update LED 7-segment
@@ -407,26 +413,43 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 	{
 		case US_SYSTEM_STARTUP:
 			lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
-			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
+			System_State_Proc_timer_in_ms = (3000-1);		// show this message for 3 second
 			return_next_state = US_WELCOME_MESSAGE;
 			break;
 		case US_WELCOME_MESSAGE:
-			lcd_module_display_enable_only_one_page(LCM_PC_MODE);
-			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
-			return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
+			if(GetFilteredCurrent()>=DEFAULT_INPUT_CURRENT_THRESHOLD)
+			{
+				lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
+				System_State_Proc_timer_in_ms = (5000-1);		// show this reminder for 5 sec before really output
+				return_next_state = US_REMINDER_BEFORE_VOLTAGE_OUTPUT;
+			}
+			else
+			{
+				lcd_module_display_enable_only_one_page(LCM_PC_MODE);
+				System_State_Proc_timer_in_ms = (1000-1);
+				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
+			}
 			break;
 		case US_PC_MODE_NO_VOLTAGE_OUTPUT:
-			lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
-			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
-			return_next_state = US_REMINDER_BEFORE_VOLTAGE_OUTPUT;
+			if(GetFilteredCurrent()>=DEFAULT_INPUT_CURRENT_THRESHOLD)
+			{
+				lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
+				System_State_Proc_timer_in_ms = (5000-1);		// show this reminder for 5 sec before really output
+				return_next_state = US_REMINDER_BEFORE_VOLTAGE_OUTPUT;
+			}
+			else
+			{
+				System_State_Proc_timer_in_ms = (1000-1);		// dummy loop
+				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
+			}
 			break;
 		case US_REMINDER_BEFORE_VOLTAGE_OUTPUT:
-			lcd_module_display_enable_only_one_page(LCM_INPUT_MEASURE_PAGE);
-			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
+			lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
+			System_State_Proc_timer_in_ms = (1000-1);
 			return_next_state = US_WAITING_FW_UPGRADE;
 			break;
 		case US_WAITING_FW_UPGRADE:
-			lcd_module_display_enable_only_one_page(LCM_VERSION_PAGE);
+			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
 			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
 			return_next_state = US_FW_UPGRADE_DONE;
 			break;

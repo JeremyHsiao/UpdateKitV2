@@ -26,8 +26,8 @@ extern void lcm_content_init(void);
 
 extern void SetRawVoltage(uint16_t voltage_new);
 extern void SetRawCurrent(uint16_t current_new);
-extern uint16_t GetDisplayVoltage(void);
-extern uint16_t GetDisplayCurrent(void);
+extern uint16_t GetFilteredVoltage(void);
+extern uint16_t GetFilteredCurrent(void);
 extern void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void);
 extern void UpdateKitV2_UpdateDisplayValueForADC_Task(void);
 extern void ButtonPressedTask(void);
@@ -52,8 +52,8 @@ enum
 	LCM_WELCOME_PAGE = 0,
 	LCM_PC_MODE,
 	LCM_REMINDER_BEFORE_OUTPUT,
-	LCM_INPUT_MEASURE_PAGE,
-	LCM_VERSION_PAGE,
+	LCM_FW_UPGRADING_PAGE,
+	LCM_FW_OK_VER_PAGE,
 	LCM_TV_IN_STANDBY_PAGE,
 	LCM_ENTER_ISP_PAGE,
 	LCM_DEV_TITLE_PAGE,

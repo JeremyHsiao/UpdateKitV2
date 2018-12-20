@@ -89,7 +89,7 @@ int main(void)
 		if(System_State_Proc_timer_timeout)
 		{
 			System_State_Proc_timer_timeout = false;
-//			system_state = System_State_Proc(system_state);
+			system_state = System_State_Proc(system_state);
 		}
 
 		// Update LCD module display after each lcm command delay
