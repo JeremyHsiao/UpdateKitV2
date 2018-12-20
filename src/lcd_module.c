@@ -14,10 +14,10 @@
 
 #define MAX_LCD_CONTENT_PAGE (LCM_MAX_PAGE_NO)
 
-uint8_t		lcd_module_display_content[MAX_LCD_CONTENT_PAGE][LCM_DISPLAY_ROW][LCM_DISPLAY_COL];
-uint8_t 	lcd_module_display_enable[MAX_LCD_CONTENT_PAGE];
-uint32_t	lcd_module_auto_switch_timer;
-static uint8_t		lcm_current_page, lcm_current_row, lcm_current_col;
+uint8_t			lcd_module_display_content[MAX_LCD_CONTENT_PAGE][LCM_DISPLAY_ROW][LCM_DISPLAY_COL];
+uint8_t 		lcd_module_display_enable[MAX_LCD_CONTENT_PAGE];
+uint32_t		lcd_module_auto_switch_timer;
+static uint8_t	lcm_current_page, lcm_current_row, lcm_current_col;
 
 static void inline Delay125ns(void)
 {
