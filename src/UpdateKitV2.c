@@ -61,8 +61,8 @@ void lcm_content_init(void)
 	memcpy((void *)&lcd_module_display_content[LCM_PC_MODE][1][0], "button to change", LCM_DISPLAY_COL);
 
 	// FW Upgrade mode reminder page											   1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][0][0], "Please make sure", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][0], "TV is connected.", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][0][0], "TV Power is 0.0V", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][0], "Output in 5 Sec ", LCM_DISPLAY_COL);
 
 	// FW Upgrading page						  					          1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][0], "Upgrade: 000 Sec", LCM_DISPLAY_COL);
@@ -186,6 +186,13 @@ void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void)
 	LED_7_SEG_showing_current = !LED_7_SEG_showing_current;
 }
 
+void UpdateKitV2_LED_7_StartDisplayVoltage(void)
+{
+	LED_Voltage_Current_Refresh_in_sec = LED_Voltage_Current_Refresh_reload;
+	LED_Voltage_Current_Refresh_in_sec_timeout = true;	// force to update at next tick
+	LED_7_SEG_showing_current = true;					// Toggle to showing voltage at next tick
+}
+
 void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 {
 	char 	 temp_voltage_str[5+1], temp_current_str[5+1], final_voltage_str[5+1], final_current_str[5+1];		// For storing 0x0 at the end of string by +1
@@ -283,7 +290,7 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	//
 	// Update LED 7-segment
 	//
-	if(LED_7_SEG_showing_current!=false)		// showing voltage // 0.00v ~ 9.99v
+	if(LED_7_SEG_showing_current==false)		// showing voltage // 0.00v ~ 9.99v
 	{
 		memcpy((void *)&final_voltage_str[1], final_voltage_str+2, 2);	// overwrite '.'
 		final_voltage_str[3] = 'U';										// Change 'V' to 'U'

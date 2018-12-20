@@ -238,6 +238,8 @@ int main(void)
 		if(Debounce_Button()==true)
 		{
 			ButtonPressedTask();
+			UpdateKitV2_LED_7_StartDisplayVoltage();
+
 //			char temp_str[LCM_DISPLAY_COL+1];
 //			int  temp_str_len;
 //

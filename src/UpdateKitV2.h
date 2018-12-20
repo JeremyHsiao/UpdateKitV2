@@ -29,6 +29,7 @@ extern void SetRawCurrent(uint16_t current_new);
 extern uint16_t GetFilteredVoltage(void);
 extern uint16_t GetFilteredCurrent(void);
 extern void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void);
+extern void UpdateKitV2_LED_7_StartDisplayVoltage(void);
 extern void UpdateKitV2_UpdateDisplayValueForADC_Task(void);
 extern void ButtonPressedTask(void);
 extern void PowerOutputSetting(uint8_t current_step);
