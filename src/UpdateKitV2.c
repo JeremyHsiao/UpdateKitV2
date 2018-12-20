@@ -33,26 +33,15 @@
  * Public functions
  ****************************************************************************/
 
-void lcm_content_init(void)
+void lcm_content_init_old(void)
 {
 //    strcpy((void *)&lcd_module_display_content[0][0][0], "TPV UpdateKit V2" __TIME__);
-    strcpy((void *)&lcd_module_display_content[0][0][0], __DATE__);    // xxx xx xxxx
-    strcpy((void *)&lcd_module_display_content[0][0][7], __TIME__ " ");    // tt:tt:tt
-    strcpy((void *)&lcd_module_display_content[0][1][0], "Elapse: 0000 Sec");
-    strcpy((void *)&lcd_module_display_content[1][0][0], "OUT: 0.00V 0.00A");
-    strcpy((void *)&lcd_module_display_content[1][1][0], "PWM Duty:100    ");
-    strcpy((void *)&lcd_module_display_content[2][0][0], "Ver:            ");
-    strcpy((void *)&lcd_module_display_content[2][1][0], "detecting...    ");
-    strcpy((void *)&lcd_module_display_content[3][0][0], "PWR detecting...");
-    strcpy((void *)&lcd_module_display_content[3][1][0], "OK detecting... ");
-    //													  1234567890123456
-    memset((void *)lcd_module_display_enable, 0x01, 4);
     //lcd_module_display_enable[3] = 0x00;
      //memset((void *)lcd_module_display_enable, 0x00, 4);
      //lcd_module_display_enable[1]=1;
 }
 
-void lcm_content_init_new(void)
+void lcm_content_init(void)
 {
 	char const	*date = __DATE__,   							// mmm dd yyyy
 				*time = __TIME__,								// xx:xx:xx
@@ -93,8 +82,22 @@ void lcm_content_init_new(void)
 	// TV is entering ISP mode page		     							   1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_ENTER_ISP_PAGE][0][0], "Enter ISP mode  ", LCM_DISPLAY_COL);
 	memcpy((void *)&lcd_module_display_content[LCM_ENTER_ISP_PAGE][1][0], "Off-On after ISP", LCM_DISPLAY_COL);
-
+	// enable/disable some page/
 	memset((void *)lcd_module_display_enable, 0x00, LCM_MAX_PAGE_NO);	// Initial only - later sw determine which page is to be displayed
+
+    strcpy((void *)&lcd_module_display_content[LCM_DEV_TITLE_PAGE][0][0], __DATE__);    // xxx xx xxxx
+    memcpy((void *)&lcd_module_display_content[LCM_DEV_TITLE_PAGE][0][7], 		__TIME__ " ", 9);    // tt:tt:tt
+    memcpy((void *)&lcd_module_display_content[LCM_DEV_TITLE_PAGE][1][0], 		"Elapse: 0000 Sec", LCM_DISPLAY_COL);
+    memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][0], 	"OUT: 0.00V 0.00A", LCM_DISPLAY_COL);
+    memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][1][0], 	"PWM Duty:100    ", LCM_DISPLAY_COL);
+    memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][0][0], "Ver:            ", LCM_DISPLAY_COL);
+    memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], "detecting...    ", LCM_DISPLAY_COL);
+    memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][0][0], 	"PWR detecting...", LCM_DISPLAY_COL);
+    memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][1][0], 	"OK detecting... ", LCM_DISPLAY_COL);
+    //													                      	 1234567890123456
+    memset((void *)lcd_module_display_enable+(uint8_t)LCM_DEV_TITLE_PAGE, 0x01, 4);
+
+
 }
 
 void lcd_module_update_message_by_state(uint8_t lcm_msg_state)
@@ -252,7 +255,7 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 			final_voltage_str[3] = '9';
 			break;
 	}
-	memcpy((void *)&lcd_module_display_content[1][0][5], final_voltage_str, 5);
+	memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][5], final_voltage_str, 5);
 
 	// filtered_current
 	final_current_str[0] = '0';
@@ -277,7 +280,7 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 			final_current_str[3] = '9';
 			break;
 	}
-	memcpy((void *)&lcd_module_display_content[1][0][11], final_current_str, 5);
+	memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][11], final_current_str, 5);
 
 	//
 	// Update LED 7-segment
@@ -332,9 +335,9 @@ void ButtonPressedTask(void)
 					char temp_str[LCM_DISPLAY_COL+1];
 					int  temp_str_len;
 					temp_str_len = itoa_10(pwm_table[current_output_stage], temp_str);
-					memcpy((void *)&lcd_module_display_content[1][1][9], temp_str, temp_str_len);
-					memset((void *)&lcd_module_display_content[1][1][9+temp_str_len], ' ', LCM_DISPLAY_COL-9-temp_str_len);
-					lcm_force_to_display_page(1);
+					memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][1][9], temp_str, temp_str_len);
+					memset((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][1][9+temp_str_len], ' ', LCM_DISPLAY_COL-9-temp_str_len);
+					lcm_force_to_display_page(LCM_DEV_MEASURE_PAGE);
 	}
 }
 

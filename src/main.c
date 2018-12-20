@@ -42,6 +42,8 @@ const char inst3[] = "FW: "__DATE__ " " __TIME__;
  */
 int main(void)
 {
+	UPDATE_STATE	system_state = US_SYSTEM_STARTUP;
+
 	SystemCoreClockUpdate();
 	/* Enable and setup SysTick Timer at a periodic rate */
 	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
@@ -84,6 +86,12 @@ int main(void)
 		/* Sleep until interrupt/sys_tick happens */
 		__WFI();
 
+		if(System_State_Proc_timer_timeout)
+		{
+			System_State_Proc_timer_timeout = false;
+//			system_state = System_State_Proc(system_state);
+		}
+
 		// Update LCD module display after each lcm command delay
 		if(lcd_module_wait_finish_timeout==true)
 		{
@@ -112,8 +120,8 @@ int main(void)
 				if(temp_ok_cnt>=DEFAULT_OK_THRESHOLD)
 				{
 					//OutputHexValue_with_newline(temp);
-					memcpy((void *)&lcd_module_display_content[3][1][0], "OK is detected! ",LCM_DISPLAY_COL);
-					lcm_force_to_display_page(3);
+					memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][1][0], "OK is detected! ",LCM_DISPLAY_COL);
+					lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
 					LED_G_setting(0xff);
 					LED_Y_setting(0);
 					LED_R_setting(0);
@@ -124,8 +132,8 @@ int main(void)
 				if(Get_POWERON_pattern()==true)
 				{
 					//OutputString_with_newline("POWER_ON_DETECTED");
-					memcpy((void *)&lcd_module_display_content[3][0][0], "POWERON detected", LCM_DISPLAY_COL);
-					lcm_force_to_display_page(3);
+					memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][0][0], "POWERON detected", LCM_DISPLAY_COL);
+					lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
 					Clear_POWERON_pattern();
 				}
 
@@ -139,23 +147,23 @@ int main(void)
 					uint8_t	temp_len = strlen(temp_str);
 					if(temp_len<=LCM_DISPLAY_COL)
 					{
-						strcpy((void *)&lcd_module_display_content[2][1][0], temp_str);
+						strcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str);
 					}
 					else
 					{
-						memcpy((void *)&lcd_module_display_content[2][0][4], temp_str, 12);
+						memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][0][4], temp_str, 12);
 						temp_len-=12;
 						if(temp_len>LCM_DISPLAY_COL)
 						{
-							memcpy((void *)&lcd_module_display_content[2][1][0], temp_str+12, LCM_DISPLAY_COL);
+							memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, LCM_DISPLAY_COL);
 						}
 						else
 						{
-							memcpy((void *)&lcd_module_display_content[2][1][0], temp_str+12, temp_len);
-							memset((void *)&lcd_module_display_content[2][1][temp_len], ' ', LCM_DISPLAY_COL-temp_len);
+							memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, temp_len);
+							memset((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][temp_len], ' ', LCM_DISPLAY_COL-temp_len);
 						}
 					}
-					lcm_force_to_display_page(2);
+					lcm_force_to_display_page(LCM_DEV_UPGRADE_VER_PAGE);
 					Clear_VER_string();
 				}
 
@@ -221,7 +229,7 @@ int main(void)
 		{
 			SysTick_1s_timeout = false;
 			Update_Elapse_Timer();
-			memcpy((void *)&lcd_module_display_content[0][1][8], time_elapse_str, 4);
+			memcpy((void *)&lcd_module_display_content[LCM_DEV_TITLE_PAGE][1][8], time_elapse_str, 4);
 //			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
 		}
 
@@ -243,8 +251,8 @@ int main(void)
 //			//setPWMRate(1, dutyCycle);
 //			//setPWMRate(2, dutyCycle);
 //			temp_str_len = itoa_10(dutyCycle, temp_str);
-//			memcpy((void *)&lcd_module_display_content[1][1][9], temp_str, temp_str_len);
-//			memset((void *)&lcd_module_display_content[1][1][9+temp_str_len], ' ', LCM_DISPLAY_COL-9-temp_str_len);
+//			memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][1][9], temp_str, temp_str_len);
+//			memset((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][1][9+temp_str_len], ' ', LCM_DISPLAY_COL-9-temp_str_len);
 //			lcm_force_to_display_page(1);
 //			GPIOGoup0_Int = false;
 		}
