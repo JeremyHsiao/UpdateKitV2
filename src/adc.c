@@ -155,10 +155,6 @@ void Read_ADC(void)
 	//}
 
 		uint32_t rawSample, temp_value;
-		char temp_str[LCM_DISPLAY_COL];
-		int  temp_str_len;
-
-		sequenceComplete = false;
 
 		/* Get raw sample data for channels 6 */
 		rawSample = Chip_ADC_GetDataReg(LPC_ADC, 6);
@@ -169,9 +165,9 @@ void Read_ADC(void)
 			temp_value = (temp_value * ADC_VREFP_VALUE) * 100 / 1024 / ADC_VREFP_DIVIDER; // use 0.01V as unit == (adc/4096) * (343/100) * (4) * 100
 			temp_value = Filtered_Input_voltage(temp_value);
 			SetDisplayVoltage(temp_value);
-			temp_str_len = itoa_10(ADC0_value, temp_str);
-			memset((void *)&lcd_module_display_content[1][0][5], ' ', (4-temp_str_len));
-			memcpy((void *)&lcd_module_display_content[1][0][5+(4-temp_str_len)], temp_str, temp_str_len);
+//			temp_str_len = itoa_10(ADC0_value, temp_str);
+//			memset((void *)&lcd_module_display_content[1][0][5], ' ', (4-temp_str_len));
+//			memcpy((void *)&lcd_module_display_content[1][0][5+(4-temp_str_len)], temp_str, temp_str_len);
 		}
 		else
 		{
@@ -187,9 +183,9 @@ void Read_ADC(void)
 			temp_value = (temp_value * ADC_VREFP_VALUE) * 100 / 4096 / ADC_VREFP_DIVIDER; // use 0.01A as unit == (adc/4096) * (343/100) * 100
 			temp_value = Filtered_Input_current(temp_value);
 			SetDisplayCurrent(temp_value);
-			temp_str_len = itoa_10(ADC1_value, temp_str);
-			memset((void *)&lcd_module_display_content[1][0][12], ' ', (4-temp_str_len));
-			memcpy((void *)&lcd_module_display_content[1][0][12+(4-temp_str_len)], temp_str, temp_str_len);
+//			temp_str_len = itoa_10(ADC1_value, temp_str);
+//			memset((void *)&lcd_module_display_content[1][0][12], ' ', (4-temp_str_len));
+//			memcpy((void *)&lcd_module_display_content[1][0][12+(4-temp_str_len)], temp_str, temp_str_len);
 		}
 		else
 		{

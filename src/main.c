@@ -66,9 +66,9 @@ int main(void)
 	//lcm_demo();
 	lcm_content_init();
 	//LED_7seg_self_test();
-	LED_G_setting(0);
-	LED_R_setting(0xff);
-	LED_Y_setting(5);
+	//LED_G_setting(0);
+	//LED_R_setting(0xff);
+	//LED_Y_setting(5);
 	LED_Voltage_Current_Refresh_reload = DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC;		// 2 second
 
 	init_filtered_input_current();
@@ -114,6 +114,7 @@ int main(void)
 					//OutputHexValue_with_newline(temp);
 					memcpy((void *)&lcd_module_display_content[3][1][0], "OK is detected! ",LCM_DISPLAY_COL);
 					lcm_force_to_display_page(3);
+					LED_G_setting(0xff);
 				}
 
 				// To identify @POWERON
@@ -168,16 +169,16 @@ int main(void)
 		if(SysTick_100ms_timeout==true)
 		{
 			SysTick_100ms_timeout = false;
-
-			/* Manual start for ADC conversion sequence A */
-			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
+			UpdateKitV2_UpdateDisplayValueForADC_Task();
 		}
 
 		/* Is an ADC conversion sequence complete? */
 		if (sequenceComplete)
 		{
 			Read_ADC();
-			UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task();
+			/* Manual start for ADC conversion sequence A */
+			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
+			sequenceComplete=false;
 		}
 
 		// Time to switch LED-7Segment content?
@@ -185,7 +186,7 @@ int main(void)
 		{
 			LED_Voltage_Current_Refresh_in_sec_timeout = false;
 			UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent();
-			UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task();
+			UpdateKitV2_UpdateDisplayValueForADC_Task();
 		}
 
 		// Refresh each char of 7 Segment LED every 1ms

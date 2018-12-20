@@ -24,16 +24,14 @@
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
-enum
-{
-	LCM_WELCOME_PAGE = 0,
-	LCM_PC_MODE,
-	LCM_INPUT_MEASURE_PAGE,
-	LCM_VERSION_PAGE,
-	LCM_TV_IN_STANDBY_PAGE,
-	LCM_ENTER_ISP_PAGE,
-	LCM_MAX_PAGE_NO
-};
+
+/*****************************************************************************
+ * Private functions
+ ****************************************************************************/
+
+/*****************************************************************************
+ * Public functions
+ ****************************************************************************/
 
 void lcm_content_init(void)
 {
@@ -41,7 +39,7 @@ void lcm_content_init(void)
     strcpy((void *)&lcd_module_display_content[0][0][0], __DATE__);    // xxx xx xxxx
     strcpy((void *)&lcd_module_display_content[0][0][7], __TIME__ " ");    // tt:tt:tt
     strcpy((void *)&lcd_module_display_content[0][1][0], "Elapse: 0000 Sec");
-    strcpy((void *)&lcd_module_display_content[1][0][0], "ADC: 1024 / 1024");
+    strcpy((void *)&lcd_module_display_content[1][0][0], "OUT: 0.00V 0.00A");
     strcpy((void *)&lcd_module_display_content[1][1][0], "PWM Duty:100    ");
     strcpy((void *)&lcd_module_display_content[2][0][0], "Ver:            ");
     strcpy((void *)&lcd_module_display_content[2][1][0], "detecting...    ");
@@ -62,7 +60,7 @@ void lcm_content_init_new(void)
 
 	uint8_t		welcome_message_line2[17];
 
-	// Welcome page														 1234567890123456
+	// Prepare firmware version for welcome page
 	memcpy((void *)&welcome_message_line2[0], (date), 3);						// mmm
 	memcpy((void *)&welcome_message_line2[3], (date+4), 3);						// mmmdd
 	if(welcome_message_line2[3]==' ') {welcome_message_line2[3]='0';}
@@ -72,15 +70,9 @@ void lcm_content_init_new(void)
 	memcpy((void *)&welcome_message_line2[12], (time+3), 2);						// mmmddyyyy@hhmm
 	memcpy((void *)&welcome_message_line2[14], (time+6), 2);						// mmmddyyyy@hhmmss
 
+	// Welcome page														 1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_WELCOME_PAGE][0][0], welcome_message_line1, LCM_DISPLAY_COL);
 	memcpy((void *)&lcd_module_display_content[LCM_WELCOME_PAGE][1][0], welcome_message_line2, LCM_DISPLAY_COL);
-
-	// Immediately display welcome page
-	wait_for_not_busy(3);
-	lcm_goto(0,0);			// Go back to 0,0 for confirming (pos:0, Line:0)
-	lcm_puts((uint8_t*)welcome_message_line1);
-	lcm_goto(0,1);			// Go to Next line (pos:0, Line:1)
-    lcm_puts(welcome_message_line2);
 
 	// PC Mode page		     										1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_PC_MODE][0][0], "PC Mode: Press  ", LCM_DISPLAY_COL);
@@ -105,13 +97,28 @@ void lcm_content_init_new(void)
 	memset((void *)lcd_module_display_enable, 0x00, LCM_MAX_PAGE_NO);	// Initial only - later sw determine which page is to be displayed
 }
 
-/*****************************************************************************
- * Private functions
- ****************************************************************************/
-
-/*****************************************************************************
- * Public functions
- ****************************************************************************/
+void lcd_module_update_message_by_state(uint8_t lcm_msg_state)
+{
+	switch(lcm_msg_state)
+	{
+//		case LCM_WELCOME_PAGE:
+//			break;
+//		case LCM_PC_MODE:
+//			break;
+		case LCM_REMINDER_BEFORE_OUTPUT:
+			break;
+		case LCM_INPUT_MEASURE_PAGE:
+			break;
+		case LCM_VERSION_PAGE:
+			break;
+		case LCM_TV_IN_STANDBY_PAGE:
+			break;
+		case LCM_ENTER_ISP_PAGE:
+			break;
+		default:
+			break;
+	}
+}
 
 /**
  * @brief
@@ -131,6 +138,16 @@ void SetDisplayCurrent(uint16_t current_new)
 	current = current_new;
 }
 
+uint16_t GetDisplayVoltage(void)
+{
+	return voltage;
+}
+
+uint16_t GetDisplayCurrent(void)
+{
+	return current;
+}
+
 void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void)
 {
 	if(showing_current==false)		// showing voltage // 0.00v ~ 0.99v
@@ -143,42 +160,114 @@ void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void)
 	}
 }
 
-void UpdateKitV2_LED_7_UpdateDisplayValueAfterADC_Task(void)
+void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 {
-	char 	 temp_str[4+1], final_str[4];		// For storing 0x0 at the end of string by +1
-	int 	 temp_str_len;
-	uint32_t temp_value;
+	char 	 temp_voltage_str[5+1], temp_current_str[5+1], final_voltage_str[5+1], final_current_str[5+1];		// For storing 0x0 at the end of string by +1
+	int 	 temp_voltage_str_len, temp_current_str_len;
+	uint16_t temp_value;
 	uint8_t	 dp_point;
 
-	if(showing_current==false)		// showing voltage // 0.00v ~ 9.99v
+	// Update LED-Y for current >= 10ma or not
+	if(GetDisplayCurrent()>10)
+	{
+		LED_Y_setting(0xff);
+	}
+	else
+	{
+		LED_Y_setting(0);
+	}
+
+	// Generate string
+	// showing voltage // 0.00v ~ 9.99v
 	{
 		temp_value = voltage;
 		if(temp_value>999)
 		{
 			temp_value = 999;
 		}
-		final_str[0] = '0';	// Manually filled for 0.00v
-		final_str[1] = '0';
-		temp_str_len = itoa_10(temp_value, temp_str);
-		memcpy((void *)&final_str[3-temp_str_len], temp_str, temp_str_len);
-		dp_point = 1;
-		final_str[3] = 'U';
+		temp_voltage_str_len = itoa_10(temp_value, temp_voltage_str);
 	}
-	else
+	// showing current 0.00A~0.99A
 	{
 		temp_value = current;
 		if(temp_value>99)		// protection //  showing // 0.00A~0.99A
 		{
 			temp_value = 99;
 		}
-		temp_str_len = itoa_10(temp_value, temp_str);
-		final_str[0] = '0';	// Manually filled for 0.00A
-		final_str[1] = '0';
-		memcpy((void *)&final_str[3-temp_str_len], temp_str, temp_str_len);
-		dp_point = 1;
-		final_str[3] = 'A';
+		temp_current_str_len = itoa_10(temp_value, temp_current_str);
 	}
-	Update_LED_7SEG_Message_Buffer((uint8_t*)final_str,dp_point);
+
+	//
+	// Update LCD module display
+	//
+	// Voltage
+	final_voltage_str[4] = 'V';
+	switch(temp_voltage_str_len)
+	{
+		case 1:
+			final_voltage_str[0] = '0';
+			final_voltage_str[1] = '.';
+			final_voltage_str[2] = '0';
+			final_voltage_str[3] = temp_voltage_str[0];
+			break;
+		case 2:
+			final_voltage_str[0] = '0';
+			final_voltage_str[1] = '.';
+			final_voltage_str[2] = temp_voltage_str[0];
+			final_voltage_str[3] = temp_voltage_str[1];
+			break;
+		case 3:
+			final_voltage_str[0] = temp_voltage_str[0];
+			final_voltage_str[1] = '.';
+			final_voltage_str[2] = temp_voltage_str[1];
+			final_voltage_str[3] = temp_voltage_str[2];
+			break;
+		default:
+			final_voltage_str[0] = '9';
+			final_voltage_str[1] = '.';
+			final_voltage_str[2] = '9';
+			final_voltage_str[3] = '9';
+			break;
+	}
+	memcpy((void *)&lcd_module_display_content[1][0][5], final_voltage_str, 5);
+
+	// current
+	final_current_str[0] = '0';
+	final_current_str[1] = '.';
+	final_current_str[4] = 'A';
+	switch(temp_current_str_len)
+	{
+		case 1:
+			final_current_str[2] = '0';
+			final_current_str[3] = temp_current_str[0];
+			break;
+		case 2:
+			final_current_str[2] = temp_current_str[0];
+			final_current_str[3] = temp_current_str[1];
+			break;
+		default:
+			final_current_str[2] = '9';
+			final_current_str[3] = '9';
+			break;
+	}
+	memcpy((void *)&lcd_module_display_content[1][0][11], final_current_str, 5);
+
+	//
+	// Update LED 7-segment
+	//
+	if(showing_current!=false)		// showing voltage // 0.00v ~ 9.99v
+	{
+		memcpy((void *)&final_voltage_str[1], final_voltage_str+2, 2);	// overwrite '.'
+		final_voltage_str[3] = 'U';										// Change 'V' to 'U'
+		dp_point = 1;
+		Update_LED_7SEG_Message_Buffer((uint8_t*)final_voltage_str,dp_point);
+	}
+	else
+	{
+		memcpy((void *)&final_current_str[1], final_current_str+2, 3); // overwrite '.'
+		dp_point = 1;
+		Update_LED_7SEG_Message_Buffer((uint8_t*)final_current_str,dp_point);
+	}
 }
 
 
@@ -222,7 +311,7 @@ void ButtonPressedTask(void)
 	}
 }
 
-#define	CURRENT_HISTORY_DATA_SIZE	16
+#define	CURRENT_HISTORY_DATA_SIZE	64
 static RINGBUFF_T current_history;
 static uint16_t current_history_data[CURRENT_HISTORY_DATA_SIZE];
 static uint32_t	total_current_value;
@@ -249,7 +338,7 @@ uint16_t Filtered_Input_current(uint16_t latest_current)
 	return (total_current_value/CURRENT_HISTORY_DATA_SIZE);
 }
 
-#define	VOLTAGE_HISTORY_DATA_SIZE	16
+#define	VOLTAGE_HISTORY_DATA_SIZE	64
 static RINGBUFF_T voltage_history;
 static uint16_t voltage_history_data[VOLTAGE_HISTORY_DATA_SIZE];
 static uint32_t	total_voltage_value;
@@ -274,4 +363,68 @@ uint16_t Filtered_Input_voltage(uint16_t latest_voltage)
 	RingBuffer_Insert(&voltage_history, &latest_voltage);
 
 	return (total_voltage_value/VOLTAGE_HISTORY_DATA_SIZE);
+}
+
+void lcd_module_display_enable_only_one_page(uint8_t enabled_page)
+{
+	uint8_t	temp_page = LCM_MAX_PAGE_NO;
+	do
+	{
+		temp_page--;
+		lcd_module_display_enable[temp_page] = (enabled_page==temp_page)?1:0;
+	}
+	while(temp_page>0);
+}
+
+UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
+{
+	UPDATE_STATE return_next_state;
+
+	switch(current_state)
+	{
+		case US_SYSTEM_STARTUP:
+			lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
+			SetDisplayCurrent(LCM_WELCOME_PAGE);
+			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
+			return_next_state = US_WELCOME_MESSAGE;
+			break;
+		case US_WELCOME_MESSAGE:
+			lcd_module_display_enable_only_one_page(LCM_PC_MODE);
+			SetDisplayCurrent(LCM_PC_MODE);
+			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
+			return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
+			break;
+		case US_PC_MODE_NO_VOLTAGE_OUTPUT:
+			lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
+			SetDisplayCurrent(LCM_REMINDER_BEFORE_OUTPUT);
+			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
+			return_next_state = US_REMINDER_BEFORE_VOLTAGE_OUTPUT;
+			break;
+		case US_REMINDER_BEFORE_VOLTAGE_OUTPUT:
+			lcd_module_display_enable_only_one_page(LCM_INPUT_MEASURE_PAGE);
+			SetDisplayCurrent(LCM_INPUT_MEASURE_PAGE);
+			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
+			return_next_state = US_WAITING_FW_UPGRADE;
+			break;
+		case US_WAITING_FW_UPGRADE:
+			lcd_module_display_enable_only_one_page(LCM_VERSION_PAGE);
+			SetDisplayCurrent(LCM_VERSION_PAGE);
+			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
+			return_next_state = US_FW_UPGRADE_DONE;
+			break;
+		case US_FW_UPGRADE_DONE:
+			lcd_module_display_enable_only_one_page(LCM_TV_IN_STANDBY_PAGE);
+			SetDisplayCurrent(LCM_TV_IN_STANDBY_PAGE);
+			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
+			return_next_state = US_TV_IN_STANDBY;
+			break;
+		case US_TV_IN_STANDBY:
+			lcd_module_display_enable_only_one_page(LCM_ENTER_ISP_PAGE);
+			SetDisplayCurrent(LCM_ENTER_ISP_PAGE);
+			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
+			return_next_state = US_SYSTEM_STARTUP;
+			break;
+		default:
+			break;
+	}
 }
