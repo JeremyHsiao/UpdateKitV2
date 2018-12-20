@@ -40,7 +40,7 @@ extern UPDATE_STATE System_State_Proc(UPDATE_STATE current_state);
 
 #define	DEFAULT_POWER_OUTPUT_STEP	(0)
 #define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(3-1)
-
+#define DEFAULT_OK_THRESHOLD		(5)
 enum
 {
 	LCM_WELCOME_PAGE = 0,

@@ -109,7 +109,7 @@ int main(void)
 
 				// To identify 10x OK
 				temp_ok_cnt=locate_OK_pattern_process(key);
-				if(temp_ok_cnt==10)
+				if(temp_ok_cnt>=DEFAULT_OK_THRESHOLD)
 				{
 					//OutputHexValue_with_newline(temp);
 					memcpy((void *)&lcd_module_display_content[3][1][0], "OK is detected! ",LCM_DISPLAY_COL);
