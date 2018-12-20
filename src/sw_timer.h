@@ -24,6 +24,7 @@ extern bool			lcd_r_toggle_timeout;
 extern bool			lcd_y_toggle_timeout;
 extern bool			LED_Voltage_Current_Refresh_in_sec_timeout;
 extern bool			lcd_module_wait_finish_timeout;
+extern bool			System_State_Proc_timer_timeout;
 
 extern uint32_t		time_elapse_in_sec;
 extern uint32_t		SW_delay_sys_tick_cnt;
@@ -38,6 +39,8 @@ extern uint32_t		led_y_toggle_timer_reload;
 extern uint8_t		LED_Voltage_Current_Refresh_in_sec;
 extern uint8_t		LED_Voltage_Current_Refresh_reload;
 extern uint8_t		lcd_module_wait_finish_in_tick;
+
+extern uint32_t		System_State_Proc_timer_in_ms;
 
 extern uint8_t time_elapse_str[];
 extern void Update_Elapse_Timer(void);
