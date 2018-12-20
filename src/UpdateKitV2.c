@@ -164,13 +164,13 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 {
 	char 	 temp_voltage_str[5+1], temp_current_str[5+1], final_voltage_str[5+1], final_current_str[5+1];		// For storing 0x0 at the end of string by +1
 	int 	 temp_voltage_str_len, temp_current_str_len;
-	uint16_t temp_value;
+	//uint16_t temp_value;
 	uint8_t	 dp_point;
 
 	// Update LED-Y for current >= 10ma or not
-	if(GetDisplayCurrent()>10)
+	if(current>=DEFAULT_INPUT_CURRENT_THRESHOLD)
 	{
-		LED_Y_setting(0xff);
+		LED_Y_setting(5);  // 500ms as half-period (toggle period)
 	}
 	else
 	{
@@ -180,21 +180,21 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	// Generate string
 	// showing voltage // 0.00v ~ 9.99v
 	{
-		temp_value = voltage;
-		if(temp_value>999)
-		{
-			temp_value = 999;
-		}
-		temp_voltage_str_len = itoa_10(temp_value, temp_voltage_str);
+//		temp_value = voltage;			// 0.001V as unit
+//		if(temp_value>9999)
+//		{
+//			temp_value = 9999;
+//		}
+		temp_voltage_str_len = itoa_10(voltage, temp_voltage_str);
 	}
-	// showing current 0.00A~0.99A
+	// showing current 0.00A~0.99A -- but current is 0.0001A as unit
 	{
-		temp_value = current;
-		if(temp_value>99)		// protection //  showing // 0.00A~0.99A
-		{
-			temp_value = 99;
-		}
-		temp_current_str_len = itoa_10(temp_value, temp_current_str);
+//		temp_value = current;
+//		if(temp_value>999)		// protection //  showing // 0.00A~0.99A	// 0.001A as unit
+//		{
+//			temp_value = 999;
+//		}
+		temp_current_str_len = itoa_10(current, temp_current_str);
 	}
 
 	//
@@ -208,15 +208,21 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 			final_voltage_str[0] = '0';
 			final_voltage_str[1] = '.';
 			final_voltage_str[2] = '0';
-			final_voltage_str[3] = temp_voltage_str[0];
+			final_voltage_str[3] = '0';;
 			break;
 		case 2:
+			final_voltage_str[0] = '0';
+			final_voltage_str[1] = '.';
+			final_voltage_str[2] = '0';
+			final_voltage_str[3] = temp_voltage_str[0];
+			break;
+		case 3:
 			final_voltage_str[0] = '0';
 			final_voltage_str[1] = '.';
 			final_voltage_str[2] = temp_voltage_str[0];
 			final_voltage_str[3] = temp_voltage_str[1];
 			break;
-		case 3:
+		case 4:
 			final_voltage_str[0] = temp_voltage_str[0];
 			final_voltage_str[1] = '.';
 			final_voltage_str[2] = temp_voltage_str[1];
@@ -239,9 +245,13 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	{
 		case 1:
 			final_current_str[2] = '0';
-			final_current_str[3] = temp_current_str[0];
+			final_current_str[3] = '0';
 			break;
 		case 2:
+			final_current_str[2] = '0';
+			final_current_str[3] = temp_current_str[0];
+			break;
+		case 3:
 			final_current_str[2] = temp_current_str[0];
 			final_current_str[3] = temp_current_str[1];
 			break;

@@ -38,9 +38,10 @@ extern void init_filtered_input_voltage(void);
 extern uint16_t Filtered_Input_voltage(uint16_t latest_voltage);
 extern UPDATE_STATE System_State_Proc(UPDATE_STATE current_state);
 
-#define	DEFAULT_POWER_OUTPUT_STEP	(0)
+#define	DEFAULT_POWER_OUTPUT_STEP			(0)
 #define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(3-1)
-#define DEFAULT_OK_THRESHOLD		(5)
+#define DEFAULT_OK_THRESHOLD				(5)
+#define DEFAULT_INPUT_CURRENT_THRESHOLD		(10)		// 10ma
 enum
 {
 	LCM_WELCOME_PAGE = 0,
