@@ -318,7 +318,7 @@ uint8_t		pwm_table[10] = { 100, 58,  49, 41,   33,   26,    19,   12,   4,   0};
 //Key toggle :				 0V, 6.0V ,6.5V, 7V,  7.5V, 8V,   8.5V, 9V,  9.5V, 10V
 						//	0 / 680 / 702 / 749 / 799 / 852 / 909 / 948/ 980
 
-char *pwm_voltage_table [] = { "0.00V", "6.00V", "6.50V", "7.00V", "7.50V", "8.00V", "8.50V", "9.00V", "9.50V", "9.70V" };
+char *pwm_voltage_table [] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.7" };
 
 void PowerOutputSetting(uint8_t current_step)
 {
@@ -341,7 +341,7 @@ void ButtonPressedTask(void)
 		System_State_Proc_timer_timeout = true;								// start to determine output mode immediately
 	}
 	// It means we are either at pc mode or counting down now
-	else if((upcoming_system_state==US_PC_MODE_NO_VOLTAGE_OUTPUT)||(upcoming_system_state==US_OUTPUT_ENABLE))
+	else if((upcoming_system_state==US_PC_MODE_NO_VOLTAGE_OUTPUT)||(upcoming_system_state==US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2)||(upcoming_system_state==US_OUTPUT_ENABLE))
 	{
 		if(++current_output_stage>=(sizeof(pwm_table)/sizeof(uint8_t)))
 		{
@@ -448,13 +448,11 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 		case US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT:
 			if(current_output_stage!=0)
 			{
-				lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
 				System_State_Proc_timer_timeout = true;						// Enter next state at next tick
 				return_next_state = US_OUTPUT_REMINDER_COUNTDOWN_NOW;
 			}
 			else
 			{
-				lcd_module_display_enable_only_one_page(LCM_PC_MODE);
 				System_State_Proc_timer_timeout = true;						// Enter next state at next tick
 				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
 			}
@@ -468,13 +466,29 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			}
 			else
 			{
-//				System_State_Proc_timer_in_ms = ~1;							// dummy loop & state unchanged
+				lcd_module_display_enable_only_one_page(LCM_PC_MODE);
+				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2;
+				System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
+			}
+			break;
+		case US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2:
+			if(current_output_stage!=0)
+			{
+				System_State_Proc_timer_timeout = true;						// Enter next state at next tick of current_output_stage has been changed
+				return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;
+			}
+			else
+			{
+				lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
+				System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
 				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
 			}
 			break;
 		case US_OUTPUT_REMINDER_COUNTDOWN_NOW:
 			if(current_output_stage!=0)
 			{
+				memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][0][12], pwm_voltage_table[current_output_stage], 3);
+				lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
 				System_State_Proc_timer_in_ms = (OUTPUT_REMINDER_DISPLAY_TIME_IN_MS-1);				// Enter next state after > 5 sec
 				return_next_state = US_OUTPUT_ENABLE;
 			}
