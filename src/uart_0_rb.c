@@ -169,6 +169,32 @@ int itoa_10(uint32_t value, char* result)
 	return str_len;
 }
 
+//
+// If real-total-length is larger than specified total_number_len, only LSB is kept --> larger digit is discarded.
+//
+int itoa_10_fixed_position(uint32_t value, char* result, uint8_t total_number_len)
+{
+	// check that the base if valid
+
+	char		*ptr1 = result + (total_number_len-1);
+	uint32_t    tmp_value;
+    int         str_len;
+
+	str_len = 0;
+	do {
+		tmp_value = value % 10;
+		value /= 10;
+		*ptr1-- = "0123456789" [tmp_value];
+		str_len++;
+	} while ( value );
+
+	while(result < ptr1)
+	{
+		*ptr1-- = ' ';
+	}
+	return str_len;
+}
+
 int itoa_16(uint32_t value, char* result)
 {
 	// check that the base if valid
