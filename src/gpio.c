@@ -41,6 +41,12 @@ void Init_GPIO(void)
 {
 #ifdef _REAL_UPDATEKIT_V2_BOARD_
 
+	// Set PIO0_3
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 3, (IOCON_FUNC0 | IOCON_MODE_INACT | (1L<<7)));				// P0.0-3; 6-10; 17-21);
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO, 0, 3);
+	Chip_GPIO_SetPinOutLow(LPC_GPIO, 0, 3);
+
+	// This is for input button - original
 	Chip_IOCON_PinMuxSet(LPC_IOCON, SWITCH_KEY_GPIO_PORT, SWITCH_KEY_GPIO_PIN, SWITCH_KEY_PIN_MUX);
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, SWITCH_KEY_GPIO_PORT, SWITCH_KEY_GPIO_PIN);
 	//Chip_GPIO_SetPinDIRInput(LPC_GPIO, ISP_KEY_GPIO_PORT, ISP_KEY_GPIO_PIN);
