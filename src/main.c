@@ -42,8 +42,6 @@ const char inst3[] = "FW: "__DATE__ " " __TIME__;
  */
 int main(void)
 {
-	UPDATE_STATE	system_state = US_SYSTEM_STARTUP;
-
 	SystemCoreClockUpdate();
 	/* Enable and setup SysTick Timer at a periodic rate */
 	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
@@ -89,7 +87,7 @@ int main(void)
 		if(System_State_Proc_timer_timeout)
 		{
 			System_State_Proc_timer_timeout = false;
-			system_state = System_State_Proc(system_state);
+			upcoming_system_state = System_State_Proc(upcoming_system_state);
 		}
 
 		// Update LCD module display after each lcm command delay
@@ -181,6 +179,11 @@ int main(void)
 		{
 			SysTick_100ms_timeout = false;
 			UpdateKitV2_UpdateDisplayValueForADC_Task();
+
+			if(upcoming_system_state==US_OUTPUT_ENABLE)		// it means we are counting down now before really output
+			{
+				lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][10] = (System_State_Proc_timer_in_ms/1000)+'0';
+			}
 		}
 
 		/* Is an ADC conversion sequence complete? */
@@ -238,9 +241,6 @@ int main(void)
 		if(EVENT_Button_pressed_debounced)
 		{
 			ButtonPressedTask();
-			UpdateKitV2_LED_7_StartDisplayVoltage();
-
-			EVENT_Button_pressed_debounced = false;
 		}
 
 	}

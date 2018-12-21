@@ -10,17 +10,16 @@
 
 typedef enum
 {
-	US_SYSTEM_STARTUP = 0,
-	US_WELCOME_MESSAGE,
+	US_SYSTEM_STARTUP_WELCOME_MESSAGE = 0,
+	US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT,
+	US_OUTPUT_REMINDER_COUNTDOWN_NOW,
 	US_PC_MODE_NO_VOLTAGE_OUTPUT,
-	US_REMINDER_BEFORE_VOLTAGE_OUTPUT,
-	US_WAITING_FW_UPGRADE,
+	US_OUTPUT_ENABLE,
+	US_WAIT_FW_UPGRADE_OK_VER_STRING,
 	US_FW_UPGRADE_DONE,
 	US_TV_IN_STANDBY,
 	US_MAX_STATE_NO
 } UPDATE_STATE;
-
-
 
 extern void lcm_content_init(void);
 
@@ -48,6 +47,7 @@ extern bool		EVENT_OK_string_confirmed;
 extern bool		EVENT_Version_string_confirmed;
 extern bool		EVENT_POWERON_string_confirmed;
 extern bool		EVENT_Button_pressed_debounced;
+extern UPDATE_STATE	upcoming_system_state;
 
 #define	DEFAULT_POWER_OUTPUT_STEP			(0)
 #define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(3-1)
