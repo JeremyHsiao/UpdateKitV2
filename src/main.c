@@ -146,8 +146,13 @@ int main(void)
 			char	*temp_str = (char *) Get_VER_string();
 			uint8_t	temp_len = strlen(temp_str);
 
-			memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], temp_str, temp_len-1);
-			memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3+temp_len-1], ' ', LCM_DISPLAY_COL-3-(temp_len-1));
+			if((upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)||				// it means we are fw upgrading now
+			   (upcoming_system_state==US_FW_UPGRADE_DONE)||							// it means fw upgrade is ok
+			   (upcoming_system_state==US_FW_UPGRADE_DONE_PAGE2))
+			{
+				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], temp_str, temp_len);
+				memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3+temp_len], ' ', LCM_DISPLAY_COL-3-(temp_len));
+			}
 
 			if(temp_len<=LCM_DISPLAY_COL)
 			{
@@ -250,10 +255,23 @@ int main(void)
 		if(EVENT_filtered_current_goes_above_threshold)
 		{
 			EVENT_filtered_current_goes_above_threshold = false;
-			LED_Y_setting(5);  // 500ms as half-period (toggle period)
-			//LED_G_setting(0);
-			//LED_R_setting(0);
+			if(upcoming_system_state==US_TV_IN_STANDBY)					// it means we are in standby and TV has been plugged
+			{
+				LED_Y_setting(5);  // 500ms as half-period (toggle period)
+				LED_G_setting(0);
+				LED_R_setting(0);
+				upcoming_system_state = US_OUTPUT_ENABLE;
+				System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+			}
+			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING) 				// it means we are fw upgrading now
+			{
+				LED_Y_setting(5);  // 500ms as half-period (toggle period)
+				LED_G_setting(0);
+				LED_R_setting(0);
+				Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
+			}
 		}
+
 		if(EVENT_filtered_current_goes_below_threshold)
 		{
 			EVENT_filtered_current_goes_below_threshold = false;
@@ -262,8 +280,24 @@ int main(void)
 			LED_R_setting(0);
 			Clear_OK_pattern_state();
 			Clear_VER_string();
+			Clear_POWERON_pattern();
+			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)				// it means we are fw upgrading now
+			{
+				// reset current upgrade info but do not overwrite previous one
+				lcm_reset_FW_VER_Content();
+				upcoming_system_state = US_TV_IN_STANDBY;
+				System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+			}
+			else if((upcoming_system_state==US_FW_UPGRADE_DONE)||(upcoming_system_state==US_FW_UPGRADE_DONE_PAGE2)) // it means fw upgrade is successfully done
+			{
+				// Move existing FW upgrade info to previous update info page               				                        1234567890123456
+			    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][11], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][11], 3);
+				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][3], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], LCM_DISPLAY_COL-3);
+				lcm_reset_FW_VER_Content();
+				upcoming_system_state = US_TV_IN_STANDBY;
+				System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+			}
 		}
-
 		// Time to switch LED-7Segment content?
 		if(LED_Voltage_Current_Refresh_in_sec_timeout==true)
 		{

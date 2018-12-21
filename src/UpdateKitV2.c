@@ -52,6 +52,20 @@ void lcm_content_init_old(void)
      //lcd_module_display_enable[1]=1;
 }
 
+void lcm_reset_FW_VER_Content(void)
+{
+	// FW upgrade is done and show software version page				   1234567890123456
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][0], "FW:             ", LCM_DISPLAY_COL);
+}
+
+void lcm_reset_Previous_FW_VER_Content(void)
+{
+	// FW upgrade info of previous update                				                        1234567890123456
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][0], "LastUPG:   0 Sec", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][0], "FW:             ", LCM_DISPLAY_COL);
+}
+
 void lcm_content_init(void)
 {
 	char const		*welcome_message_line1 =  "TPV UpdateKit V2";
@@ -79,12 +93,10 @@ void lcm_content_init(void)
     memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][0], "OUT: 0.00V 0.00A", LCM_DISPLAY_COL);
 
 	// FW upgrade is done and show software version page				   1234567890123456
-    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][0], "FW:             ", LCM_DISPLAY_COL);
+    lcm_reset_FW_VER_Content();
 
-	// FW upgrade info of previous update                				                        1234567890123456
-    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][0], "LastUPD:   0 Sec", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][0], "FW:             ", LCM_DISPLAY_COL);
+	// FW upgrade info of previous update                				   1234567890123456
+    lcm_reset_Previous_FW_VER_Content();
 
 	// TV in standby page		     										   1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][0][0], "TV is in Standby", LCM_DISPLAY_COL);
@@ -513,12 +525,6 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 				Clear_OK_pattern_state();
 				Clear_POWERON_pattern();
 				Clear_VER_string();
-
-				// FW upgrade info of previous update                				                        1234567890123456
-			    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][11], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][11], 3);
-				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][3], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], LCM_DISPLAY_COL-3);
-//			    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL); // to be updated later
-				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][0], "FW:             ", LCM_DISPLAY_COL);
 
 				System_State_Proc_timer_in_ms = max_upgrade_time_in_ms - 1;
 				return_next_state = US_WAIT_FW_UPGRADE_OK_VER_STRING;
