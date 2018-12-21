@@ -82,6 +82,10 @@ void lcm_content_init(void)
     memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL);
 	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][0], "FW:             ", LCM_DISPLAY_COL);
 
+	// FW upgrade info of previous update                				                        1234567890123456
+    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][0], "LastUPD:   0 Sec", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][0], "FW:             ", LCM_DISPLAY_COL);
+
 	// TV in standby page		     										   1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][0][0], "TV is in Standby", LCM_DISPLAY_COL);
 	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][1][0], "Pls power on TV ", LCM_DISPLAY_COL);
@@ -506,6 +510,16 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 				lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
 				PowerOutputSetting(current_output_stage);
 				Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
+				Clear_OK_pattern_state();
+				Clear_POWERON_pattern();
+				Clear_VER_string();
+
+				// FW upgrade info of previous update                				                        1234567890123456
+			    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][11], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][11], 3);
+				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][3], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], LCM_DISPLAY_COL-3);
+//			    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL); // to be updated later
+				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][0], "FW:             ", LCM_DISPLAY_COL);
+
 				System_State_Proc_timer_in_ms = max_upgrade_time_in_ms - 1;
 				return_next_state = US_WAIT_FW_UPGRADE_OK_VER_STRING;
 			}
@@ -523,7 +537,12 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			break;
 		case US_FW_UPGRADE_DONE:
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
-			System_State_Proc_timer_in_ms = ~1;				// endless loop for now
+			System_State_Proc_timer_in_ms = WELCOME_MESSAGE_DISPLAY_TIME_IN_MS - 1;				// endless loop for now
+			return_next_state = US_FW_UPGRADE_DONE_PAGE2;
+			break;
+		case US_FW_UPGRADE_DONE_PAGE2:
+			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
+			System_State_Proc_timer_in_ms = WELCOME_MESSAGE_DISPLAY_TIME_IN_MS - 1;				// endless loop for now
 			return_next_state = US_FW_UPGRADE_DONE;
 			break;
 		case US_TV_IN_STANDBY:
