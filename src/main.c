@@ -129,9 +129,14 @@ int main(void)
 			//OutputHexValue_with_newline(temp);
 			memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][1][0], "OK is detected! ",LCM_DISPLAY_COL);
 			lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
-			LED_G_setting(0xff);
-			LED_Y_setting(0);
-			LED_R_setting(0);
+			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)		// it means we are fw upgrading now
+			{
+				upcoming_system_state = US_FW_UPGRADE_DONE;
+				System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+				LED_G_setting(0xff);
+				LED_Y_setting(0);
+				LED_R_setting(0);
+			}
 		}
 
 		if(EVENT_Version_string_confirmed)
@@ -140,6 +145,10 @@ int main(void)
 			//OutputString_with_newline((char *)Get_VER_string());
 			char	*temp_str = (char *) Get_VER_string();
 			uint8_t	temp_len = strlen(temp_str);
+
+			memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], temp_str, temp_len-1);
+			memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3+temp_len-1], ' ', LCM_DISPLAY_COL-3-(temp_len-1));
+
 			if(temp_len<=LCM_DISPLAY_COL)
 			{
 				strcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str);
@@ -184,6 +193,49 @@ int main(void)
 			{
 				lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][10] = (System_State_Proc_timer_in_ms/1000)+'0';
 			}
+
+			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)		// it means we are fw upgrading now
+			{
+				char 	 temp_elapse_str[5+1];
+				int 	 temp_elapse_str_len;
+				uint8_t		*content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][9],
+							*content2 = &lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][9];
+
+				temp_elapse_str_len = itoa_10(Upgrade_elapse_in_100ms, temp_elapse_str);
+
+				switch (temp_elapse_str_len)
+				{
+					case 1:
+						*content1 = *content2 = ' ';
+						content1++; content2++;
+						*content1 = *content2 = ' ';
+						content1++; content2++;
+						*content1 = *content2 = '0';
+						break;
+					case 2:
+						*content1 = *content2 = ' ';
+						content1++; content2++;
+						*content1 = *content2 = ' ';
+						content1++; content2++;
+						*content1 = *content2 =  temp_elapse_str[0];
+						break;
+					case 3:
+						*content1 = *content2 = ' ';
+						content1++; content2++;
+						*content1 = *content2 = temp_elapse_str[0];
+						content1++; content2++;
+						*content1 = *content2 = temp_elapse_str[1];
+						break;
+					case 4:
+						*content1 = *content2 = temp_elapse_str[0];
+						content1++; content2++;
+						*content1 = *content2 = temp_elapse_str[1];
+						content1++; content2++;
+						*content1 = *content2 = temp_elapse_str[2];
+						break;
+				}
+			}
+
 		}
 
 		/* Is an ADC conversion sequence complete? */

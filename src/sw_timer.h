@@ -27,6 +27,7 @@ extern bool			lcd_module_wait_finish_timeout;
 extern bool			System_State_Proc_timer_timeout;
 
 extern uint32_t		time_elapse_in_sec;
+extern uint32_t		Upgrade_elapse_in_100ms;
 extern uint32_t		SW_delay_sys_tick_cnt;
 extern uint16_t		lcd_module_auto_switch_in_ms;
 extern uint32_t		led_g_toggle_timer_in_100ms;

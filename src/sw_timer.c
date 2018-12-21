@@ -22,6 +22,7 @@ bool		lcd_module_wait_finish_timeout = false;
 bool		System_State_Proc_timer_timeout = false;
 
 uint32_t	time_elapse_in_sec=0;
+uint32_t	Upgrade_elapse_in_100ms;			// select 100ms because we like to have accuracy +/- 100ms
 uint32_t	SW_delay_sys_tick_cnt = 0;
 uint16_t	lcd_module_auto_switch_in_ms = 0;
 uint8_t		LED_Voltage_Current_Refresh_in_sec = 0;
@@ -143,6 +144,7 @@ void SysTick_Handler(void)
 				led_y_toggle_timer_in_100ms = led_y_toggle_timer_reload;
 				lcd_y_toggle_timeout = true;
 			}
+			Upgrade_elapse_in_100ms++;
 
 			// 1s timeout timer
 			if(Counter_1s_cnt_in_100ms)

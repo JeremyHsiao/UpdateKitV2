@@ -75,11 +75,11 @@ void lcm_content_init(void)
 	memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][0], "Starts in 5 Sec.", LCM_DISPLAY_COL);
 
 	// FW Upgrading page						  					          1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][0], "Upgrade: 000 Sec", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL);
     memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][0], "OUT: 0.00V 0.00A", LCM_DISPLAY_COL);
 
 	// FW upgrade is done and show software version page				   1234567890123456
-    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][0], "Upgrade: 000 Sec", LCM_DISPLAY_COL);
+    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL);
 	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][0], "FW:             ", LCM_DISPLAY_COL);
 
 	// TV in standby page		     										   1234567890123456
@@ -433,6 +433,7 @@ void lcd_module_display_enable_only_one_page(uint8_t enabled_page)
 
 #define	WELCOME_MESSAGE_DISPLAY_TIME_IN_MS		3000
 #define OUTPUT_REMINDER_DISPLAY_TIME_IN_MS		6000
+uint32_t	max_upgrade_time_in_ms = 150*1000;
 
 UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 {
@@ -504,7 +505,8 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			{
 				lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
 				PowerOutputSetting(current_output_stage);
-				System_State_Proc_timer_timeout = true;						// Enter next state at next tick
+				Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
+				System_State_Proc_timer_in_ms = max_upgrade_time_in_ms - 1;
 				return_next_state = US_WAIT_FW_UPGRADE_OK_VER_STRING;
 			}
 			else
@@ -515,19 +517,19 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			break;
 
 		case US_WAIT_FW_UPGRADE_OK_VER_STRING:
-			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
-			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
-			return_next_state = US_FW_UPGRADE_DONE;
-			break;
-		case US_FW_UPGRADE_DONE:
-			lcd_module_display_enable_only_one_page(LCM_TV_IN_STANDBY_PAGE);
-			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
+			// If really reaching this state, it means fw upgrade for too long without OK --> so entering TV in standby state
+			System_State_Proc_timer_timeout = true;							// Enter next state at next tick
 			return_next_state = US_TV_IN_STANDBY;
 			break;
+		case US_FW_UPGRADE_DONE:
+			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
+			System_State_Proc_timer_in_ms = ~1;				// endless loop for now
+			return_next_state = US_FW_UPGRADE_DONE;
+			break;
 		case US_TV_IN_STANDBY:
-			lcd_module_display_enable_only_one_page(LCM_ENTER_ISP_PAGE);
-			System_State_Proc_timer_in_ms = (2000-1);		// show this message for 2 second
-			return_next_state = US_SYSTEM_STARTUP_WELCOME_MESSAGE;
+			lcd_module_display_enable_only_one_page(LCM_TV_IN_STANDBY_PAGE);
+			System_State_Proc_timer_in_ms = ~1;				// endless loop for now
+			return_next_state = US_TV_IN_STANDBY;
 			break;
 		default:
 			break;
@@ -560,7 +562,7 @@ bool UART_input_processor(uint8_t key)
 		memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][0][0], "POWERON detected", LCM_DISPLAY_COL);
 		lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
 		Clear_POWERON_pattern();
-		EVENT_Version_string_confirmed = true;
+		EVENT_POWERON_string_confirmed = true;
 		bRet_any_event_raised = true;
 	}
 
@@ -568,7 +570,7 @@ bool UART_input_processor(uint8_t key)
 	locate_VER_pattern_process(key);
 	if(Found_VER_string()==true)
 	{
-		EVENT_POWERON_string_confirmed = true;
+		EVENT_Version_string_confirmed = true;
 		bRet_any_event_raised = true;
 	}
 
