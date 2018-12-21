@@ -51,9 +51,9 @@ int main(void)
 	Board_Init();
 	Init_UART0();
 
-	/* Send initial messages */
-	OutputString_with_newline((char*)inst1);
-	OutputString_with_newline((char*)inst2);
+//	/* Send initial messages */
+//	OutputString_with_newline((char*)inst1);
+//	OutputString_with_newline((char*)inst2);
 
 	Init_GPIO();
 	Init_LED_7seg_GPIO();
@@ -77,7 +77,7 @@ int main(void)
 	init_filtered_input_voltage();
 	reset_string_detector();
 
-	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer
+//	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer
 
 	// Endless loop at the moment
 	while (1) {
