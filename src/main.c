@@ -70,7 +70,7 @@ int main(void)
 	LED_G_setting(0);
 	LED_R_setting(0);
 	LED_Y_setting(0);
-	LED_Voltage_Current_Refresh_reload = DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC;		// 2 second
+//	LED_Voltage_Current_Refresh_reload = DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC - 1;		// 3 second
 
 	init_filtered_input_current();
 	init_filtered_input_voltage();

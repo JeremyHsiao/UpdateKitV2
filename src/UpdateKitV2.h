@@ -54,7 +54,7 @@ extern bool		EVENT_Button_pressed_debounced;
 extern UPDATE_STATE	upcoming_system_state;
 
 #define	DEFAULT_POWER_OUTPUT_STEP			(0)
-#define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(3-1)
+#define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(3)
 #define DEFAULT_OK_THRESHOLD				(5)
 #define DEFAULT_INPUT_CURRENT_THRESHOLD		(10)		// 10ma
 enum

@@ -177,7 +177,7 @@ void LED_G_setting(uint8_t flashing_100ms)
 		{
 			new_timer_reload_value = flashing_100ms - 1;
 			led_high = true;
-			// System elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
+			// System elapse timer: starting from value / reload-value / 100 ms each count / not-upcount / not-oneshot
 			Start_SW_Timer(LED_G_TIMER_IN_100MS,new_timer_reload_value,new_timer_reload_value,TIMER_100MS, false, false);
 		}
 		if(led_high) { LED_G_HIGH; } else { LED_G_LOW; }
@@ -209,7 +209,7 @@ void LED_R_setting(uint8_t flashing_100ms)
 		{
 			new_timer_reload_value = flashing_100ms - 1;
 			led_high = true;
-			// System elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / not-upcount / not-oneshot
+			// System elapse timer: starting from value / reload-value / 100 ms each count / not-upcount / not-oneshot
 			Start_SW_Timer(LED_R_TIMER_IN_100MS,new_timer_reload_value,new_timer_reload_value,TIMER_100MS, false, false);
 		}
 		if(led_high) { LED_R_HIGH; } else { LED_R_LOW; }
@@ -241,7 +241,7 @@ void LED_Y_setting(uint8_t flashing_100ms)
 		{
 			new_timer_reload_value = flashing_100ms - 1;
 			led_high = true;
-			// System elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / not-upcount / not-oneshot
+			// System elapse timer: starting from value / reload-value / 100 ms each count / not-upcount / not-oneshot
 			Start_SW_Timer(LED_Y_TIMER_IN_100MS,new_timer_reload_value,new_timer_reload_value,TIMER_100MS, false, false);
 		}
 		if(led_high) { LED_Y_HIGH; } else { LED_Y_LOW; }
