@@ -521,7 +521,9 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			{
 				lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
 				PowerOutputSetting(current_output_stage);
-				Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
+				//Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
+				Reset_SW_Timer(UPGRADE_ELAPSE_IN_100MS,0,~1,TIMER_100MS, true, false);
+				// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
 				Clear_OK_pattern_state();
 				Clear_POWERON_pattern();
 				Clear_VER_string();

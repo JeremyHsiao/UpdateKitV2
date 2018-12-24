@@ -26,8 +26,42 @@ extern bool			LED_Voltage_Current_Refresh_in_sec_timeout;
 extern bool			lcd_module_wait_finish_timeout;
 extern bool			System_State_Proc_timer_timeout;
 
-extern uint32_t		time_elapse_in_sec;
-extern uint32_t		Upgrade_elapse_in_100ms;
+typedef		uint16_t	TICK_UNIT;
+typedef	struct {
+	uint32_t	counts;
+	uint32_t	reload_value;
+	TICK_UNIT	ticks;
+	unsigned	unit:2;				// 0: 1ms, 1: 10ms, 2: 100ms, 3: 1000ms
+	unsigned	count_up:1;
+	unsigned	oneshot:1;
+	unsigned	running:1;
+} SW_TIMER;
+
+enum
+{
+	UPGRADE_ELAPSE_IN_100MS = 0,
+	SYSTEM_TIME_ELAPSE_IN_SEC,
+	SW_TIMER_MAX_NO
+};
+
+enum
+{
+	TIMER_1MS = 0,
+	TIMER_10MS,
+	TIMER_100MS,
+	TIMER_1000MS,
+	TIMER_UNIT_MAX_NO
+};
+
+extern SW_TIMER	sw_timer[];
+
+extern SW_TIMER	sw_timer[];
+
+//extern uint32_t		time_elapse_in_sec;
+#define				time_elapse_in_sec	(sw_timer[SYSTEM_TIME_ELAPSE_IN_SEC].counts)
+#define				Upgrade_elapse_in_100ms	(sw_timer[UPGRADE_ELAPSE_IN_100MS].counts)
+
+//extern uint32_t		Upgrade_elapse_in_100ms;
 extern uint32_t		SW_delay_sys_tick_cnt;
 extern uint16_t		lcd_module_auto_switch_in_ms;
 extern uint32_t		led_g_toggle_timer_in_100ms;
@@ -45,5 +79,10 @@ extern uint32_t		System_State_Proc_timer_in_ms;
 
 extern uint8_t time_elapse_str[];
 extern void Update_Elapse_Timer(void);
+
+extern bool Start_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot);
+extern bool Reset_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot);
+extern bool Pause_SW_Timer(uint8_t timer_no);
+extern bool Play_SW_Timer(uint8_t timer_no);
 
 #endif /* SW_TIMER_H_ */

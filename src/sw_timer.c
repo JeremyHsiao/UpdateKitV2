@@ -21,8 +21,8 @@ bool		LED_Voltage_Current_Refresh_in_sec_timeout = false;
 bool		lcd_module_wait_finish_timeout = false;
 bool		System_State_Proc_timer_timeout = false;
 
-uint32_t	time_elapse_in_sec=0;
-uint32_t	Upgrade_elapse_in_100ms;			// select 100ms because we like to have accuracy +/- 100ms
+//uint32_t	time_elapse_in_sec=0;
+//uint32_t	Upgrade_elapse_in_100ms;			// select 100ms because we like to have accuracy +/- 100ms
 uint32_t	SW_delay_sys_tick_cnt = 0;
 uint16_t	lcd_module_auto_switch_in_ms = 0;
 uint8_t		LED_Voltage_Current_Refresh_in_sec = 0;
@@ -43,12 +43,126 @@ uint8_t		sys_tick_1ms_cnt =  SYSTICK_COUNT_VALUE_MS(1);
 uint8_t		Counter_1s_cnt_in_100ms  = (10-1);
 uint8_t		Counter_100_ms_cnt_in_ms = (100-1);
 
+const TICK_UNIT sw_reload_ticks_by_unit[] = {
+		SYSTICK_COUNT_VALUE_MS(1),
+		SYSTICK_COUNT_VALUE_MS(10),
+		SYSTICK_COUNT_VALUE_MS(100),
+		SYSTICK_COUNT_VALUE_MS(1000),
+};
+
+SW_TIMER	sw_timer[SW_TIMER_MAX_NO];
+
+//typedef	struct {
+//	uint32_t	counts;
+//	uint32_t	reload_value;
+//	TICK_UNIT	ticks;
+//	unsigned	unit:2;				// 0: 1ms, 1: 10ms, 2: 100ms, 3: 1000ms
+//	unsigned	count_up:1;
+//	unsigned	oneshot:1;
+//	unsigned	running:1;
+//} SW_TIMER;
+
+bool Start_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot)
+{
+	SW_TIMER	*ptr = sw_timer + timer_no;
+	ptr->counts = default_count;
+	ptr->reload_value = upper_value;
+	ptr->ticks = sw_reload_ticks_by_unit[unit];
+	ptr->unit = unit;
+	ptr->count_up = (upcount)?1:0;
+	ptr->oneshot = (oneshot)?1:0;
+	ptr->running = 1;
+	return true;			// always successful at the moment
+}
+
+bool Reset_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot)
+{
+	SW_TIMER	*ptr = sw_timer + timer_no;
+	ptr->counts = default_count;
+	ptr->reload_value = upper_value;
+	ptr->ticks = sw_reload_ticks_by_unit[unit];
+	ptr->unit = unit;
+	ptr->count_up = (upcount)?1:0;
+	ptr->oneshot = (oneshot)?1:0;
+	ptr->running = 0;
+	return true;			// always successful at the moment
+}
+
+bool Pause_SW_Timer(uint8_t timer_no)
+{
+	SW_TIMER	*ptr = sw_timer + timer_no;
+	ptr->running = 0;
+	return true;			// always successful at the moment
+}
+
+bool Play_SW_Timer(uint8_t timer_no)
+{
+	SW_TIMER	*ptr = sw_timer + timer_no;
+	ptr->running = 1;
+	return true;			// always successful at the moment
+}
+
 /**
  * @brief    Handle interrupt from SysTick timer
  * @return    Nothing
  */
 void SysTick_Handler(void)
 {
+	// Experimenting new way of timer
+	uint8_t		timer_index = SW_TIMER_MAX_NO-1;
+
+	do
+	{
+		SW_TIMER	*timer_ptr = &sw_timer[timer_index];
+		if(timer_ptr->running)
+		{
+			if(timer_ptr->ticks)
+			{
+				timer_ptr->ticks--;
+			}
+			else
+			{
+				if(timer_ptr->count_up)
+				{
+					if(timer_ptr->counts < timer_ptr->reload_value)
+					{
+						timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
+						timer_ptr->counts++;
+					}
+					else
+					{
+						if(timer_ptr->oneshot)
+							timer_ptr->running = 0;
+						else
+						{
+							timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
+							timer_ptr->counts = 0;
+						}
+					}
+				}
+				else			// down-counter: from reload_value until 0
+				{
+					if(timer_ptr->counts)
+					{
+						timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
+						timer_ptr->counts--;
+					}
+					else
+					{
+						if(timer_ptr->oneshot)
+							timer_ptr->running = 0;
+						else
+						{
+							timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
+							timer_ptr->counts = timer_ptr->reload_value;
+						}
+					}
+				}
+			}
+		}
+	}
+	while(timer_index-->0);		// if 0 (before minus 1) then end of loops
+
 	// For software delay loop -- decrement each tick
 	if(SW_delay_sys_tick_cnt>0)
 	{
@@ -144,7 +258,7 @@ void SysTick_Handler(void)
 				led_y_toggle_timer_in_100ms = led_y_toggle_timer_reload;
 				lcd_y_toggle_timeout = true;
 			}
-			Upgrade_elapse_in_100ms++;
+//			Upgrade_elapse_in_100ms++;
 
 			// 1s timeout timer
 			if(Counter_1s_cnt_in_100ms)
@@ -155,7 +269,7 @@ void SysTick_Handler(void)
 			{
 				Counter_1s_cnt_in_100ms = (10-1);	// 0...9 total is 10
 				SysTick_1s_timeout = true;
-				time_elapse_in_sec++;
+//				time_elapse_in_sec++;
 
 				// Timer for lcd module page-rotate -- decrement each ms
 				if(LED_Voltage_Current_Refresh_in_sec>0)

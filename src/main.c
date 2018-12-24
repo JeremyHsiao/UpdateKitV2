@@ -46,6 +46,7 @@ int main(void)
 	/* Enable and setup SysTick Timer at a periodic rate */
 	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
 
+	Start_SW_Timer(SYSTEM_TIME_ELAPSE_IN_SEC,0,~1,TIMER_1000MS, true, false);		// System elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
 	Board_Init();
 	Init_UART0();
 
@@ -268,7 +269,9 @@ int main(void)
 				LED_Y_setting(5);  // 500ms as half-period (toggle period)
 				LED_G_setting(0);
 				LED_R_setting(0);
-				Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
+				//Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
+				Start_SW_Timer(UPGRADE_ELAPSE_IN_100MS,0,~1,TIMER_100MS, true, false);
+				// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
 			}
 		}
 
