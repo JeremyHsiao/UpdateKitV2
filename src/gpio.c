@@ -195,23 +195,27 @@ void LED_R_setting(uint8_t flashing_100ms)
 
 		if(flashing_100ms==0)
 		{
-			new_timer_reload_value = ~1;
+			//new_timer_reload_value = ~1;
+			Pause_SW_Timer(LED_R_TIMER_IN_100MS);
 			led_high = false;
 		}
 		else if (flashing_100ms==0xff)
 		{
-			new_timer_reload_value = ~1;
+			//new_timer_reload_value = ~1;
+			Pause_SW_Timer(LED_R_TIMER_IN_100MS);
 			led_high = true;
 		}
 		else
 		{
 			new_timer_reload_value = flashing_100ms - 1;
 			led_high = true;
+			// System elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / not-upcount / not-oneshot
+			Start_SW_Timer(LED_R_TIMER_IN_100MS,new_timer_reload_value,new_timer_reload_value,TIMER_100MS, false, false);
 		}
 		if(led_high) { LED_R_HIGH; } else { LED_R_LOW; }
 		LED_R_flashing = flashing_100ms;
-		led_r_toggle_timer_in_100ms = led_r_toggle_timer_reload = new_timer_reload_value;
-		lcd_r_toggle_timeout=false;
+//		led_r_toggle_timer_in_100ms = led_r_toggle_timer_reload = new_timer_reload_value;
+//		lcd_r_toggle_timeout=false;
 	}
 }
 void LED_Y_setting(uint8_t flashing_100ms)
@@ -265,9 +269,9 @@ void LED_Status_Update_Process(void)
 		}
 	}
 
-	if(lcd_r_toggle_timeout)
+	if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_R_TIMER_IN_100MS))
 	{
-		lcd_r_toggle_timeout=false;
+		//lcd_r_toggle_timeout=false;
 
 		if(LED_R_flashing==0)
 		{

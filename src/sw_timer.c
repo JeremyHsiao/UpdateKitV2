@@ -15,7 +15,7 @@ bool 		SysTick_led_7seg_refresh_timeout = false;
 bool		SW_delay_timeout = false;
 bool		lcd_module_auto_switch_timer_timeout = false;
 //bool		lcd_g_toggle_timeout = false;
-bool		lcd_r_toggle_timeout = false;
+//bool		lcd_r_toggle_timeout = false;
 //bool		lcd_y_toggle_timeout = false;
 bool		LED_Voltage_Current_Refresh_in_sec_timeout = false;
 bool		lcd_module_wait_finish_timeout = false;
@@ -30,12 +30,12 @@ uint8_t		lcd_module_wait_finish_in_tick = 0;
 uint32_t	System_State_Proc_timer_in_ms = 0;
 
 //uint32_t	led_g_toggle_timer_in_100ms = 0;
-uint32_t	led_r_toggle_timer_in_100ms = 0;
+//uint32_t	led_r_toggle_timer_in_100ms = 0;
 //uint32_t	led_y_toggle_timer_in_100ms = 0;
 
 // Auto-reload value
 //uint32_t	led_g_toggle_timer_reload = 0;
-uint32_t	led_r_toggle_timer_reload = 0;
+//uint32_t	led_r_toggle_timer_reload = 0;
 //uint32_t	led_y_toggle_timer_reload = 0;
 uint8_t		LED_Voltage_Current_Refresh_reload = 0;
 
@@ -269,16 +269,16 @@ void SysTick_Handler(void)
 //				lcd_g_toggle_timeout = true;
 //			}
 
-			// Timer for LED R -- decrement each 100ms
-			if(led_r_toggle_timer_in_100ms>0)
-			{
-				led_r_toggle_timer_in_100ms--;
-			}
-			else
-			{
-				led_r_toggle_timer_in_100ms = led_r_toggle_timer_reload;
-				lcd_r_toggle_timeout = true;
-			}
+//			// Timer for LED R -- decrement each 100ms
+//			if(led_r_toggle_timer_in_100ms>0)
+//			{
+//				led_r_toggle_timer_in_100ms--;
+//			}
+//			else
+//			{
+//				led_r_toggle_timer_in_100ms = led_r_toggle_timer_reload;
+//				lcd_r_toggle_timeout = true;
+//			}
 
 //			// Timer for LED Y -- decrement each 100ms
 //			if(led_y_toggle_timer_in_100ms>0)

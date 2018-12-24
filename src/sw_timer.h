@@ -67,10 +67,10 @@ extern SW_TIMER	sw_timer[];
 extern uint32_t		SW_delay_sys_tick_cnt;
 extern uint16_t		lcd_module_auto_switch_in_ms;
 //extern uint32_t		led_g_toggle_timer_in_100ms;
-extern uint32_t		led_r_toggle_timer_in_100ms;
+//extern uint32_t		led_r_toggle_timer_in_100ms;
 //extern uint32_t		led_y_toggle_timer_in_100ms;
 //extern uint32_t		led_g_toggle_timer_reload;
-extern uint32_t		led_r_toggle_timer_reload;
+//extern uint32_t		led_r_toggle_timer_reload;
 //extern uint32_t		led_y_toggle_timer_reload;
 
 extern uint8_t		LED_Voltage_Current_Refresh_in_sec;
