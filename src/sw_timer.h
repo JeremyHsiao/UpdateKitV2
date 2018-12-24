@@ -35,6 +35,7 @@ typedef	struct {
 	unsigned	count_up:1;
 	unsigned	oneshot:1;
 	unsigned	running:1;
+	unsigned	reload_flag:1;			// countdown to 0 or countup to reload_value
 } SW_TIMER;
 
 enum
@@ -55,11 +56,9 @@ enum
 
 extern SW_TIMER	sw_timer[];
 
-extern SW_TIMER	sw_timer[];
-
 //extern uint32_t		time_elapse_in_sec;
-#define				time_elapse_in_sec	(sw_timer[SYSTEM_TIME_ELAPSE_IN_SEC].counts)
-#define				Upgrade_elapse_in_100ms	(sw_timer[UPGRADE_ELAPSE_IN_100MS].counts)
+//#define				time_elapse_in_sec	(sw_timer[SYSTEM_TIME_ELAPSE_IN_SEC].counts)
+//#define				Upgrade_elapse_in_100ms	(sw_timer[UPGRADE_ELAPSE_IN_100MS].counts)
 
 //extern uint32_t		Upgrade_elapse_in_100ms;
 extern uint32_t		SW_delay_sys_tick_cnt;
@@ -84,5 +83,8 @@ extern bool Start_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t up
 extern bool Reset_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot);
 extern bool Pause_SW_Timer(uint8_t timer_no);
 extern bool Play_SW_Timer(uint8_t timer_no);
+extern uint32_t Read_SW_TIMER_Value(uint8_t timer_no);
+extern bool Read_and_Clear_SW_TIMER_Reload_Flag(uint8_t timer_no);
+extern void Clear_SW_TIMER_Reload_Flag(uint8_t timer_no);
 
 #endif /* SW_TIMER_H_ */

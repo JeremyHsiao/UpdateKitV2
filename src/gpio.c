@@ -305,7 +305,8 @@ void DeInit_GPIO(void)
 
 void LED_demo(void)
 {
-		switch(time_elapse_in_sec&0x03)
+//		switch(time_elapse_in_sec&0x03)
+		switch(Read_SW_TIMER_Value(SYSTEM_TIME_ELAPSE_IN_SEC)&0x03)
 		{
 			case 0:
 				LED_R_HIGH;

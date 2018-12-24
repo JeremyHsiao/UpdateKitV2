@@ -207,7 +207,7 @@ int main(void)
 				uint8_t		*content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][9],
 							*content2 = &lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][9];
 
-				temp_elapse_str_len = itoa_10(Upgrade_elapse_in_100ms, temp_elapse_str);
+				temp_elapse_str_len = itoa_10(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_100MS), temp_elapse_str);
 
 				switch (temp_elapse_str_len)
 				{

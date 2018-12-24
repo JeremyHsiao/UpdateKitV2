@@ -72,6 +72,7 @@ bool Start_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_val
 	ptr->count_up = (upcount)?1:0;
 	ptr->oneshot = (oneshot)?1:0;
 	ptr->running = 1;
+	ptr->reload_flag = 0;
 	return true;			// always successful at the moment
 }
 
@@ -85,6 +86,7 @@ bool Reset_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_val
 	ptr->count_up = (upcount)?1:0;
 	ptr->oneshot = (oneshot)?1:0;
 	ptr->running = 0;
+	ptr->reload_flag = 0;
 	return true;			// always successful at the moment
 }
 
@@ -100,6 +102,32 @@ bool Play_SW_Timer(uint8_t timer_no)
 	SW_TIMER	*ptr = sw_timer + timer_no;
 	ptr->running = 1;
 	return true;			// always successful at the moment
+}
+
+uint32_t Read_SW_TIMER_Value(uint8_t timer_no)
+{
+	SW_TIMER	*ptr = sw_timer + timer_no;
+	return ptr->counts;
+}
+
+bool Read_and_Clear_SW_TIMER_Reload_Flag(uint8_t timer_no)
+{
+	SW_TIMER	*ptr = sw_timer + timer_no;
+	if(ptr->reload_flag)
+	{
+		ptr->reload_flag = 0;
+		return	true;
+	}
+	else
+	{
+		return	false;
+	}
+}
+
+void Clear_SW_TIMER_Reload_Flag(uint8_t timer_no)
+{
+	SW_TIMER	*ptr = sw_timer + timer_no;
+	ptr->reload_flag = 0;
 }
 
 /**
