@@ -128,8 +128,8 @@ int main(void)
 			EVENT_OK_string_confirmed = false;
 
 			//OutputHexValue_with_newline(temp);
-			memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][1][0], "OK is detected! ",LCM_DISPLAY_COL);
-			lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
+//			memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][1][0], "OK is detected! ",LCM_DISPLAY_COL);
+//			lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
 			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)		// it means we are fw upgrading now
 			{
 				upcoming_system_state = US_FW_UPGRADE_DONE;
@@ -155,25 +155,25 @@ int main(void)
 				memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3+temp_len], ' ', LCM_DISPLAY_COL-3-(temp_len));
 			}
 
-			if(temp_len<=LCM_DISPLAY_COL)
-			{
-				strcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str);
-			}
-			else
-			{
-				memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][0][4], temp_str, 12);
-				temp_len-=12;
-				if(temp_len>LCM_DISPLAY_COL)
-				{
-					memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, LCM_DISPLAY_COL);
-				}
-				else
-				{
-					memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, temp_len);
-					memset((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][temp_len], ' ', LCM_DISPLAY_COL-temp_len);
-				}
-			}
-			lcm_force_to_display_page(LCM_DEV_UPGRADE_VER_PAGE);
+//			if(temp_len<=LCM_DISPLAY_COL)
+//			{
+//				strcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str);
+//			}
+//			else
+//			{
+//				memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][0][4], temp_str, 12);
+//				temp_len-=12;
+//				if(temp_len>LCM_DISPLAY_COL)
+//				{
+//					memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, LCM_DISPLAY_COL);
+//				}
+//				else
+//				{
+//					memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, temp_len);
+//					memset((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][temp_len], ' ', LCM_DISPLAY_COL-temp_len);
+//				}
+//			}
+//			lcm_force_to_display_page(LCM_DEV_UPGRADE_VER_PAGE);
 			Clear_VER_string();
 			EVENT_Version_string_confirmed = false;
 		}
@@ -182,8 +182,8 @@ int main(void)
 		{
 
 			//OutputString_with_newline("POWER_ON_DETECTED");
-			memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][0][0], "POWERON detected", LCM_DISPLAY_COL);
-			lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
+//			memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][0][0], "POWERON detected", LCM_DISPLAY_COL);
+//			lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
 			Clear_POWERON_pattern();
 			EVENT_POWERON_string_confirmed = false;
 		}
@@ -318,13 +318,13 @@ int main(void)
 
 		LED_Status_Update_Process();
 
-		if(SysTick_1s_timeout==true)
-		{
-			SysTick_1s_timeout = false;
-			Update_Elapse_Timer();
-			memcpy((void *)&lcd_module_display_content[LCM_DEV_TITLE_PAGE][1][8], time_elapse_str, 4);
-//			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
-		}
+//		if(SysTick_1s_timeout==true)
+//		{
+//			SysTick_1s_timeout = false;
+//			Update_Elapse_Timer();
+//			memcpy((void *)&lcd_module_display_content[LCM_DEV_TITLE_PAGE][1][8], time_elapse_str, 4);
+////			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
+//		}
 
 		EVENT_Button_pressed_debounced = Debounce_Button();
 		if(EVENT_Button_pressed_debounced)
