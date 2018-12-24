@@ -35,12 +35,15 @@ typedef	struct {
 	unsigned	count_up:1;
 	unsigned	oneshot:1;
 	unsigned	running:1;
-	unsigned	reload_flag:1;			// countdown to 0 or countup to reload_value
+	unsigned	timeup_flag:1;			// countdown to 0 or countup to reload_value
 } SW_TIMER;
 
 enum
 {
 	UPGRADE_ELAPSE_IN_100MS = 0,
+	LED_G_TIMER_IN_100MS,
+	LED_Y_TIMER_IN_100MS,
+	LED_R_TIMER_IN_100MS,
 	SYSTEM_TIME_ELAPSE_IN_SEC,
 	SW_TIMER_MAX_NO
 };
@@ -63,12 +66,12 @@ extern SW_TIMER	sw_timer[];
 //extern uint32_t		Upgrade_elapse_in_100ms;
 extern uint32_t		SW_delay_sys_tick_cnt;
 extern uint16_t		lcd_module_auto_switch_in_ms;
-extern uint32_t		led_g_toggle_timer_in_100ms;
+//extern uint32_t		led_g_toggle_timer_in_100ms;
 extern uint32_t		led_r_toggle_timer_in_100ms;
-extern uint32_t		led_y_toggle_timer_in_100ms;
-extern uint32_t		led_g_toggle_timer_reload;
+//extern uint32_t		led_y_toggle_timer_in_100ms;
+//extern uint32_t		led_g_toggle_timer_reload;
 extern uint32_t		led_r_toggle_timer_reload;
-extern uint32_t		led_y_toggle_timer_reload;
+//extern uint32_t		led_y_toggle_timer_reload;
 
 extern uint8_t		LED_Voltage_Current_Refresh_in_sec;
 extern uint8_t		LED_Voltage_Current_Refresh_reload;

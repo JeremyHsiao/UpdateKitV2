@@ -14,9 +14,9 @@ bool 		SysTick_100ms_timeout = false;
 bool 		SysTick_led_7seg_refresh_timeout = false;
 bool		SW_delay_timeout = false;
 bool		lcd_module_auto_switch_timer_timeout = false;
-bool		lcd_g_toggle_timeout = false;
+//bool		lcd_g_toggle_timeout = false;
 bool		lcd_r_toggle_timeout = false;
-bool		lcd_y_toggle_timeout = false;
+//bool		lcd_y_toggle_timeout = false;
 bool		LED_Voltage_Current_Refresh_in_sec_timeout = false;
 bool		lcd_module_wait_finish_timeout = false;
 bool		System_State_Proc_timer_timeout = false;
@@ -29,14 +29,14 @@ uint8_t		LED_Voltage_Current_Refresh_in_sec = 0;
 uint8_t		lcd_module_wait_finish_in_tick = 0;
 uint32_t	System_State_Proc_timer_in_ms = 0;
 
-uint32_t	led_g_toggle_timer_in_100ms = 0;
+//uint32_t	led_g_toggle_timer_in_100ms = 0;
 uint32_t	led_r_toggle_timer_in_100ms = 0;
-uint32_t	led_y_toggle_timer_in_100ms = 0;
+//uint32_t	led_y_toggle_timer_in_100ms = 0;
 
 // Auto-reload value
-uint32_t	led_g_toggle_timer_reload = 0;
+//uint32_t	led_g_toggle_timer_reload = 0;
 uint32_t	led_r_toggle_timer_reload = 0;
-uint32_t	led_y_toggle_timer_reload = 0;
+//uint32_t	led_y_toggle_timer_reload = 0;
 uint8_t		LED_Voltage_Current_Refresh_reload = 0;
 
 uint8_t		sys_tick_1ms_cnt =  SYSTICK_COUNT_VALUE_MS(1);
@@ -72,7 +72,7 @@ bool Start_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_val
 	ptr->count_up = (upcount)?1:0;
 	ptr->oneshot = (oneshot)?1:0;
 	ptr->running = 1;
-	ptr->reload_flag = 0;
+	ptr->timeup_flag = 0;
 	return true;			// always successful at the moment
 }
 
@@ -86,7 +86,7 @@ bool Reset_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_val
 	ptr->count_up = (upcount)?1:0;
 	ptr->oneshot = (oneshot)?1:0;
 	ptr->running = 0;
-	ptr->reload_flag = 0;
+	ptr->timeup_flag = 0;
 	return true;			// always successful at the moment
 }
 
@@ -113,9 +113,9 @@ uint32_t Read_SW_TIMER_Value(uint8_t timer_no)
 bool Read_and_Clear_SW_TIMER_Reload_Flag(uint8_t timer_no)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
-	if(ptr->reload_flag)
+	if(ptr->timeup_flag)
 	{
-		ptr->reload_flag = 0;
+		ptr->timeup_flag = 0;
 		return	true;
 	}
 	else
@@ -127,7 +127,7 @@ bool Read_and_Clear_SW_TIMER_Reload_Flag(uint8_t timer_no)
 void Clear_SW_TIMER_Reload_Flag(uint8_t timer_no)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
-	ptr->reload_flag = 0;
+	ptr->timeup_flag = 0;
 }
 
 /**
@@ -152,6 +152,7 @@ void SysTick_Handler(void)
 			{
 				if(timer_ptr->count_up)
 				{
+					// Up-count
 					if(timer_ptr->counts < timer_ptr->reload_value)
 					{
 						timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
@@ -159,6 +160,7 @@ void SysTick_Handler(void)
 					}
 					else
 					{
+						timer_ptr->timeup_flag = 1;
 						if(timer_ptr->oneshot)
 							timer_ptr->running = 0;
 						else
@@ -170,6 +172,7 @@ void SysTick_Handler(void)
 				}
 				else			// down-counter: from reload_value until 0
 				{
+					// Down-count
 					if(timer_ptr->counts)
 					{
 						timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
@@ -177,6 +180,7 @@ void SysTick_Handler(void)
 					}
 					else
 					{
+						timer_ptr->timeup_flag = 1;
 						if(timer_ptr->oneshot)
 							timer_ptr->running = 0;
 						else
@@ -255,15 +259,15 @@ void SysTick_Handler(void)
 			SysTick_100ms_timeout = true;
 
 			// Timer for LED G -- decrement each 100ms
-			if(led_g_toggle_timer_in_100ms>0)
-			{
-				led_g_toggle_timer_in_100ms--;
-			}
-			else
-			{
-				led_g_toggle_timer_in_100ms = led_g_toggle_timer_reload;
-				lcd_g_toggle_timeout = true;
-			}
+//			if(led_g_toggle_timer_in_100ms>0)
+//			{
+//				led_g_toggle_timer_in_100ms--;
+//			}
+//			else
+//			{
+//				led_g_toggle_timer_in_100ms = led_g_toggle_timer_reload;
+//				lcd_g_toggle_timeout = true;
+//			}
 
 			// Timer for LED R -- decrement each 100ms
 			if(led_r_toggle_timer_in_100ms>0)
@@ -276,16 +280,16 @@ void SysTick_Handler(void)
 				lcd_r_toggle_timeout = true;
 			}
 
-			// Timer for LED Y -- decrement each 100ms
-			if(led_y_toggle_timer_in_100ms>0)
-			{
-				led_y_toggle_timer_in_100ms--;
-			}
-			else
-			{
-				led_y_toggle_timer_in_100ms = led_y_toggle_timer_reload;
-				lcd_y_toggle_timeout = true;
-			}
+//			// Timer for LED Y -- decrement each 100ms
+//			if(led_y_toggle_timer_in_100ms>0)
+//			{
+//				led_y_toggle_timer_in_100ms--;
+//			}
+//			else
+//			{
+//				led_y_toggle_timer_in_100ms = led_y_toggle_timer_reload;
+//				lcd_y_toggle_timeout = true;
+//			}
 //			Upgrade_elapse_in_100ms++;
 
 			// 1s timeout timer
