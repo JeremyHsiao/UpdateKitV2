@@ -336,7 +336,7 @@ void ButtonPressedTask(void)
 	if(upcoming_system_state==US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT)	// It means we are either at welcome message or we are in the middle of checking new current_output_stage
 	{
 		//System_State_Proc_timer_timeout = true;								// start to determine output mode immediately
-		Start_SW_Timer(UPGRADE_ELAPSE_IN_100MS,0,~1,TIMER_100MS, true, false);
+		Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 	}
 	// It means we are either at pc mode or counting down now
 	else if((upcoming_system_state==US_PC_MODE_NO_VOLTAGE_OUTPUT)||(upcoming_system_state==US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2)||(upcoming_system_state==US_OUTPUT_ENABLE))
