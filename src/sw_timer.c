@@ -13,7 +13,7 @@
 //bool 		SysTick_100ms_timeout = false;
 //bool 		SysTick_led_7seg_refresh_timeout = false;
 bool		SW_delay_timeout = false;
-bool		lcd_module_auto_switch_timer_timeout = false;
+//bool		lcd_module_auto_switch_timer_timeout = false;
 //bool		lcd_g_toggle_timeout = false;
 //bool		lcd_r_toggle_timeout = false;
 //bool		lcd_y_toggle_timeout = false;
@@ -38,11 +38,11 @@ uint8_t		lcd_module_wait_finish_in_tick = 0;
 //uint32_t	led_g_toggle_timer_reload = 0;
 //uint32_t	led_r_toggle_timer_reload = 0;
 //uint32_t	led_y_toggle_timer_reload = 0;
-uint8_t		LED_Voltage_Current_Refresh_reload = 0;
+//uint8_t		LED_Voltage_Current_Refresh_reload = 0;
 
-uint8_t		sys_tick_1ms_cnt =  SYSTICK_COUNT_VALUE_MS(1);
-uint8_t		Counter_1s_cnt_in_100ms  = (10-1);
-uint8_t		Counter_100_ms_cnt_in_ms = (100-1);
+//uint8_t		sys_tick_1ms_cnt =  SYSTICK_COUNT_VALUE_MS(1);
+//uint8_t		Counter_1s_cnt_in_100ms  = (10-1);
+//uint8_t		Counter_100_ms_cnt_in_ms = (100-1);
 
 const TICK_UNIT sw_reload_ticks_by_unit[] = {
 		SYSTICK_COUNT_VALUE_MS(1),
