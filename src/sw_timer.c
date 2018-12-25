@@ -17,7 +17,7 @@ bool		lcd_module_auto_switch_timer_timeout = false;
 //bool		lcd_g_toggle_timeout = false;
 //bool		lcd_r_toggle_timeout = false;
 //bool		lcd_y_toggle_timeout = false;
-bool		LED_Voltage_Current_Refresh_in_sec_timeout = false;
+//bool		LED_Voltage_Current_Refresh_in_sec_timeout = false;
 bool		lcd_module_wait_finish_timeout = false;
 bool		System_State_Proc_timer_timeout = false;
 
@@ -25,7 +25,7 @@ bool		System_State_Proc_timer_timeout = false;
 //uint32_t	Upgrade_elapse_in_100ms;			// select 100ms because we like to have accuracy +/- 100ms
 uint32_t	SW_delay_sys_tick_cnt = 0;
 uint16_t	lcd_module_auto_switch_in_ms = 0;
-uint8_t		LED_Voltage_Current_Refresh_in_sec = 0;
+//uint8_t		LED_Voltage_Current_Refresh_in_sec = 0;
 uint8_t		lcd_module_wait_finish_in_tick = 0;
 uint32_t	System_State_Proc_timer_in_ms = 0;
 
@@ -76,7 +76,7 @@ bool Start_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_val
 	return true;			// always successful at the moment
 }
 
-bool Reset_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot)
+bool Init_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
 	ptr->counts = default_count;
@@ -87,6 +87,13 @@ bool Reset_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_val
 	ptr->oneshot = (oneshot)?1:0;
 	ptr->running = 0;
 	ptr->timeup_flag = 0;
+	return true;			// always successful at the moment
+}
+
+bool Set_SW_Timer_Count(uint8_t timer_no, uint32_t new_count)
+{
+	SW_TIMER	*ptr = sw_timer + timer_no;
+	ptr->counts = new_count;
 	return true;			// always successful at the moment
 }
 
@@ -303,16 +310,16 @@ void SysTick_Handler(void)
 				SysTick_1s_timeout = true;
 //				time_elapse_in_sec++;
 
-				// Timer for lcd module page-rotate -- decrement each ms
-				if(LED_Voltage_Current_Refresh_in_sec>0)
-				{
-					LED_Voltage_Current_Refresh_in_sec--;
-				}
-				else
-				{
-					LED_Voltage_Current_Refresh_in_sec = LED_Voltage_Current_Refresh_reload;
-					LED_Voltage_Current_Refresh_in_sec_timeout = true;
-				}
+//				// Timer for lcd module page-rotate -- decrement each ms
+//				if(LED_Voltage_Current_Refresh_in_sec>0)
+//				{
+//					LED_Voltage_Current_Refresh_in_sec--;
+//				}
+//				else
+//				{
+//					LED_Voltage_Current_Refresh_in_sec = LED_Voltage_Current_Refresh_reload;
+//					LED_Voltage_Current_Refresh_in_sec_timeout = true;
+//				}
 			}
 		}
 	}

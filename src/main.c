@@ -48,6 +48,7 @@ int main(void)
 	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
 
 	Start_SW_Timer(SYSTEM_TIME_ELAPSE_IN_SEC,0,~1,TIMER_1000MS, true, false);		// System elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
+	// LED display data swap timer: starting from DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1 / reload-upper-value / 1000ms each count / downcount / not-oneshot
 	Board_Init();
 	Init_UART0();
 
@@ -76,6 +77,7 @@ int main(void)
 	init_filtered_input_current();
 	init_filtered_input_voltage();
 	reset_string_detector();
+	Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1),(DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1),TIMER_1000MS, false, false);
 
 //	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer
 
@@ -303,9 +305,9 @@ int main(void)
 			}
 		}
 		// Time to switch LED-7Segment content? ==> force to next visible page
-		if(LED_Voltage_Current_Refresh_in_sec_timeout==true)
+		if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC))
 		{
-			LED_Voltage_Current_Refresh_in_sec_timeout = false;
+//			LED_Voltage_Current_Refresh_in_sec_timeout = false;
 			LED_7SEG_GoToNextVisiblePage();
 		}
 

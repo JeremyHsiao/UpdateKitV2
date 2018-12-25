@@ -45,6 +45,7 @@ enum
 	LED_Y_TIMER_IN_100MS,
 	LED_R_TIMER_IN_100MS,
 	SYSTEM_TIME_ELAPSE_IN_SEC,
+	LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,
 	SW_TIMER_MAX_NO
 };
 
@@ -73,8 +74,8 @@ extern uint16_t		lcd_module_auto_switch_in_ms;
 //extern uint32_t		led_r_toggle_timer_reload;
 //extern uint32_t		led_y_toggle_timer_reload;
 
-extern uint8_t		LED_Voltage_Current_Refresh_in_sec;
-extern uint8_t		LED_Voltage_Current_Refresh_reload;
+//extern uint8_t		LED_Voltage_Current_Refresh_in_sec;
+//extern uint8_t		LED_Voltage_Current_Refresh_reload;
 extern uint8_t		lcd_module_wait_finish_in_tick;
 
 extern uint32_t		System_State_Proc_timer_in_ms;
@@ -83,11 +84,12 @@ extern uint8_t time_elapse_str[];
 extern void Update_Elapse_Timer(void);
 
 extern bool Start_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot);
-extern bool Reset_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot);
+extern bool Init_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot);
 extern bool Pause_SW_Timer(uint8_t timer_no);
 extern bool Play_SW_Timer(uint8_t timer_no);
 extern uint32_t Read_SW_TIMER_Value(uint8_t timer_no);
 extern bool Read_and_Clear_SW_TIMER_Reload_Flag(uint8_t timer_no);
 extern void Clear_SW_TIMER_Reload_Flag(uint8_t timer_no);
+extern bool Set_SW_Timer_Count(uint8_t timer_no, uint32_t new_count);
 
 #endif /* SW_TIMER_H_ */
