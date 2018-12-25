@@ -10,7 +10,7 @@
 
 //#define 	SYSTICK_PER_SECOND			(10000)		// 10000 ticks per second == 100us each tick --> make sure deviation of delay is M 50us
 //#define 	SYSTICK_PER_SECOND			(4000)		// 4000 ticks per second == 250us each tick
-#define 	SYSTICK_PER_SECOND			(12500)		// 12500 ticks per second == 80us each tick
+#define 	SYSTICK_PER_SECOND			(8000)		// 8000 ticks per second == 125us each tick
 #define     SYSTICK_COUNT_VALUE_MS(x)	((SYSTICK_PER_SECOND*x/1000)-1)
 #define     SYSTICK_COUNT_VALUE_US(x)	((SYSTICK_PER_SECOND*x/1000000)-1)
 
@@ -19,10 +19,10 @@ extern bool 		SysTick_100ms_timeout;
 extern bool 		SysTick_led_7seg_refresh_timeout;
 extern bool			SW_delay_timeout;
 extern bool			lcd_module_auto_switch_timer_timeout;
-extern bool			lcd_g_toggle_timeout;
-extern bool			lcd_r_toggle_timeout;
-extern bool			lcd_y_toggle_timeout;
-extern bool			LED_Voltage_Current_Refresh_in_sec_timeout;
+//extern bool			lcd_g_toggle_timeout;
+//extern bool			lcd_r_toggle_timeout;
+//extern bool			lcd_y_toggle_timeout;
+//extern bool			LED_Voltage_Current_Refresh_in_sec_timeout;
 extern bool			lcd_module_wait_finish_timeout;
 extern bool			System_State_Proc_timer_timeout;
 
@@ -46,6 +46,7 @@ enum
 	LED_R_TIMER_IN_100MS,
 	SYSTEM_TIME_ELAPSE_IN_SEC,
 	LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,
+	LED_REFRESH_EACH_DIGIT_TIMER_MS,
 	SW_TIMER_MAX_NO
 };
 

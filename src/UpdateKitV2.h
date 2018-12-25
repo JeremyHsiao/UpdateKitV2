@@ -47,8 +47,10 @@ extern UPDATE_STATE	upcoming_system_state;
 
 #define	DEFAULT_POWER_OUTPUT_STEP			(0)
 #define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(3)
-#define DEFAULT_OK_THRESHOLD				(5)
+#define DEFAULT_LED_REFRESH_EACH_DIGIT_MS	(1)
+#define DEFAULT_OK_THRESHOLD				(5)			// 5 times ok
 #define DEFAULT_INPUT_CURRENT_THRESHOLD		(10)		// 10ma
+
 enum
 {
 	LCM_WELCOME_PAGE = 0,

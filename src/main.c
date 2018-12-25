@@ -78,6 +78,7 @@ int main(void)
 	init_filtered_input_voltage();
 	reset_string_detector();
 	Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1),(DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1),TIMER_1000MS, false, false);
+	Start_SW_Timer(LED_REFRESH_EACH_DIGIT_TIMER_MS,(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),TIMER_1MS, false, false);
 
 //	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer
 
@@ -312,9 +313,9 @@ int main(void)
 		}
 
 		// Refresh each char of 7 Segment LED every 1ms
-		if(SysTick_led_7seg_refresh_timeout==true)
+		if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_REFRESH_EACH_DIGIT_TIMER_MS))
 		{
-			SysTick_led_7seg_refresh_timeout = false;
+//			SysTick_led_7seg_refresh_timeout = false;
 			refresh_LED_7SEG_periodic_task();
 		}
 

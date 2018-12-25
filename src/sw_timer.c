@@ -11,7 +11,7 @@
 
 bool 		SysTick_1s_timeout = false;
 bool 		SysTick_100ms_timeout = false;
-bool 		SysTick_led_7seg_refresh_timeout = false;
+//bool 		SysTick_led_7seg_refresh_timeout = false;
 bool		SW_delay_timeout = false;
 bool		lcd_module_auto_switch_timer_timeout = false;
 //bool		lcd_g_toggle_timeout = false;
@@ -231,7 +231,7 @@ void SysTick_Handler(void)
 		sys_tick_1ms_cnt = SYSTICK_COUNT_VALUE_MS(1);
 
 		// 1ms timeout timer for SysTick_led_7seg_refresh_timeout
-		SysTick_led_7seg_refresh_timeout = true;
+		//SysTick_led_7seg_refresh_timeout = true;
 
 		// Timer for lcd module page-rotate -- decrement each ms
 		if(lcd_module_auto_switch_in_ms>0)
