@@ -16,6 +16,7 @@
 #include "sw_timer.h"
 #include "string.h"
 #include "UpdateKitV2.h"
+#include "event.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
