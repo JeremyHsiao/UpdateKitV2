@@ -14,17 +14,18 @@
 #define     SYSTICK_COUNT_VALUE_MS(x)	((SYSTICK_PER_SECOND*x/1000)-1)
 #define     SYSTICK_COUNT_VALUE_US(x)	((SYSTICK_PER_SECOND*x/1000000)-1)
 
-extern bool 		SysTick_1s_timeout;
-extern bool 		SysTick_100ms_timeout;
-extern bool 		SysTick_led_7seg_refresh_timeout;
+//extern bool 		SysTick_1s_timeout;
+//extern bool 		SysTick_100ms_timeout;
+//extern bool 		SysTick_led_7seg_refresh_timeout;
 extern bool			SW_delay_timeout;
-extern bool			lcd_module_auto_switch_timer_timeout;
+//extern bool			lcd_module_auto_switch_timer_timeout;
 //extern bool			lcd_g_toggle_timeout;
 //extern bool			lcd_r_toggle_timeout;
 //extern bool			lcd_y_toggle_timeout;
 //extern bool			LED_Voltage_Current_Refresh_in_sec_timeout;
 extern bool			lcd_module_wait_finish_timeout;
-extern bool			System_State_Proc_timer_timeout;
+//extern bool			System_State_Proc_timer_timeout;
+extern bool			SysTick_flag;
 
 typedef		uint16_t	TICK_UNIT;
 typedef	struct {
@@ -47,6 +48,9 @@ enum
 	SYSTEM_TIME_ELAPSE_IN_SEC,
 	LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,
 	LED_REFRESH_EACH_DIGIT_TIMER_MS,
+	LCD_MODULE_PAGE_CHANGE_TIMER_IN_100MS,
+	SYSTEM_STATE_PROC_TIMER,
+	SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA,
 	SW_TIMER_MAX_NO
 };
 

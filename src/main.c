@@ -48,7 +48,6 @@ int main(void)
 	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
 
 	Start_SW_Timer(SYSTEM_TIME_ELAPSE_IN_SEC,0,~1,TIMER_1000MS, true, false);		// System elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
-	// LED display data swap timer: starting from DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1 / reload-upper-value / 1000ms each count / downcount / not-oneshot
 	Board_Init();
 	Init_UART0();
 
@@ -72,26 +71,38 @@ int main(void)
 	LED_G_setting(0);
 	LED_R_setting(0);
 	LED_Y_setting(0);
-//	LED_Voltage_Current_Refresh_reload = DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC - 1;		// 3 second
+//	LED_Voltage_Current_Refresh_reload = DEFAULT_LED_DATA_CHANGE_SEC - 1;		// 3 second
 
 	init_filtered_input_current();
 	init_filtered_input_voltage();
-	reset_string_detector();
-	Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1),(DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1),TIMER_1000MS, false, false);
-	Start_SW_Timer(LED_REFRESH_EACH_DIGIT_TIMER_MS,(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),TIMER_1MS, false, false);
+	Start_SW_Timer(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA,0,(DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS-1),TIMER_1MS, false, false);
+	// LED display data swap timer: starting from DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1 / reload-upper-value / 1000ms each count / downcount / not-oneshot
+	Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1),(DEFAULT_LED_DATA_CHANGE_SEC-1),TIMER_1000MS, false, false);
+	// count-down, repeated (not one shot timer)
+	Start_SW_Timer(LED_REFRESH_EACH_DIGIT_TIMER_MS,0,(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),TIMER_1MS, false, false);
+	// count-down, one-shot timer
+	Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 
+	reset_string_detector();
 //	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer
 
 	// Endless loop at the moment
 	while (1) {
 		uint8_t temp;
 
-		/* Sleep until interrupt/sys_tick happens */
-		__WFI();
-
-		if(System_State_Proc_timer_timeout)
+		/* Sleep if no system tick within one loop; otherwise it means execution time is longer so no need to sleep for next tick */
+		if(SysTick_flag)
 		{
-			System_State_Proc_timer_timeout = false;
+			SysTick_flag = false;
+		}
+		else
+		{
+			__WFI();
+		}
+
+		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER))
+		{
+//			System_State_Proc_timer_timeout = false;
 			upcoming_system_state = System_State_Proc(upcoming_system_state);
 		}
 
@@ -103,7 +114,7 @@ int main(void)
 			lcd_module_wait_finish_in_tick = SYSTICK_COUNT_VALUE_US(250);
 		}
 
-		// Processing at most 4-char each ticks
+		// Processing chars according to sys_tick -> faster tick means fewer char for each loop
 		temp = ((115200/8)/SYSTICK_PER_SECOND)+1;
 		do
 		{
@@ -137,7 +148,8 @@ int main(void)
 			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)		// it means we are fw upgrading now
 			{
 				upcoming_system_state = US_FW_UPGRADE_DONE;
-				System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 				LED_G_setting(0xff);
 				LED_Y_setting(0);
 				LED_R_setting(0);
@@ -194,17 +206,17 @@ int main(void)
 
 
 		// ADC conversion is triggered every 100ms
-		if(SysTick_100ms_timeout==true)
+		//if(SysTick_100ms_timeout==true)
+		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA))
 		{
-			SysTick_100ms_timeout = false;
+			//SysTick_100ms_timeout = false;
 			UpdateKitV2_UpdateDisplayValueForADC_Task();
 
 			if(upcoming_system_state==US_OUTPUT_ENABLE)		// it means we are counting down now before really output
 			{
-				lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][10] = (System_State_Proc_timer_in_ms/1000)+'0';
+				lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][10] = (Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER))+'0';	// Timer here should be 1000ms as unit
 			}
-
-			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)		// it means we are fw upgrading now
+			else if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)		// it means we are fw upgrading now
 			{
 				char 	 temp_elapse_str[5+1];
 				int 	 temp_elapse_str_len;
@@ -266,7 +278,8 @@ int main(void)
 				LED_G_setting(0);
 				LED_R_setting(0);
 				upcoming_system_state = US_OUTPUT_ENABLE;
-				System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 			}
 			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING) 				// it means we are fw upgrading now
 			{
@@ -274,8 +287,8 @@ int main(void)
 				LED_G_setting(0);
 				LED_R_setting(0);
 				//Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
-				Start_SW_Timer(UPGRADE_ELAPSE_IN_100MS,0,~1,TIMER_100MS, true, false);
-				// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
+				Start_SW_Timer(UPGRADE_ELAPSE_IN_100MS,0,~1,TIMER_100MS, true, true);
+				// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / oneshot
 			}
 		}
 
@@ -293,7 +306,9 @@ int main(void)
 				// reset current upgrade info but do not overwrite previous one
 				lcm_reset_FW_VER_Content();
 				upcoming_system_state = US_TV_IN_STANDBY;
-				System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
+
 			}
 			else if((upcoming_system_state==US_FW_UPGRADE_DONE)||(upcoming_system_state==US_FW_UPGRADE_DONE_PAGE2)) // it means fw upgrade is successfully done
 			{
@@ -302,7 +317,8 @@ int main(void)
 				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][3], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], LCM_DISPLAY_COL-3);
 				lcm_reset_FW_VER_Content();
 				upcoming_system_state = US_TV_IN_STANDBY;
-				System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 			}
 		}
 		// Time to switch LED-7Segment content? ==> force to next visible page

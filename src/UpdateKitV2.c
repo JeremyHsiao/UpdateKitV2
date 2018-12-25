@@ -335,7 +335,8 @@ void ButtonPressedTask(void)
 {
 	if(upcoming_system_state==US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT)	// It means we are either at welcome message or we are in the middle of checking new current_output_stage
 	{
-		System_State_Proc_timer_timeout = true;								// start to determine output mode immediately
+		//System_State_Proc_timer_timeout = true;								// start to determine output mode immediately
+		Start_SW_Timer(UPGRADE_ELAPSE_IN_100MS,0,~1,TIMER_100MS, true, false);
 	}
 	// It means we are either at pc mode or counting down now
 	else if((upcoming_system_state==US_PC_MODE_NO_VOLTAGE_OUTPUT)||(upcoming_system_state==US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2)||(upcoming_system_state==US_OUTPUT_ENABLE))
@@ -345,7 +346,8 @@ void ButtonPressedTask(void)
 			current_output_stage = 0;
 		}
 		upcoming_system_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;
-		System_State_Proc_timer_timeout = true;			// Force to check output selection at next tick
+		//System_State_Proc_timer_timeout = true;			// Force to check output selection at next tick
+		Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 	}
 	// Skip button-press if it occurs just after checking current_output_stage & before starting countdown
 	else if (upcoming_system_state==US_OUTPUT_REMINDER_COUNTDOWN_NOW)
@@ -359,7 +361,7 @@ void ButtonPressedTask(void)
 
 	// Always no matter which system state
 	LED_7SEG_ForceToSpecificPage(LED_VOLTAGE_PAGE);
-	Set_SW_Timer_Count(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1));
+	Set_SW_Timer_Count(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1));
 	Clear_SW_TIMER_Reload_Flag(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC);
 
 	EVENT_Button_pressed_debounced = false;
@@ -431,9 +433,9 @@ void lcd_module_display_enable_only_one_page(uint8_t enabled_page)
 	lcm_force_to_display_page(enabled_page);
 }
 
-#define	WELCOME_MESSAGE_DISPLAY_TIME_IN_MS		3000
-#define OUTPUT_REMINDER_DISPLAY_TIME_IN_MS		6000
-uint32_t	max_upgrade_time_in_ms = 150*1000;
+#define	WELCOME_MESSAGE_DISPLAY_TIME_IN_S		3
+#define OUTPUT_REMINDER_DISPLAY_TIME_IN_S		6
+uint32_t	max_upgrade_time_in_S = 150;
 
 UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 {
@@ -443,45 +445,52 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 	{
 		case US_SYSTEM_STARTUP_WELCOME_MESSAGE:
 			lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
-			System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S-1),0,TIMER_1000MS, false, true);		// one-shot count down
+			//System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
 			return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;
 			break;
 		case US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT:
 			if(current_output_stage!=0)
 			{
-				System_State_Proc_timer_timeout = true;						// Enter next state at next tick
+				//System_State_Proc_timer_timeout = true;						// Enter next state at next tick
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 				return_next_state = US_OUTPUT_REMINDER_COUNTDOWN_NOW;
 			}
 			else
 			{
-				System_State_Proc_timer_timeout = true;						// Enter next state at next tick
+				//System_State_Proc_timer_timeout = true;						// Enter next state at next tick
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
 			}
-			System_State_Proc_timer_in_ms = ~1; // this state always goes to next state so clear count-down timer here
+			//System_State_Proc_timer_in_ms = ~1; // this state always goes to next state so clear count-down timer here
 			break;
 		case US_PC_MODE_NO_VOLTAGE_OUTPUT:
 			if(current_output_stage!=0)
 			{
-				System_State_Proc_timer_timeout = true;						// Enter next state at next tick of current_output_stage has been changed
+				//System_State_Proc_timer_timeout = true;						// Enter next state at next tick of current_output_stage has been changed
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 				return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;
 			}
 			else
 			{
 				lcd_module_display_enable_only_one_page(LCM_PC_MODE);
 				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2;
-				System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
+				//System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S-1),0,TIMER_1000MS, false, true);		// one-shot count down
 			}
 			break;
 		case US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2:
 			if(current_output_stage!=0)
 			{
-				System_State_Proc_timer_timeout = true;						// Enter next state at next tick of current_output_stage has been changed
+				//System_State_Proc_timer_timeout = true;						// Enter next state at next tick of current_output_stage has been changed
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 				return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;
 			}
 			else
 			{
 				lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
-				System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
+				//System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S-1),0,TIMER_1000MS, false, true);		// one-shot count down
 				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
 			}
 			break;
@@ -490,12 +499,14 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			{
 				memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][0][12], pwm_voltage_table[current_output_stage], 3);
 				lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
-				System_State_Proc_timer_in_ms = (OUTPUT_REMINDER_DISPLAY_TIME_IN_MS-1);				// Enter next state after > 5 sec
+				//System_State_Proc_timer_in_ms = (OUTPUT_REMINDER_DISPLAY_TIME_IN_MS-1);				// Enter next state after > 5 sec
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(OUTPUT_REMINDER_DISPLAY_TIME_IN_S-1),0,TIMER_1000MS, false, true);		// one-shot count down
 				return_next_state = US_OUTPUT_ENABLE;
 			}
 			else
 			{
-				System_State_Proc_timer_timeout = true;							// Enter next state at next tick if switch to no output
+				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick if switch to no output
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 				return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;	// Measure again
 			}
 			break;
@@ -512,34 +523,39 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 				Clear_POWERON_pattern();
 				Clear_VER_string();
 
-				System_State_Proc_timer_in_ms = max_upgrade_time_in_ms - 1;
+				//System_State_Proc_timer_in_ms = max_upgrade_time_in_ms - 1;
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(max_upgrade_time_in_S-1),0,TIMER_1000MS, false, true);		// one-shot count down
 				return_next_state = US_WAIT_FW_UPGRADE_OK_VER_STRING;
 			}
 			else
 			{
-				System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 				return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;	// Measure again
 			}
 			break;
 
 		case US_WAIT_FW_UPGRADE_OK_VER_STRING:
 			// If really reaching this state, it means fw upgrade for too long without OK --> so entering TV in standby state
-			System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+			//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
 			return_next_state = US_TV_IN_STANDBY;
 			break;
 		case US_FW_UPGRADE_DONE:
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
-			System_State_Proc_timer_in_ms = WELCOME_MESSAGE_DISPLAY_TIME_IN_MS - 1;				// endless loop for now
+			//System_State_Proc_timer_in_ms = WELCOME_MESSAGE_DISPLAY_TIME_IN_MS - 1;				// endless loop for now
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(OUTPUT_REMINDER_DISPLAY_TIME_IN_S-1),0,TIMER_1000MS, false, true);		// one-shot count down
 			return_next_state = US_FW_UPGRADE_DONE_PAGE2;
 			break;
 		case US_FW_UPGRADE_DONE_PAGE2:
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
-			System_State_Proc_timer_in_ms = WELCOME_MESSAGE_DISPLAY_TIME_IN_MS - 1;				// endless loop for now
+			//System_State_Proc_timer_in_ms = WELCOME_MESSAGE_DISPLAY_TIME_IN_MS - 1;				// endless loop for now
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(OUTPUT_REMINDER_DISPLAY_TIME_IN_S-1),0,TIMER_1000MS, false, true);		// one-shot count down
 			return_next_state = US_FW_UPGRADE_DONE;
 			break;
 		case US_TV_IN_STANDBY:
 			lcd_module_display_enable_only_one_page(LCM_TV_IN_STANDBY_PAGE);
-			System_State_Proc_timer_in_ms = ~1;				// endless loop for now
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_1000MS, false, true);		// repeated count down endless
 			return_next_state = US_TV_IN_STANDBY;
 			break;
 		default:

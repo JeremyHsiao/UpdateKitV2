@@ -45,11 +45,13 @@ extern bool UART_input_processor(uint8_t key);
 
 extern UPDATE_STATE	upcoming_system_state;
 
-#define	DEFAULT_POWER_OUTPUT_STEP			(0)
-#define DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC	(3)
-#define DEFAULT_LED_REFRESH_EACH_DIGIT_MS	(1)
-#define DEFAULT_OK_THRESHOLD				(5)			// 5 times ok
-#define DEFAULT_INPUT_CURRENT_THRESHOLD		(10)		// 10ma
+#define	DEFAULT_POWER_OUTPUT_STEP				(0)
+#define DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS	(100)
+#define DEFAULT_LED_DATA_CHANGE_SEC				(3)
+#define DEFAULT_LED_REFRESH_EACH_DIGIT_MS		(1)
+#define DEFAULT_LCM_PAGE_CHANGE_100MS			(3)
+#define DEFAULT_OK_THRESHOLD					(5)			// 5 times ok
+#define DEFAULT_INPUT_CURRENT_THRESHOLD			(10)		// 10ma
 
 enum
 {
