@@ -196,18 +196,6 @@ uint16_t GetFilteredCurrent(void)
 	return filtered_current;
 }
 
-void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void)
-{
-	LED_7_SEG_showing_current = !LED_7_SEG_showing_current;
-}
-
-void UpdateKitV2_LED_7_StartDisplayVoltage(void)
-{
-	LED_Voltage_Current_Refresh_in_sec = LED_Voltage_Current_Refresh_reload;
-	LED_Voltage_Current_Refresh_in_sec_timeout = true;	// force to update at next tick
-	LED_7_SEG_showing_current = true;					// Toggle to showing voltage at next tick
-}
-
 void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 {
 	char 	 temp_voltage_str[5+1], temp_current_str[5+1], final_voltage_str[5+1], final_current_str[5+1];		// For storing 0x0 at the end of string by +1
@@ -246,7 +234,7 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 			final_voltage_str[0] = '0';
 			final_voltage_str[1] = '.';
 			final_voltage_str[2] = '0';
-			final_voltage_str[3] = '0';;
+			final_voltage_str[3] = '0';
 			break;
 		case 2:
 			final_voltage_str[0] = '0';
@@ -305,18 +293,18 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	//
 	// Update LED 7-segment
 	//
-	if(LED_7_SEG_showing_current==false)		// showing voltage // 0.00v ~ 9.99v
+//	if(LED_7_SEG_showing_current==false)		// showing voltage // 0.00v ~ 9.99v
 	{
 		memcpy((void *)&final_voltage_str[1], final_voltage_str+2, 2);	// overwrite '.'
 		final_voltage_str[3] = 'U';										// Change 'V' to 'U'
 		dp_point = 1;
-		Update_LED_7SEG_Message_Buffer((uint8_t*)final_voltage_str,dp_point);
+		Update_LED_7SEG_Message_Buffer(LED_VOLTAGE_PAGE,(uint8_t*)final_voltage_str,dp_point);
 	}
-	else
+//	else
 	{
 		memcpy((void *)&final_current_str[1], final_current_str+2, 3); // overwrite '.'
 		dp_point = 1;
-		Update_LED_7SEG_Message_Buffer((uint8_t*)final_current_str,dp_point);
+		Update_LED_7SEG_Message_Buffer(LED_CURRENT_PAGE,(uint8_t*)final_current_str,dp_point);
 	}
 }
 
@@ -362,15 +350,18 @@ void ButtonPressedTask(void)
 	// Skip button-press if it occurs just after checking current_output_stage & before starting countdown
 	else if (upcoming_system_state==US_OUTPUT_REMINDER_COUNTDOWN_NOW)
 	{
-		// No action at the momment
+		// No action at the moment
 	}
 	else
 	{
-		// No action at the momment
+		// No action at the moment
 	}
 
 	// Always no matter which system state
-	UpdateKitV2_LED_7_StartDisplayVoltage();
+	LED_7SEG_ForceToSpecificPage(LED_VOLTAGE_PAGE);
+    LED_Voltage_Current_Refresh_in_sec = LED_Voltage_Current_Refresh_reload;	// restart timer
+    LED_Voltage_Current_Refresh_in_sec_timeout = false;
+
 	EVENT_Button_pressed_debounced = false;
 }
 

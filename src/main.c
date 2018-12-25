@@ -302,12 +302,11 @@ int main(void)
 				System_State_Proc_timer_timeout = true;							// Enter next state at next tick
 			}
 		}
-		// Time to switch LED-7Segment content?
+		// Time to switch LED-7Segment content? ==> force to next visible page
 		if(LED_Voltage_Current_Refresh_in_sec_timeout==true)
 		{
 			LED_Voltage_Current_Refresh_in_sec_timeout = false;
-			UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent();
-			UpdateKitV2_UpdateDisplayValueForADC_Task();
+			LED_7SEG_GoToNextVisiblePage();
 		}
 
 		// Refresh each char of 7 Segment LED every 1ms

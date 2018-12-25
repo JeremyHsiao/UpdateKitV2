@@ -10,7 +10,7 @@
 #include "sw_timer.h"
 
 uint32_t	gpio_mask[3];
-uint8_t		led_7seg_message[4], dp_point, next_refresh_index;
+uint8_t		/*led_7seg_message[4], dp_point,*/ next_refresh_index;
 
 uint8_t const LED_7SEG_GPIO_LUT[] =
 {
@@ -108,7 +108,10 @@ void Init_LED_7seg_GPIO(void)
 	// Init variables
 	next_refresh_index=0;
 	gpio_mask[0]=gpio_mask[1]=gpio_mask[2]=0;
-	led_7seg_message[0]=led_7seg_message[1]=led_7seg_message[2]=led_7seg_message[3]=dp_point=0;
+	//led_7seg_message[0]=led_7seg_message[1]=led_7seg_message[2]=led_7seg_message[3]=dp_point=0;
+	led_7SEG_display_enable[LED_VOLTAGE_PAGE] = led_7SEG_display_enable[LED_CURRENT_PAGE] = 1;
+	Update_LED_7SEG_Message_Buffer(LED_VOLTAGE_PAGE,(uint8_t*)"000U",1);
+	Update_LED_7SEG_Message_Buffer(LED_CURRENT_PAGE,(uint8_t*)"000A",1);
 
 	// Init all LED 7SEG IO port by using table LED_7SEG_GPIO_LUT & LED_7SEG_GPIO_IOFUNC_LUT
 	prt_7seg_gpio_lut = LED_7SEG_GPIO_LUT;
@@ -140,7 +143,7 @@ void Init_LED_7seg_GPIO(void)
 	LPC_GPIO->MPIN[2] = 0;
 }
 
-void Update_LED_7SEG_Message_Buffer(uint8_t *msg, uint8_t new_dp_point)
+void Update_LED_7SEG_Message_Buffer(uint8_t page, uint8_t *msg, uint8_t new_dp_point)
 {
 	uint8_t	temp_msg_index, temp_char_index, temp_char;
 
@@ -148,40 +151,111 @@ void Update_LED_7SEG_Message_Buffer(uint8_t *msg, uint8_t new_dp_point)
 	while(temp_msg_index-->0)
 	{
 		temp_char = msg[temp_msg_index];
-		led_7seg_message[temp_msg_index] = sizeof(LED_character_index_LUT) - 1; // default char is ' ' if not found
+		led_7SEG_display_content[page][temp_msg_index] = sizeof(LED_character_index_LUT) - 1; // default char is ' ' if not found
 		for(temp_char_index=0;temp_char_index<sizeof(LED_character_index_LUT);temp_char_index++)
 		{
 			if(temp_char==LED_character_index_LUT[temp_char_index])
 			{
-				led_7seg_message[temp_msg_index] = temp_char_index;
+				led_7SEG_display_content[page][temp_msg_index] = temp_char_index;
+				break;
 			}
 		}
 	}
 	if(new_dp_point<=4)
 	{
-		dp_point = new_dp_point;
+		led_7SEG_display_dp[page] = new_dp_point;
 	}
 	else
 	{
-		dp_point = 0;
+		led_7SEG_display_dp[page]  = 0;
 	}
 }
+
+bool LED_7SEG_ForceToSpecificPage(uint8_t page)
+{
+	bool 			bRet;
+
+	if(page>=LED_DISPLAY_PAGE)
+	{
+			page = 0;
+	}
+	if(led_7SEG_display_enable[page]!=0x0)
+	{
+		next_refresh_index = (page * LED_DISPLAY_COL);
+		bRet = true;
+	}
+	else
+	{
+		bRet = false;
+	}
+
+	return bRet;
+}
+
+bool LED_7SEG_GoToNextVisiblePage(void)
+{
+	uint8_t			page;
+	uint8_t 		temp;
+	bool 			bRet;
+	// Get next page
+	page =  (next_refresh_index / LED_DISPLAY_COL);
+	bRet = false;
+	temp = LED_DISPLAY_PAGE;
+	do
+	{
+		if(++page>=LED_DISPLAY_PAGE)
+		{
+			page = 0;
+		}
+		if(led_7SEG_display_enable[page]!=0x0)
+		{
+			next_refresh_index = (page * LED_DISPLAY_COL);
+			bRet = true;
+		}
+	}
+	while((bRet==false)&&(--temp>0));
+
+	return bRet;
+}
+
+uint8_t led_7SEG_display_content[LED_DISPLAY_PAGE][LED_DISPLAY_COL];
+uint8_t led_7SEG_display_enable[LED_DISPLAY_PAGE];
+uint8_t led_7SEG_display_dp[LED_DISPLAY_PAGE];			// 1-4, 0 means no dp
 
 void refresh_LED_7SEG_periodic_task(void)
 {
 	uint32_t 		out_port[3];
 	uint8_t const 	*ptr_char_def_lut;
+	uint8_t			page, col, display_char;
 
-	// Go to next index
-	next_refresh_index--;
-	if((next_refresh_index==0)||(next_refresh_index>4))
+	// Get current page & current col
+	page =  next_refresh_index / LED_DISPLAY_COL;
+//	col =  next_refresh_index % LED_DISPLAY_COL;
+//	display_char = sizeof(LED_character_index_LUT) - 1; // default char is ' ' if not found,
+
+	//Checking whether current page has been disabled
+	if(led_7SEG_display_enable[page]==0)
 	{
-		next_refresh_index = 4;
+		if(LED_7SEG_GoToNextVisiblePage())
+		{
+			page =  next_refresh_index / LED_DISPLAY_COL;
+			col =  next_refresh_index % LED_DISPLAY_COL;
+			display_char = led_7SEG_display_content[page][col];
+		}
+		else
+		{
+			display_char = sizeof(LED_character_index_LUT) - 1; // default char is ' ' if not found,
+		}
+	}
+	else
+	{
+		col =  next_refresh_index % LED_DISPLAY_COL;
+		display_char = led_7SEG_display_content[page][col];
 	}
 
 	// Init port data & pointer to LUT
 	out_port[0] = out_port[1] = out_port[2] = 0;
-	ptr_char_def_lut = LED_character_definition_LUT + (led_7seg_message[next_refresh_index-1]*LED_character_definition_LUT_width);
+	ptr_char_def_lut = LED_character_definition_LUT + (display_char*LED_character_definition_LUT_width);
 
 	// Please note that first 7 element of LED_7SEG_GPIO_LUT is LED_a~g
 	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGa_PORT] |= 1L<<(LED_7SEG_SEGa_PIN);}
@@ -192,18 +266,19 @@ void refresh_LED_7SEG_periodic_task(void)
 	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGf_PORT] |= 1L<<(LED_7SEG_SEGf_PIN);}
 	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGg_PORT] |= 1L<<(LED_7SEG_SEGg_PIN);}
 
+	col++; // In processing LED position, column is 1-4 instead of 0-3
 	// Please note that next element of LED_7SEG_GPIO_LUT is LED_dp
-	if (dp_point==next_refresh_index)
+	if (led_7SEG_display_dp[page]==col)
 	{
 		out_port[LED_7SEG_SEGdp_PORT] |= 1L<<(LED_7SEG_SEGdp_PIN);
 	}
 
 	// Please note that next 4 element of LED_7SEG_GPIO_LUT is LED_1~4
 	// The GPIO for the digit to be displayed should be set to low; others is keep as high
-	if(1!=next_refresh_index) {out_port[LED_7SEG_SEG1_PORT] |= 1L<<(LED_7SEG_SEG1_PIN);}
-	if(2!=next_refresh_index) {out_port[LED_7SEG_SEG2_PORT] |= 1L<<(LED_7SEG_SEG2_PIN);}
-	if(3!=next_refresh_index) {out_port[LED_7SEG_SEG3_PORT] |= 1L<<(LED_7SEG_SEG3_PIN);}
-	if(4!=next_refresh_index) {out_port[LED_7SEG_SEG4_PORT] |= 1L<<(LED_7SEG_SEG4_PIN);}
+	if(1!=col) {out_port[LED_7SEG_SEG1_PORT] |= 1L<<(LED_7SEG_SEG1_PIN);}
+	if(2!=col) {out_port[LED_7SEG_SEG2_PORT] |= 1L<<(LED_7SEG_SEG2_PIN);}
+	if(3!=col) {out_port[LED_7SEG_SEG3_PORT] |= 1L<<(LED_7SEG_SEG3_PIN);}
+	if(4!=col) {out_port[LED_7SEG_SEG4_PORT] |= 1L<<(LED_7SEG_SEG4_PIN);}
 
 	LPC_GPIO->MASK[0] = ~gpio_mask[0];
 	LPC_GPIO->MPIN[0] = out_port[0];
@@ -211,6 +286,18 @@ void refresh_LED_7SEG_periodic_task(void)
 	LPC_GPIO->MPIN[1] = out_port[1];
 	LPC_GPIO->MASK[2] = ~gpio_mask[2];
 	LPC_GPIO->MPIN[2] = out_port[2];
+
+	// Check if restart from 1st col of the same page
+	// col has been added by 1 before
+	if(col>=LED_DISPLAY_COL)
+	{
+		next_refresh_index = (page * LED_DISPLAY_COL);
+	}
+	else
+	{
+		next_refresh_index++;
+	}
+
 }
 
 void LED_7seg_self_test(void)

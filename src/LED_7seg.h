@@ -111,9 +111,22 @@
 #endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
 
 	extern void Init_LED_7seg_GPIO(void);
-	extern void Update_LED_7SEG_Message_Buffer(uint8_t *msg, uint8_t new_dp_point);
+	extern void Update_LED_7SEG_Message_Buffer(uint8_t page, uint8_t *msg, uint8_t new_dp_point);
 	extern void refresh_LED_7SEG_periodic_task(void);
 	extern void LED_Demo_Elapse_Timer(void);
 	extern void LED_7seg_self_test(void);
+	extern bool LED_7SEG_GoToNextVisiblePage(void);
+	extern bool LED_7SEG_ForceToSpecificPage(uint8_t page);
+
+#define LED_DISPLAY_PAGE		(2)
+#define LED_DISPLAY_COL			(4)
+extern uint8_t led_7SEG_display_content[LED_DISPLAY_PAGE][LED_DISPLAY_COL];
+extern uint8_t led_7SEG_display_enable[LED_DISPLAY_PAGE];
+extern uint8_t led_7SEG_display_dp[LED_DISPLAY_PAGE];			// 1-4, 0 means no dp
+
+enum {
+	LED_VOLTAGE_PAGE = 0,
+	LED_CURRENT_PAGE
+};
 
 #endif /* LED_7SEG_H_ */
