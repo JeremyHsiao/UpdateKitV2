@@ -47,7 +47,7 @@ int main(void)
 	/* Enable and setup SysTick Timer at a periodic rate */
 	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
 
-	Start_SW_Timer(SYSTEM_TIME_ELAPSE_IN_SEC,0,~1,TIMER_1000MS, true, false);		// System elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
+	Start_SW_Timer(SYSTEM_TIME_ELAPSE_IN_SEC,0,~1,TIMER_S, true, false);		// System elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
 	Board_Init();
 	Init_UART0();
 
@@ -78,7 +78,7 @@ int main(void)
 	init_filtered_input_voltage();
 	Start_SW_Timer(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS,0,(DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS-1),TIMER_MS, false, false);
 	// LED display data swap timer: starting from DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1 / reload-upper-value / 1000ms each count / downcount / not-oneshot
-	Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1),(DEFAULT_LED_DATA_CHANGE_SEC-1),TIMER_1000MS, false, false);
+	Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1),(DEFAULT_LED_DATA_CHANGE_SEC-1),TIMER_S, false, false);
 	// count-down, repeated (not one shot timer)
 	Start_SW_Timer(LED_REFRESH_EACH_DIGIT_TIMER_MS,0,(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),TIMER_MS, false, false);
 	// count-down, one-shot timer
@@ -143,46 +143,11 @@ int main(void)
 			else if(current_system_proc_state==US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT)		// it means we are fw upgrading now
 //			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT)		// it means we are fw upgrading now
 			{
-				char 	 temp_elapse_str[5+1];
-				int 	 temp_elapse_str_len;
-				uint8_t		*content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][9],
-							*content2 = &lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][9];
+				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][9];
 
-				temp_elapse_str_len = itoa_10(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_100MS), temp_elapse_str);
-
-				switch (temp_elapse_str_len)
-				{
-					case 1:
-						*content1 = *content2 = ' ';
-						content1++; content2++;
-						*content1 = *content2 = ' ';
-						content1++; content2++;
-						*content1 = *content2 = '0';
-						break;
-					case 2:
-						*content1 = *content2 = ' ';
-						content1++; content2++;
-						*content1 = *content2 = ' ';
-						content1++; content2++;
-						*content1 = *content2 =  temp_elapse_str[0];
-						break;
-					case 3:
-						*content1 = *content2 = ' ';
-						content1++; content2++;
-						*content1 = *content2 = temp_elapse_str[0];
-						content1++; content2++;
-						*content1 = *content2 = temp_elapse_str[1];
-						break;
-					case 4:
-						*content1 = *content2 = temp_elapse_str[0];
-						content1++; content2++;
-						*content1 = *content2 = temp_elapse_str[1];
-						content1++; content2++;
-						*content1 = *content2 = temp_elapse_str[2];
-						break;
-				}
+				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, 3);
+				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][9], (void *)content1, 3);
 			}
-
 		}
 
 		/* Is an ADC conversion sequence complete? */
