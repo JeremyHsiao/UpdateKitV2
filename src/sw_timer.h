@@ -56,7 +56,7 @@ enum
 
 enum
 {
-	TIMER_1MS = 0,
+	TIMER_MS = 0,
 	TIMER_10MS,
 	TIMER_100MS,
 	TIMER_1000MS,

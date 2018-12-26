@@ -75,13 +75,13 @@ int main(void)
 
 	init_filtered_input_current();
 	init_filtered_input_voltage();
-	Start_SW_Timer(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA,0,(DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS-1),TIMER_1MS, false, false);
+	Start_SW_Timer(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA,0,(DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS-1),TIMER_MS, false, false);
 	// LED display data swap timer: starting from DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1 / reload-upper-value / 1000ms each count / downcount / not-oneshot
 	Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1),(DEFAULT_LED_DATA_CHANGE_SEC-1),TIMER_1000MS, false, false);
 	// count-down, repeated (not one shot timer)
-	Start_SW_Timer(LED_REFRESH_EACH_DIGIT_TIMER_MS,0,(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),TIMER_1MS, false, false);
+	Start_SW_Timer(LED_REFRESH_EACH_DIGIT_TIMER_MS,0,(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),TIMER_MS, false, false);
 	// count-down, one-shot timer
-	Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
+	Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
 
 	reset_string_detector();
 //	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer
@@ -149,7 +149,7 @@ int main(void)
 			{
 				upcoming_system_state = US_FW_UPGRADE_DONE;
 				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
 				LED_G_setting(0xff);
 				LED_Y_setting(0);
 				LED_R_setting(0);
@@ -274,22 +274,22 @@ int main(void)
 			EVENT_filtered_current_goes_above_threshold = false;
 			if(upcoming_system_state==US_TV_IN_STANDBY)					// it means we are in standby and TV has been plugged
 			{
-				LED_Y_setting(5);  // 500ms as half-period (toggle period)
-				LED_G_setting(0);
-				LED_R_setting(0);
+//				LED_Y_setting(5);  // 500ms as half-period (toggle period)
+//				LED_G_setting(0);
+//				LED_R_setting(0);
 				upcoming_system_state = US_OUTPUT_ENABLE;
 				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
 			}
-			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING) 				// it means we are fw upgrading now
-			{
-				LED_Y_setting(5);  // 500ms as half-period (toggle period)
-				LED_G_setting(0);
-				LED_R_setting(0);
-				//Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
-				Start_SW_Timer(UPGRADE_ELAPSE_IN_100MS,0,~1,TIMER_100MS, true, true);
-				// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / oneshot
-			}
+//			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING) 				// it means we are fw upgrading now
+//			{
+//				LED_Y_setting(5);  // 500ms as half-period (toggle period)
+//				LED_G_setting(0);
+//				LED_R_setting(0);
+//				//Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
+//				Start_SW_Timer(UPGRADE_ELAPSE_IN_100MS,0,~1,TIMER_100MS, true, true);
+//				// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / oneshot
+//			}
 		}
 
 		if(EVENT_filtered_current_goes_below_threshold)
@@ -307,7 +307,7 @@ int main(void)
 				lcm_reset_FW_VER_Content();
 				upcoming_system_state = US_TV_IN_STANDBY;
 				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
 
 			}
 			else if((upcoming_system_state==US_FW_UPGRADE_DONE)||(upcoming_system_state==US_FW_UPGRADE_DONE_PAGE2)) // it means fw upgrade is successfully done
@@ -318,7 +318,7 @@ int main(void)
 				lcm_reset_FW_VER_Content();
 				upcoming_system_state = US_TV_IN_STANDBY;
 				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_1MS, false, true);		// one-shot count down
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
 			}
 		}
 		// Time to switch LED-7Segment content? ==> force to next visible page
