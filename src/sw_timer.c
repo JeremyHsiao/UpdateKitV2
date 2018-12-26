@@ -132,6 +132,12 @@ bool Read_and_Clear_SW_TIMER_Reload_Flag(uint8_t timer_no)
 	}
 }
 
+void Raise_SW_TIMER_Reload_Flag(uint8_t timer_no)
+{
+	SW_TIMER	*ptr = sw_timer + timer_no;
+	ptr->timeup_flag = 1;
+}
+
 void Clear_SW_TIMER_Reload_Flag(uint8_t timer_no)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;

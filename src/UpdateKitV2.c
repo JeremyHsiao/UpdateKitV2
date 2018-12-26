@@ -448,6 +448,133 @@ void lcd_module_display_enable_only_one_page(uint8_t enabled_page)
 #define OUTPUT_REMINDER_DISPLAY_TIME_IN_S		6
 uint32_t	max_upgrade_time_in_S = 150;
 
+static inline void Copy_Existing_FW_Upgrade_Info_to_Previous_Info(void)
+{
+	// Move existing FW upgrade info to previous update info page               				                        1234567890123456
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][11], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][11], 3);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][3], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], LCM_DISPLAY_COL-3);
+	lcm_reset_FW_VER_Content();
+}
+
+static inline void LCM_Fill_Version_String(void)
+{
+	char	*temp_str = (char *) Get_VER_string();
+	uint8_t	temp_len = strlen(temp_str);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], temp_str, temp_len);
+	memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3+temp_len], ' ', LCM_DISPLAY_COL-3-(temp_len));
+}
+
+UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state)
+{
+	UPDATE_STATE return_next_state = current_state;
+
+	// Apply to all state
+	if(EVENT_POWERON_string_confirmed)
+	{
+		Clear_POWERON_pattern();
+		EVENT_POWERON_string_confirmed = false;
+	}
+
+	if(EVENT_filtered_current_goes_below_threshold)
+	{
+		//EVENT_filtered_current_goes_below_threshold = false;	// so need to clear it later
+		LED_Y_setting(0);
+		LED_G_setting(0);
+		LED_R_setting(0);
+		Clear_OK_pattern_state();
+		Clear_VER_string();
+		Clear_POWERON_pattern();
+	}
+
+	// Apply to specific state
+	switch(current_state)
+	{
+		case US_SYSTEM_STARTUP_WELCOME_MESSAGE:
+			break;
+		case US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT:
+			break;
+		case US_PC_MODE_NO_VOLTAGE_OUTPUT:
+			break;
+		case US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2:
+			break;
+		case US_OUTPUT_REMINDER_COUNTDOWN_NOW:
+			break;
+		case US_OUTPUT_ENABLE:
+//			// Count-down before really output power for the first time
+//			lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][10] = (Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER))+'0';	// Timer here should be 1000ms as unit
+			break;
+		case US_OUTPUT_DEBOUNCE_BEFORE_DETECT:
+			break;
+		case US_WAIT_FW_UPGRADE_OK_VER_STRING:
+			if(EVENT_OK_string_confirmed)
+			{
+				LED_G_setting(0xff);
+				LED_Y_setting(0);
+				LED_R_setting(0);
+				return_next_state = US_FW_UPGRADE_DONE;
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
+				EVENT_OK_string_confirmed = false;
+			}
+			if(EVENT_filtered_current_goes_below_threshold)
+			{
+				// reset current upgrade info but do not overwrite previous one
+				lcm_reset_FW_VER_Content();
+				upcoming_system_state = US_TV_IN_STANDBY;
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
+				EVENT_filtered_current_goes_below_threshold = false;
+			}
+			if(EVENT_Version_string_confirmed)
+			{
+				LCM_Fill_Version_String();
+				EVENT_Version_string_confirmed = false;
+			}
+			break;
+		case US_FW_UPGRADE_DONE:
+			if(EVENT_filtered_current_goes_below_threshold)
+			{
+				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
+				upcoming_system_state = US_TV_IN_STANDBY;
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
+				EVENT_filtered_current_goes_below_threshold = false;
+			}
+			if(EVENT_Version_string_confirmed)
+			{
+				LCM_Fill_Version_String();
+				EVENT_Version_string_confirmed = false;
+			}
+			break;
+		case US_FW_UPGRADE_DONE_PAGE2:
+			if(EVENT_filtered_current_goes_below_threshold)
+			{
+				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
+				upcoming_system_state = US_TV_IN_STANDBY;
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
+				EVENT_filtered_current_goes_below_threshold = false;
+			}
+			if(EVENT_Version_string_confirmed)
+			{
+				LCM_Fill_Version_String();
+				EVENT_Version_string_confirmed = false;
+			}
+			break;
+		case US_TV_IN_STANDBY:
+			if(EVENT_filtered_current_goes_above_threshold)
+			{
+				upcoming_system_state = US_OUTPUT_ENABLE;
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
+				EVENT_filtered_current_goes_above_threshold = false;
+			}
+			break;
+		default:
+			break;
+	}
+
+	EVENT_filtered_current_goes_below_threshold = false;		// force to clear it
+
+	return return_next_state;
+}
+
+
 UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 {
 	UPDATE_STATE return_next_state;

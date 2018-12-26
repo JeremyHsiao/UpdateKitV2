@@ -50,7 +50,7 @@ enum
 	LED_REFRESH_EACH_DIGIT_TIMER_MS,
 	LCD_MODULE_PAGE_CHANGE_TIMER_IN_100MS,
 	SYSTEM_STATE_PROC_TIMER,
-	SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA,
+	SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS,
 	SW_TIMER_MAX_NO
 };
 
@@ -95,6 +95,7 @@ extern bool Play_SW_Timer(uint8_t timer_no);
 extern uint32_t Read_SW_TIMER_Value(uint8_t timer_no);
 extern bool Read_and_Clear_SW_TIMER_Reload_Flag(uint8_t timer_no);
 extern void Clear_SW_TIMER_Reload_Flag(uint8_t timer_no);
+extern void Raise_SW_TIMER_Reload_Flag(uint8_t timer_no);
 extern bool Set_SW_Timer_Count(uint8_t timer_no, uint32_t new_count);
 
 #endif /* SW_TIMER_H_ */

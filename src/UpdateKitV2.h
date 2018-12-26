@@ -42,6 +42,7 @@ extern uint16_t Filtered_Input_current(uint16_t latest_current);
 extern void init_filtered_input_voltage(void);
 extern uint16_t Filtered_Input_voltage(uint16_t latest_voltage);
 extern UPDATE_STATE System_State_Proc(UPDATE_STATE current_state);
+extern UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state);
 extern bool UART_input_processor(uint8_t key);
 
 extern UPDATE_STATE	upcoming_system_state;

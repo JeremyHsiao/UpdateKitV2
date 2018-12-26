@@ -75,7 +75,7 @@ int main(void)
 
 	init_filtered_input_current();
 	init_filtered_input_voltage();
-	Start_SW_Timer(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA,0,(DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS-1),TIMER_MS, false, false);
+	Start_SW_Timer(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS,0,(DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS-1),TIMER_MS, false, false);
 	// LED display data swap timer: starting from DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1 / reload-upper-value / 1000ms each count / downcount / not-oneshot
 	Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1),(DEFAULT_LED_DATA_CHANGE_SEC-1),TIMER_1000MS, false, false);
 	// count-down, repeated (not one shot timer)
@@ -98,12 +98,6 @@ int main(void)
 		else
 		{
 			__WFI();
-		}
-
-		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER))
-		{
-//			System_State_Proc_timer_timeout = false;
-			upcoming_system_state = System_State_Proc(upcoming_system_state);
 		}
 
 		// Update LCD module display after each lcm command delay
@@ -138,76 +132,9 @@ int main(void)
 		}
 		while(--temp>0);
 
-		if(EVENT_OK_string_confirmed)
-		{
-			EVENT_OK_string_confirmed = false;
-
-			//OutputHexValue_with_newline(temp);
-//			memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][1][0], "OK is detected! ",LCM_DISPLAY_COL);
-//			lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
-			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)		// it means we are fw upgrading now
-			{
-				upcoming_system_state = US_FW_UPGRADE_DONE;
-				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
-				LED_G_setting(0xff);
-				LED_Y_setting(0);
-				LED_R_setting(0);
-			}
-		}
-
-		if(EVENT_Version_string_confirmed)
-		{
-			//OutputString("Version:");
-			//OutputString_with_newline((char *)Get_VER_string());
-			char	*temp_str = (char *) Get_VER_string();
-			uint8_t	temp_len = strlen(temp_str);
-
-			if((upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)||				// it means we are fw upgrading now
-			   (upcoming_system_state==US_FW_UPGRADE_DONE)||							// it means fw upgrade is ok
-			   (upcoming_system_state==US_FW_UPGRADE_DONE_PAGE2))
-			{
-				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], temp_str, temp_len);
-				memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3+temp_len], ' ', LCM_DISPLAY_COL-3-(temp_len));
-			}
-
-//			if(temp_len<=LCM_DISPLAY_COL)
-//			{
-//				strcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str);
-//			}
-//			else
-//			{
-//				memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][0][4], temp_str, 12);
-//				temp_len-=12;
-//				if(temp_len>LCM_DISPLAY_COL)
-//				{
-//					memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, LCM_DISPLAY_COL);
-//				}
-//				else
-//				{
-//					memcpy((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][0], temp_str+12, temp_len);
-//					memset((void *)&lcd_module_display_content[LCM_DEV_UPGRADE_VER_PAGE][1][temp_len], ' ', LCM_DISPLAY_COL-temp_len);
-//				}
-//			}
-//			lcm_force_to_display_page(LCM_DEV_UPGRADE_VER_PAGE);
-			Clear_VER_string();
-			EVENT_Version_string_confirmed = false;
-		}
-
-		if(EVENT_POWERON_string_confirmed)
-		{
-
-			//OutputString_with_newline("POWER_ON_DETECTED");
-//			memcpy((void *)&lcd_module_display_content[LCM_DEV_OK_DETECT_PAGE][0][0], "POWERON detected", LCM_DISPLAY_COL);
-//			lcm_force_to_display_page(LCM_DEV_OK_DETECT_PAGE);
-			Clear_POWERON_pattern();
-			EVENT_POWERON_string_confirmed = false;
-		}
-
-
 		// ADC conversion is triggered every 100ms
 		//if(SysTick_100ms_timeout==true)
-		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA))
+		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS))
 		{
 			//SysTick_100ms_timeout = false;
 			UpdateKitV2_UpdateDisplayValueForADC_Task();
@@ -217,6 +144,7 @@ int main(void)
 				lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][10] = (Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER))+'0';	// Timer here should be 1000ms as unit
 			}
 			else if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)		// it means we are fw upgrading now
+//			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)		// it means we are fw upgrading now
 			{
 				char 	 temp_elapse_str[5+1];
 				int 	 temp_elapse_str_len;
@@ -269,58 +197,7 @@ int main(void)
 			sequenceComplete=false;
 		}
 
-		if(EVENT_filtered_current_goes_above_threshold)
-		{
-			EVENT_filtered_current_goes_above_threshold = false;
-			if(upcoming_system_state==US_TV_IN_STANDBY)					// it means we are in standby and TV has been plugged
-			{
-//				LED_Y_setting(5);  // 500ms as half-period (toggle period)
-//				LED_G_setting(0);
-//				LED_R_setting(0);
-				upcoming_system_state = US_OUTPUT_ENABLE;
-				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
-			}
-//			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING) 				// it means we are fw upgrading now
-//			{
-//				LED_Y_setting(5);  // 500ms as half-period (toggle period)
-//				LED_G_setting(0);
-//				LED_R_setting(0);
-//				//Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
-//				Start_SW_Timer(UPGRADE_ELAPSE_IN_100MS,0,~1,TIMER_100MS, true, true);
-//				// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / oneshot
-//			}
-		}
 
-		if(EVENT_filtered_current_goes_below_threshold)
-		{
-			EVENT_filtered_current_goes_below_threshold = false;
-			LED_Y_setting(0);
-			LED_G_setting(0);
-			LED_R_setting(0);
-			Clear_OK_pattern_state();
-			Clear_VER_string();
-			Clear_POWERON_pattern();
-			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_VER_STRING)				// it means we are fw upgrading now
-			{
-				// reset current upgrade info but do not overwrite previous one
-				lcm_reset_FW_VER_Content();
-				upcoming_system_state = US_TV_IN_STANDBY;
-				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
-
-			}
-			else if((upcoming_system_state==US_FW_UPGRADE_DONE)||(upcoming_system_state==US_FW_UPGRADE_DONE_PAGE2)) // it means fw upgrade is successfully done
-			{
-				// Move existing FW upgrade info to previous update info page               				                        1234567890123456
-			    memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][11], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][11], 3);
-				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][3], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], LCM_DISPLAY_COL-3);
-				lcm_reset_FW_VER_Content();
-				upcoming_system_state = US_TV_IN_STANDBY;
-				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
-			}
-		}
 		// Time to switch LED-7Segment content? ==> force to next visible page
 		if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC))
 		{
@@ -337,18 +214,19 @@ int main(void)
 
 		LED_Status_Update_Process();
 
-//		if(SysTick_1s_timeout==true)
-//		{
-//			SysTick_1s_timeout = false;
-//			Update_Elapse_Timer();
-//			memcpy((void *)&lcd_module_display_content[LCM_DEV_TITLE_PAGE][1][8], time_elapse_str, 4);
-////			Update_LED_7SEG_Message_Buffer(time_elapse_str,4);
-//		}
-
 		EVENT_Button_pressed_debounced = Debounce_Button();
 		if(EVENT_Button_pressed_debounced)
 		{
 			ButtonPressedTask();
+		}
+
+		// After processing external input & regular output, process event & system transition
+		upcoming_system_state = System_Event_Proc(upcoming_system_state);
+
+		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER))
+		{
+//			System_State_Proc_timer_timeout = false;
+			upcoming_system_state = System_State_Proc(upcoming_system_state);
 		}
 
 	}
