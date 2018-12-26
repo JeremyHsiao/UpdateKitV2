@@ -45,7 +45,7 @@ extern UPDATE_STATE System_State_Proc(UPDATE_STATE current_state);
 extern UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state);
 extern bool UART_input_processor(uint8_t key);
 
-extern UPDATE_STATE	upcoming_system_state;
+extern UPDATE_STATE	current_system_proc_state;
 
 #define	DEFAULT_POWER_OUTPUT_STEP				(0)
 #define DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS	(300)

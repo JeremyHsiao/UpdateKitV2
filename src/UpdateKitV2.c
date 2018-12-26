@@ -27,7 +27,7 @@
  * Public types/enumerations/variables
  ****************************************************************************/
 
-UPDATE_STATE	upcoming_system_state = US_SYSTEM_STARTUP_WELCOME_MESSAGE;
+UPDATE_STATE	current_system_proc_state = US_SYSTEM_STARTUP_WELCOME_MESSAGE;
 
 /*****************************************************************************
  * Private functions
@@ -693,7 +693,7 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			else		// if still low current after debounce time, go to standby mode
 			{
 				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				upcoming_system_state = US_TV_IN_STANDBY;
+				return_next_state = US_TV_IN_STANDBY;
 			}
 			break;
 

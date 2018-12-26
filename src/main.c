@@ -136,11 +136,11 @@ int main(void)
 			//SysTick_100ms_timeout = false;
 			UpdateKitV2_UpdateDisplayValueForADC_Task();
 
-			if(upcoming_system_state==US_OUTPUT_ENABLE)		// it means we are counting down now before really output
+			if(current_system_proc_state==US_OUTPUT_ENABLE)		// it means we are counting down now before really output
 			{
 				lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][10] = (Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER))+'0';	// Timer here should be 1000ms as unit
 			}
-			else if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT)		// it means we are fw upgrading now
+			else if(current_system_proc_state==US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT)		// it means we are fw upgrading now
 //			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT)		// it means we are fw upgrading now
 			{
 				char 	 temp_elapse_str[5+1];
@@ -204,10 +204,10 @@ int main(void)
 		//
 		// After processing external input & regular output, system process event & system transition
 		//
-		upcoming_system_state = System_Event_Proc(upcoming_system_state);
+		current_system_proc_state = System_Event_Proc(current_system_proc_state);
 		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER))
 		{
-			upcoming_system_state = System_State_Proc(upcoming_system_state);
+			current_system_proc_state = System_State_Proc(current_system_proc_state);
 		}
 		//
 		// End of system process event & system transition
