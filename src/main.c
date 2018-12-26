@@ -63,6 +63,7 @@ int main(void)
 	Init_ADC();
 	Init_LCD_Module_GPIO();
 
+	Start_SW_Timer(LCD_MODULE_INTERNAL_DELAY_IN_MS,0,0,TIMER_MS, false, false);		// repeat count down
 	lcm_sw_init();
 	lcm_auto_display_init();
 	//lcm_demo();
@@ -100,13 +101,9 @@ int main(void)
 			__WFI();
 		}
 
-		// Update LCD module display after each lcm command delay
-		if(lcd_module_wait_finish_timeout==true)
-		{
-			lcd_module_wait_finish_timeout = false;
-			lcm_auto_display_refresh_task();
-			lcd_module_wait_finish_in_tick = SYSTICK_COUNT_VALUE_US(250);
-		}
+		//
+		// Input data processing section
+		//
 
 		// Processing chars according to sys_tick -> faster tick means fewer char for each loop
 		temp = ((115200/8)/SYSTICK_PER_SECOND)+1;
@@ -197,37 +194,55 @@ int main(void)
 			sequenceComplete=false;
 		}
 
+		// Button-pressed event
+		EVENT_Button_pressed_debounced = Debounce_Button();
+
+		//
+		// End of Input data processing section
+		//
+
+		//
+		// After processing external input & regular output, system process event & system transition
+		//
+		upcoming_system_state = System_Event_Proc(upcoming_system_state);
+		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER))
+		{
+			upcoming_system_state = System_State_Proc(upcoming_system_state);
+		}
+		//
+		// End of system process event & system transition
+		//
+
+		//
+		// Output UI section
+		//
+
+		// Check whether it is time to flash LED GRY
+		LED_Status_Update_Process();
 
 		// Time to switch LED-7Segment content? ==> force to next visible page
 		if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC))
 		{
-//			LED_Voltage_Current_Refresh_in_sec_timeout = false;
 			LED_7SEG_GoToNextVisiblePage();
 		}
 
 		// Refresh each char of 7 Segment LED every 1ms
 		if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_REFRESH_EACH_DIGIT_TIMER_MS))
 		{
-//			SysTick_led_7seg_refresh_timeout = false;
 			refresh_LED_7SEG_periodic_task();
 		}
 
-		LED_Status_Update_Process();
-
-		EVENT_Button_pressed_debounced = Debounce_Button();
-		if(EVENT_Button_pressed_debounced)
+		// Update LCD module display after each lcm command delay
+		if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_INTERNAL_DELAY_IN_MS))
 		{
-			ButtonPressedTask();
+//			lcd_module_wait_finish_timeout = false;
+			lcm_auto_display_refresh_task();
+			//lcd_module_wait_finish_in_tick = SYSTICK_COUNT_VALUE_US(250);
 		}
 
-		// After processing external input & regular output, process event & system transition
-		upcoming_system_state = System_Event_Proc(upcoming_system_state);
-
-		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER))
-		{
-//			System_State_Proc_timer_timeout = false;
-			upcoming_system_state = System_State_Proc(upcoming_system_state);
-		}
+		//
+		// End of Output UI section
+		//
 
 	}
 

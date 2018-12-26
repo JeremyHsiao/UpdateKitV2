@@ -342,42 +342,6 @@ void PowerOutputSetting(uint8_t current_step)
 	}
 }
 
-void ButtonPressedTask(void)
-{
-	if(upcoming_system_state==US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT)	// It means we are either at welcome message or we are in the middle of checking new current_output_stage
-	{
-		//System_State_Proc_timer_timeout = true;								// start to determine output mode immediately
-		Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
-	}
-	// It means we are either at pc mode or counting down now
-	else if((upcoming_system_state==US_PC_MODE_NO_VOLTAGE_OUTPUT)||(upcoming_system_state==US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2)||(upcoming_system_state==US_OUTPUT_ENABLE))
-	{
-		if(++current_output_stage>=(sizeof(pwm_table)/sizeof(uint8_t)))
-		{
-			current_output_stage = 0;
-		}
-		upcoming_system_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;
-		//System_State_Proc_timer_timeout = true;			// Force to check output selection at next tick
-		Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
-	}
-	// Skip button-press if it occurs just after checking current_output_stage & before starting countdown
-	else if (upcoming_system_state==US_OUTPUT_REMINDER_COUNTDOWN_NOW)
-	{
-		// No action at the moment
-	}
-	else
-	{
-		// No action at the moment
-	}
-
-	// Always no matter which system state
-	LED_7SEG_ForceToSpecificPage(LED_VOLTAGE_PAGE);
-	Set_SW_Timer_Count(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1));
-	Clear_SW_TIMER_Reload_Flag(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC);
-
-	EVENT_Button_pressed_debounced = false;
-}
-
 #define	CURRENT_HISTORY_DATA_SIZE	64
 static RINGBUFF_T current_history;
 static uint16_t current_history_data[CURRENT_HISTORY_DATA_SIZE];
@@ -464,17 +428,23 @@ static inline void LCM_Fill_Version_String(void)
 	memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3+temp_len], ' ', LCM_DISPLAY_COL-3-(temp_len));
 }
 
-UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state)
+static inline void Change_Output_Selection(void)
 {
-	UPDATE_STATE return_next_state = current_state;
+	if(++current_output_stage>=(sizeof(pwm_table)/sizeof(uint8_t)))
+	{
+		current_output_stage = 0;
+	}
+}
 
-	// Apply to all state
+UPDATE_STATE System_Event_Proc(UPDATE_STATE current_upcoming_state)
+{
+	UPDATE_STATE return_next_state = current_upcoming_state;
+
+	// Apply to all states
 	if(EVENT_POWERON_string_confirmed)
 	{
 		Clear_POWERON_pattern();
-		EVENT_POWERON_string_confirmed = false;
 	}
-
 	if(EVENT_filtered_current_goes_below_threshold)
 	{
 		//EVENT_filtered_current_goes_below_threshold = false;	// so need to clear it later
@@ -485,19 +455,49 @@ UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state)
 		Clear_VER_string();
 		Clear_POWERON_pattern();
 	}
+	if(EVENT_Button_pressed_debounced)
+	{
+		// Always no matter which system state
+		LED_7SEG_ForceToSpecificPage(LED_VOLTAGE_PAGE);
+		Set_SW_Timer_Count(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1));
+		Clear_SW_TIMER_Reload_Flag(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC);
+	}
+	// End of apply to all states
 
 	// Apply to specific state
-	switch(current_state)
+	switch(current_upcoming_state)
 	{
 		case US_SYSTEM_STARTUP_WELCOME_MESSAGE:
 			break;
-		case US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT:
+		case US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION:
+			if(EVENT_Button_pressed_debounced)
+			{
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately enter this state at next tick
+			}
 			break;
 		case US_PC_MODE_NO_VOLTAGE_OUTPUT:
+			if(EVENT_Button_pressed_debounced)
+			{
+				Change_Output_Selection();
+				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately switch to another state at next tick
+			}
 			break;
 		case US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2:
+			if(EVENT_Button_pressed_debounced)
+			{
+				Change_Output_Selection();
+				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately switch to another state at next tick
+			}
 			break;
-		case US_OUTPUT_REMINDER_COUNTDOWN_NOW:
+		case US_OUTPUT_REMINDER_COUNTDOWN_TILL_ZERO:
+			if(EVENT_Button_pressed_debounced)
+			{
+				Change_Output_Selection();
+				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately switch to another state at next tick
+			}
 			break;
 		case US_OUTPUT_ENABLE:
 //			// Count-down before really output power for the first time
@@ -569,7 +569,10 @@ UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state)
 			break;
 	}
 
-	EVENT_filtered_current_goes_below_threshold = false;		// force to clear it
+	// force to clear events which apply to all state (because it cannot just clear for that it could be checked again later at specific state)
+	EVENT_POWERON_string_confirmed = false;
+	EVENT_filtered_current_goes_below_threshold = false;
+	EVENT_Button_pressed_debounced = false;
 
 	return return_next_state;
 }
@@ -585,13 +588,13 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S-1),0,TIMER_1000MS, false, true);		// one-shot count down
 			//System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
-			return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;
+			return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
 			break;
-		case US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT:
+		case US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION:
 			if(current_output_stage!=0)
 			{
 				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_OUTPUT_REMINDER_COUNTDOWN_NOW;
+				return_next_state = US_OUTPUT_REMINDER_START;
 			}
 			else
 			{
@@ -600,11 +603,25 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			}
 			//System_State_Proc_timer_in_ms = ~1; // this state always goes to next state so clear count-down timer here
 			break;
+		case US_OUTPUT_REMINDER_START:
+			if(current_output_stage!=0)
+			{
+				memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][0][12], pwm_voltage_table[current_output_stage], 3);
+				lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(OUTPUT_REMINDER_DISPLAY_TIME_IN_S-1),0,TIMER_1000MS, false, true);		// one-shot count down
+				return_next_state = US_OUTPUT_REMINDER_COUNTDOWN_TILL_ZERO;
+			}
+			else
+			{
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
+				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;	// Measure again
+			}
+			break;
 		case US_PC_MODE_NO_VOLTAGE_OUTPUT:
 			if(current_output_stage!=0)
 			{
 				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;
+				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
 			}
 			else
 			{
@@ -618,7 +635,7 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			if(current_output_stage!=0)
 			{
 				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;
+				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
 			}
 			else
 			{
@@ -628,19 +645,16 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
 			}
 			break;
-		case US_OUTPUT_REMINDER_COUNTDOWN_NOW:
+		case US_OUTPUT_REMINDER_COUNTDOWN_TILL_ZERO:
 			if(current_output_stage!=0)
 			{
-				memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][0][12], pwm_voltage_table[current_output_stage], 3);
-				lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
-				//System_State_Proc_timer_in_ms = (OUTPUT_REMINDER_DISPLAY_TIME_IN_MS-1);				// Enter next state after > 5 sec
 				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(OUTPUT_REMINDER_DISPLAY_TIME_IN_S-1),0,TIMER_1000MS, false, true);		// one-shot count down
 				return_next_state = US_OUTPUT_ENABLE;
 			}
 			else
 			{
 				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;	// Measure again
+				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;	// Measure again
 			}
 			break;
 
@@ -659,7 +673,7 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// one-shot count down
 				return_next_state = US_OUTPUT_DEBOUNCE_BEFORE_DETECT;
 			}
-			else
+			else		// here is for protection -- normally cannot reach here
 			{
 				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;

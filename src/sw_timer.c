@@ -12,22 +12,22 @@
 //bool 		SysTick_1s_timeout = false;
 //bool 		SysTick_100ms_timeout = false;
 //bool 		SysTick_led_7seg_refresh_timeout = false;
-bool		SW_delay_timeout = false;
+//bool		SW_delay_timeout = false;
 //bool		lcd_module_auto_switch_timer_timeout = false;
 //bool		lcd_g_toggle_timeout = false;
 //bool		lcd_r_toggle_timeout = false;
 //bool		lcd_y_toggle_timeout = false;
 //bool		LED_Voltage_Current_Refresh_in_sec_timeout = false;
-bool		lcd_module_wait_finish_timeout = false;
+//bool		lcd_module_wait_finish_timeout = false;
 //bool		System_State_Proc_timer_timeout = false;
 bool		SysTick_flag;
 
 //uint32_t	time_elapse_in_sec=0;
 //uint32_t	Upgrade_elapse_in_100ms;			// select 100ms because we like to have accuracy +/- 100ms
-uint32_t	SW_delay_sys_tick_cnt = 0;
+//uint32_t	SW_delay_sys_tick_cnt = 0;
 //uint16_t	lcd_module_auto_switch_in_ms = 0;
 //uint8_t		LED_Voltage_Current_Refresh_in_sec = 0;
-uint8_t		lcd_module_wait_finish_in_tick = 0;
+//uint8_t		lcd_module_wait_finish_in_tick = 0;
 //uint32_t	System_State_Proc_timer_in_ms = 0;
 
 //uint32_t	led_g_toggle_timer_in_100ms = 0;
@@ -211,24 +211,24 @@ void SysTick_Handler(void)
 	}
 	while(timer_index-->0);		// if 0 (before minus 1) then end of loops
 
-	// For software delay loop -- decrement each tick
-	if(SW_delay_sys_tick_cnt>0)
-	{
-		SW_delay_sys_tick_cnt--;
-	}
-	else
-	{
-		SW_delay_timeout = true;
-	}
+//	// For software delay loop -- decrement each tick
+//	if(SW_delay_sys_tick_cnt>0)
+//	{
+//		SW_delay_sys_tick_cnt--;
+//	}
+//	else
+//	{
+//		SW_delay_timeout = true;
+//	}
 
-	if(lcd_module_wait_finish_in_tick>0)
-	{
-		lcd_module_wait_finish_in_tick--;
-	}
-	else
-	{
-		lcd_module_wait_finish_timeout = true;
-	}
+//	if(lcd_module_wait_finish_in_tick>0)
+//	{
+//		lcd_module_wait_finish_in_tick--;
+//	}
+//	else
+//	{
+//		lcd_module_wait_finish_timeout = true;
+//	}
 
 //	// For regular timer
 //	if(sys_tick_1ms_cnt)

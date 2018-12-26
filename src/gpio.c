@@ -16,7 +16,7 @@
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
-bool GPIOGoup0_Int;
+//bool GPIOGoup0_Int;
 
 /*****************************************************************************
  * Private functions
@@ -30,12 +30,12 @@ bool GPIOGoup0_Int;
  * @brief	Handle Group GPIO 0 interrupt
  * @return	Nothing
  */
-void GINT0_IRQHandler(void)
-{
-	Chip_GPIOGP_ClearIntStatus(LPC_GPIOGROUP, 0);
-	//Board_LED_Set(0, true);
-	GPIOGoup0_Int = true;
-}
+//void GINT0_IRQHandler(void)
+//{
+//	Chip_GPIOGP_ClearIntStatus(LPC_GPIOGROUP, 0);
+//	//Board_LED_Set(0, true);
+//	GPIOGoup0_Int = true;
+//}
 
 void Init_GPIO(void)
 {
@@ -94,7 +94,7 @@ void Init_GPIO(void)
 
 #endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
 
-	GPIOGoup0_Int = false;
+//	GPIOGoup0_Int = false;
 
 	/* Enable Group GPIO interrupt 0 */
 //	NVIC_EnableIRQ(GINT0_IRQn);
@@ -150,7 +150,7 @@ bool Debounce_Button(void)
 }
 
 uint8_t	LED_G_flashing = 0, LED_R_flashing = 0, LED_Y_flashing = 0;
-#define 	DEFAULT_LED_TIMER_RELOAD_VALUE	(5)
+//#define 	DEFAULT_LED_TIMER_RELOAD_VALUE	(5)
 // flashing_period 0: always low
 // flashing_period 0xff: always high
 // flashing_period others: toggle every flashing_period 100ms (max 25.4 s)
@@ -314,30 +314,30 @@ void DeInit_GPIO(void)
 }
 
 
-void LED_demo(void)
-{
-//		switch(time_elapse_in_sec&0x03)
-		switch(Read_SW_TIMER_Value(SYSTEM_TIME_ELAPSE_IN_SEC)&0x03)
-		{
-			case 0:
-				LED_R_HIGH;
-				LED_Y_LOW;
-				LED_G_LOW;
-				break;
-			case 1:
-				LED_R_LOW;
-				LED_Y_HIGH;
-				LED_G_LOW;
-				break;
-			case 2:
-				LED_R_LOW;
-				LED_Y_LOW;
-				LED_G_HIGH;
-				break;
-			case 3:
-				LED_R_LOW;
-				LED_Y_LOW;
-				LED_G_LOW;
-				break;
-		}
-}
+//void LED_demo(void)
+//{
+////		switch(time_elapse_in_sec&0x03)
+//		switch(Read_SW_TIMER_Value(SYSTEM_TIME_ELAPSE_IN_SEC)&0x03)
+//		{
+//			case 0:
+//				LED_R_HIGH;
+//				LED_Y_LOW;
+//				LED_G_LOW;
+//				break;
+//			case 1:
+//				LED_R_LOW;
+//				LED_Y_HIGH;
+//				LED_G_LOW;
+//				break;
+//			case 2:
+//				LED_R_LOW;
+//				LED_Y_LOW;
+//				LED_G_HIGH;
+//				break;
+//			case 3:
+//				LED_R_LOW;
+//				LED_Y_LOW;
+//				LED_G_LOW;
+//				break;
+//		}
+//}

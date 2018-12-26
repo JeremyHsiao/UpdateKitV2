@@ -10,17 +10,18 @@
 
 typedef enum
 {
-	US_SYSTEM_STARTUP_WELCOME_MESSAGE = 0,
-	US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT,
-	US_OUTPUT_REMINDER_COUNTDOWN_NOW,
-	US_PC_MODE_NO_VOLTAGE_OUTPUT,
-	US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2,
-	US_OUTPUT_ENABLE,
-	US_OUTPUT_DEBOUNCE_BEFORE_DETECT,
-	US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT,
-	US_FW_UPGRADE_DONE,
-	US_FW_UPGRADE_DONE_PAGE2,
-	US_TV_IN_STANDBY,
+	US_SYSTEM_STARTUP_WELCOME_MESSAGE = 0,			// 3 sec to next
+	US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION,			// tick to next 2
+	US_OUTPUT_REMINDER_START,						// tick to next
+	US_OUTPUT_REMINDER_COUNTDOWN_TILL_ZERO,			// 5 sec to next
+	US_PC_MODE_NO_VOLTAGE_OUTPUT,					// 3 sec to page 2
+	US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2,				// 3 sec to page 2
+	US_OUTPUT_ENABLE,								// tick to next
+	US_OUTPUT_DEBOUNCE_BEFORE_DETECT,				// tick to next
+	US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT,		// 150 sec to next
+	US_FW_UPGRADE_DONE,								// 6 sec to next page
+	US_FW_UPGRADE_DONE_PAGE2,						// 6 sec to next page
+	US_TV_IN_STANDBY,								// next by event
 	US_MAX_STATE_NO
 } UPDATE_STATE;
 
@@ -35,7 +36,6 @@ extern uint16_t GetFilteredCurrent(void);
 extern void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void);
 extern void UpdateKitV2_LED_7_StartDisplayVoltage(void);
 extern void UpdateKitV2_UpdateDisplayValueForADC_Task(void);
-extern void ButtonPressedTask(void);
 extern void PowerOutputSetting(uint8_t current_step);
 extern void init_filtered_input_current(void);
 extern uint16_t Filtered_Input_current(uint16_t latest_current);

@@ -51,6 +51,7 @@ enum
 	LCD_MODULE_PAGE_CHANGE_TIMER_IN_100MS,
 	SYSTEM_STATE_PROC_TIMER,
 	SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS,
+	LCD_MODULE_INTERNAL_DELAY_IN_MS,
 	SW_TIMER_MAX_NO
 };
 
@@ -70,7 +71,7 @@ extern SW_TIMER	sw_timer[];
 //#define				Upgrade_elapse_in_100ms	(sw_timer[UPGRADE_ELAPSE_IN_100MS].counts)
 
 //extern uint32_t		Upgrade_elapse_in_100ms;
-extern uint32_t		SW_delay_sys_tick_cnt;
+//extern uint32_t		SW_delay_sys_tick_cnt;
 extern uint16_t		lcd_module_auto_switch_in_ms;
 //extern uint32_t		led_g_toggle_timer_in_100ms;
 //extern uint32_t		led_r_toggle_timer_in_100ms;
