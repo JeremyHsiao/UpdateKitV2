@@ -505,7 +505,7 @@ UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state)
 			break;
 		case US_OUTPUT_DEBOUNCE_BEFORE_DETECT:
 			break;
-		case US_WAIT_FW_UPGRADE_OK_VER_STRING:
+		case US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT:
 			if(EVENT_OK_string_confirmed)
 			{
 				LED_G_setting(0xff);
@@ -519,7 +519,7 @@ UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state)
 			{
 				// reset current upgrade info but do not overwrite previous one
 				lcm_reset_FW_VER_Content();
-				upcoming_system_state = US_TV_IN_STANDBY;
+				return_next_state = US_TV_IN_STANDBY;
 				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
 				EVENT_filtered_current_goes_below_threshold = false;
 			}
@@ -533,7 +533,7 @@ UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state)
 			if(EVENT_filtered_current_goes_below_threshold)
 			{
 				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
-				upcoming_system_state = US_TV_IN_STANDBY;
+				return_next_state = US_TV_IN_STANDBY;
 				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
 				EVENT_filtered_current_goes_below_threshold = false;
 			}
@@ -547,8 +547,8 @@ UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state)
 			if(EVENT_filtered_current_goes_below_threshold)
 			{
 				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
-				upcoming_system_state = US_TV_IN_STANDBY;
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
+				return_next_state = US_TV_IN_STANDBY;
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 				EVENT_filtered_current_goes_below_threshold = false;
 			}
 			if(EVENT_Version_string_confirmed)
@@ -560,7 +560,7 @@ UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state)
 		case US_TV_IN_STANDBY:
 			if(EVENT_filtered_current_goes_above_threshold)
 			{
-				upcoming_system_state = US_OUTPUT_ENABLE;
+				return_next_state = US_OUTPUT_ENABLE;
 				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
 				EVENT_filtered_current_goes_above_threshold = false;
 			}
@@ -590,14 +590,12 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 		case US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT:
 			if(current_output_stage!=0)
 			{
-				//System_State_Proc_timer_timeout = true;						// Enter next state at next tick
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 				return_next_state = US_OUTPUT_REMINDER_COUNTDOWN_NOW;
 			}
 			else
 			{
-				//System_State_Proc_timer_timeout = true;						// Enter next state at next tick
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
 			}
 			//System_State_Proc_timer_in_ms = ~1; // this state always goes to next state so clear count-down timer here
@@ -605,8 +603,7 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 		case US_PC_MODE_NO_VOLTAGE_OUTPUT:
 			if(current_output_stage!=0)
 			{
-				//System_State_Proc_timer_timeout = true;						// Enter next state at next tick of current_output_stage has been changed
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 				return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;
 			}
 			else
@@ -620,8 +617,7 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 		case US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2:
 			if(current_output_stage!=0)
 			{
-				//System_State_Proc_timer_timeout = true;						// Enter next state at next tick of current_output_stage has been changed
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 				return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;
 			}
 			else
@@ -643,8 +639,7 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			}
 			else
 			{
-				//System_State_Proc_timer_timeout = true;							// Enter next state at next tick if switch to no output
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 				return_next_state = US_DETERMINE_PCMODE_OR_COUNTDOWN_FOR_VOUT;	// Measure again
 			}
 			break;
@@ -666,7 +661,7 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 			}
 			else
 			{
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
 			}
 			break;
@@ -679,19 +674,19 @@ UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
 				LED_G_setting(0);
 				LED_R_setting(0);
 				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(max_upgrade_time_in_S-1),0,TIMER_1000MS, false, true);		// one-shot count down
-				return_next_state = US_WAIT_FW_UPGRADE_OK_VER_STRING;
+				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT;
 			}
 			else		// if still low current after debounce time, go to standby mode
 			{
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 				upcoming_system_state = US_TV_IN_STANDBY;
 			}
 			break;
 
-		case US_WAIT_FW_UPGRADE_OK_VER_STRING:
+		case US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT:
 			// If really reaching this state, it means fw upgrade for too long without OK --> so entering TV in standby state
 			//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
+			Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 			return_next_state = US_TV_IN_STANDBY;
 			break;
 		case US_FW_UPGRADE_DONE:
