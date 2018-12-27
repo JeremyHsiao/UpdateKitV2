@@ -88,8 +88,10 @@ int main(void)
 //	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer
 
 	// Endless loop at the moment
-	while (1) {
-		uint8_t temp;
+	while (1)
+	{
+		uint8_t 		temp;
+		UPDATE_STATE	state_before;
 
 		/* Sleep if no system tick within one loop; otherwise it means execution time is longer so no need to sleep for next tick */
 		if(SysTick_flag)
@@ -129,27 +131,6 @@ int main(void)
 		}
 		while(--temp>0);
 
-		// ADC conversion is triggered every 100ms
-		//if(SysTick_100ms_timeout==true)
-		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS))
-		{
-			//SysTick_100ms_timeout = false;
-			UpdateKitV2_UpdateDisplayValueForADC_Task();
-
-			if(current_system_proc_state==US_OUTPUT_ENABLE)		// it means we are counting down now before really output
-			{
-				lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][10] = (Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER))+'0';	// Timer here should be 1000ms as unit
-			}
-			else if(current_system_proc_state==US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT)		// it means we are fw upgrading now
-//			if(upcoming_system_state==US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT)		// it means we are fw upgrading now
-			{
-				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][9];
-
-				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, 3);
-				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][9], (void *)content1, 3);
-			}
-		}
-
 		/* Is an ADC conversion sequence complete? */
 		if (sequenceComplete)
 		{
@@ -157,6 +138,12 @@ int main(void)
 			/* Manual start for ADC conversion sequence A */
 			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
 			sequenceComplete=false;
+		}
+
+		// Update displaying value of voltage/current (from adc read-back value)
+		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS))
+		{
+			UpdateKitV2_UpdateDisplayValueForADC_Task();
 		}
 
 		// Button-pressed event
@@ -169,11 +156,40 @@ int main(void)
 		//
 		// After processing external input & regular output, system process event & system transition
 		//
-		current_system_proc_state = System_Event_Proc(current_system_proc_state);
-		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER))
+
+		// Processing events not relevant to system_state_processor -- if any
+		Event_Proc_State_Independent();
+
+		// temporarily store state for comparison later
+		state_before = current_system_proc_state;
+		// First processing event according to current state
+		if(EVENTS_IN_USE_OR_FLAG()==true)
 		{
-			current_system_proc_state = System_State_Proc(current_system_proc_state);
+			current_system_proc_state = Event_Proc_by_System_State(current_system_proc_state);
 		}
+
+		// If state unchanged by event (unchanged in most cases), go on with either end-check or regular-task
+		if(state_before==current_system_proc_state)
+		{
+			if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER)==false)
+			{
+				// Regular task (unrelated to events) before state time's up
+				current_system_proc_state = System_State_Running_Proc(current_system_proc_state);
+			}
+			else
+			{
+				// Time's up and go to do State's End-Check
+				current_system_proc_state = System_State_End_Proc(current_system_proc_state);
+			}
+		}
+
+		// If State has been changed (either by event or by end-check, execute one-time-task of entering a state
+		if(state_before!=current_system_proc_state)
+		{
+			Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);
+			System_State_Begin_Proc(current_system_proc_state);
+		}
+
 		//
 		// End of system process event & system transition
 		//

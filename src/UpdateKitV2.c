@@ -27,7 +27,7 @@
  * Public types/enumerations/variables
  ****************************************************************************/
 
-UPDATE_STATE	current_system_proc_state = US_SYSTEM_STARTUP_WELCOME_MESSAGE;
+UPDATE_STATE	current_system_proc_state = US_SYSTEM_BOOTUP_STATE;
 
 /*****************************************************************************
  * Private functions
@@ -436,92 +436,75 @@ static inline void Change_Output_Selection(void)
 	}
 }
 
-UPDATE_STATE System_Event_Proc(UPDATE_STATE current_upcoming_state)
+bool Event_Proc_State_Independent(void)
 {
-	UPDATE_STATE return_next_state = current_upcoming_state;
+	bool	bRet = false;
 
-	// Apply to all states
 	if(EVENT_POWERON_string_confirmed)
 	{
 		Clear_POWERON_pattern();
+		EVENT_POWERON_string_confirmed = false;
+		bRet = true;
 	}
-	if(EVENT_filtered_current_goes_below_threshold)
-	{
-		//EVENT_filtered_current_goes_below_threshold = false;	// so need to clear it later
-		LED_Y_setting(0);
-		LED_G_setting(0);
-		LED_R_setting(0);
-		Clear_OK_pattern_state();
-		Clear_VER_string();
-		Clear_POWERON_pattern();
-	}
+
 	if(EVENT_Button_pressed_debounced)
 	{
 		// Always no matter which system state
 		LED_7SEG_ForceToSpecificPage(LED_VOLTAGE_PAGE);
 		Set_SW_Timer_Count(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1));
 		Clear_SW_TIMER_Reload_Flag(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC);
+		// Do not clear this event because it is used by Event_Proc_by_System_State()
+		bRet = true;
 	}
-	// End of apply to all states
+
+	return bRet;
+}
+
+UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
+{
+	UPDATE_STATE return_next_state = current_state;
 
 	// Apply to specific state
-	switch(current_upcoming_state)
+	switch(current_state)
 	{
-		case US_SYSTEM_STARTUP_WELCOME_MESSAGE:
-			break;
-		case US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION:
+		case US_SYSTEM_WELCOME:
 			if(EVENT_Button_pressed_debounced)
 			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately enter this state at next tick
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately switch to end-check
 			}
 			break;
-		case US_PC_MODE_NO_VOLTAGE_OUTPUT:
-			if(EVENT_Button_pressed_debounced)
-			{
-				Change_Output_Selection();
-				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately switch to another state at next tick
-			}
-			break;
-		case US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2:
+//		case US_CHECK_USER_SELECTION:
+//			break;
+		case US_COUNTDOWN_BEFORE_OUTPUT:
 			if(EVENT_Button_pressed_debounced)
 			{
 				Change_Output_Selection();
-				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately switch to another state at next tick
+				return_next_state = US_CHECK_USER_SELECTION;	// NOTE: change to specific state immediately after exit
 			}
 			break;
-		case US_OUTPUT_REMINDER_COUNTDOWN_TILL_ZERO:
+		case US_PC_MODE_VOLTAGE_LOW:
 			if(EVENT_Button_pressed_debounced)
 			{
 				Change_Output_Selection();
-				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately switch to another state at next tick
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately switch to end-check
+				EVENT_Button_pressed_debounced = false;
 			}
 			break;
-		case US_OUTPUT_ENABLE:
-//			// Count-down before really output power for the first time
-//			lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][10] = (Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER))+'0';	// Timer here should be 1000ms as unit
+//		case US_START_OUTPUT:
+//			break;
+		case US_WAIT_FOR_CURRENT_HIGH:
+			if(EVENT_filtered_current_above_threshold)
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Switch to end-check
 			break;
-		case US_OUTPUT_DEBOUNCE_BEFORE_DETECT:
-			break;
-		case US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT:
+		case US_WAIT_FW_UPGRADE_OK_STRING:
 			if(EVENT_OK_string_confirmed)
 			{
-				LED_G_setting(0xff);
-				LED_Y_setting(0);
-				LED_R_setting(0);
-				return_next_state = US_FW_UPGRADE_DONE;
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
+				return_next_state = US_FW_UPGRADE_DONE;			// NOTE: change to specific state immediately after exit				EVENT_OK_string_confirmed = false;
 				EVENT_OK_string_confirmed = false;
 			}
-			if(EVENT_filtered_current_goes_below_threshold)
+			if(EVENT_filtered_current_below_threshold)
 			{
-				// reset current upgrade info but do not overwrite previous one
-				lcm_reset_FW_VER_Content();
-				return_next_state = US_TV_IN_STANDBY;
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
-				EVENT_filtered_current_goes_below_threshold = false;
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Switch to end-check				// reset current upgrade info but do not overwrite previous one
 			}
 			if(EVENT_Version_string_confirmed)
 			{
@@ -530,12 +513,10 @@ UPDATE_STATE System_Event_Proc(UPDATE_STATE current_upcoming_state)
 			}
 			break;
 		case US_FW_UPGRADE_DONE:
-			if(EVENT_filtered_current_goes_below_threshold)
+			if(EVENT_filtered_current_below_threshold)
 			{
-				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
-				return_next_state = US_TV_IN_STANDBY;
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
-				EVENT_filtered_current_goes_below_threshold = false;
+				// End-check after a while
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// countdown / oneshot
 			}
 			if(EVENT_Version_string_confirmed)
 			{
@@ -543,182 +524,199 @@ UPDATE_STATE System_Event_Proc(UPDATE_STATE current_upcoming_state)
 				EVENT_Version_string_confirmed = false;
 			}
 			break;
-		case US_FW_UPGRADE_DONE_PAGE2:
-			if(EVENT_filtered_current_goes_below_threshold)
+		case US_UPGRADE_TOO_LONG:
+			if(EVENT_filtered_current_below_threshold)
 			{
-				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
-				return_next_state = US_TV_IN_STANDBY;
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				EVENT_filtered_current_goes_below_threshold = false;
-			}
-			if(EVENT_Version_string_confirmed)
-			{
-				LCM_Fill_Version_String();
-				EVENT_Version_string_confirmed = false;
-			}
-			break;
-		case US_TV_IN_STANDBY:
-			if(EVENT_filtered_current_goes_above_threshold)
-			{
-				return_next_state = US_OUTPUT_ENABLE;
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer
-				EVENT_filtered_current_goes_above_threshold = false;
+				// End-check after a while
+				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// countdown / oneshot
 			}
 			break;
 		default:
 			break;
 	}
-
-	// force to clear events which apply to all state (because it cannot just clear for that it could be checked again later at specific state)
-	EVENT_POWERON_string_confirmed = false;
-	EVENT_filtered_current_goes_below_threshold = false;
-	EVENT_Button_pressed_debounced = false;
-
 	return return_next_state;
 }
 
-
-UPDATE_STATE System_State_Proc(UPDATE_STATE current_state)
+UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 {
-	UPDATE_STATE return_next_state;
+	UPDATE_STATE return_next_state = current_state;
+	switch(current_state)
+	{
+		case US_COUNTDOWN_BEFORE_OUTPUT:
+			// update countdown seconds to output on LCM
+			lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][10] = (Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER))+'0';	// Timer here should be 1000ms as unit
+			break;
+		case US_PC_MODE_VOLTAGE_LOW:
+			//
+			// Swap PC mode message & welcome message -- maybe could revise LCM page-swap with variable duration
+			//
+			break;
+		case US_WAIT_FW_UPGRADE_OK_STRING:
+			{
+				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][9];
+				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, 3);
+				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][9], (void *)content1, 3);
+			}
+			//
+			// Update V/A
+			//
+			break;
+		case US_FW_UPGRADE_DONE:
+			//
+			// Swap upgrade info
+			//
+			break;
+		case US_WAIT_FOR_CURRENT_HIGH:
+			//
+			// Need to keep 3 LED high after 3-flashing
+			//
+			break;
+		default:
+			break;
+	}
+	return return_next_state;
+}
+
+UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state)
+{
+	UPDATE_STATE return_next_state = current_state;
+	switch(current_state)
+	{
+		case US_SYSTEM_BOOTUP_STATE:
+			return_next_state = US_SYSTEM_WELCOME;
+			break;
+		case US_SYSTEM_WELCOME:
+			return_next_state = US_CHECK_USER_SELECTION;
+			break;
+		case US_CHECK_USER_SELECTION:
+			if(current_output_stage!=0)
+				return_next_state = US_COUNTDOWN_BEFORE_OUTPUT;
+			else
+				return_next_state = US_PC_MODE_VOLTAGE_LOW;
+			//System_State_Proc_timer_in_ms = ~1; // this state always goes to next state so clear count-down timer here
+			break;
+		case US_COUNTDOWN_BEFORE_OUTPUT:
+			if(current_output_stage!=0)
+				return_next_state = US_START_OUTPUT;
+			else
+				return_next_state = US_PC_MODE_VOLTAGE_LOW;
+			//System_State_Proc_timer_in_ms = ~1; // this state always goes to next state so clear count-down timer here
+			break;
+		case US_PC_MODE_VOLTAGE_LOW:
+			return_next_state = US_CHECK_USER_SELECTION;
+			break;
+		case US_START_OUTPUT:
+			return_next_state = US_WAIT_FOR_CURRENT_HIGH;
+			break;
+		case US_WAIT_FOR_CURRENT_HIGH:
+			if(EVENT_filtered_current_above_threshold)
+				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
+			break;
+		case US_WAIT_FW_UPGRADE_OK_STRING:
+			if(EVENT_filtered_current_below_threshold)
+			{
+				return_next_state = US_WAIT_FOR_NEXT_UPDATE;
+				lcm_reset_FW_VER_Content();
+			}
+			else
+				return_next_state = US_UPGRADE_TOO_LONG;
+			break;
+		case US_FW_UPGRADE_DONE:
+			if(EVENT_filtered_current_below_threshold)
+			{
+				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
+				return_next_state = US_WAIT_FOR_NEXT_UPDATE;
+			}
+			break;
+		case US_UPGRADE_TOO_LONG:
+			if(EVENT_filtered_current_below_threshold)
+			{
+				return_next_state = US_WAIT_FOR_NEXT_UPDATE;
+			}
+			break;
+		case US_WAIT_FOR_NEXT_UPDATE:
+			return_next_state = US_WAIT_FOR_CURRENT_HIGH;
+			break;
+		default:
+			break;
+	}
+	return return_next_state;
+}
+
+UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
+{
+	UPDATE_STATE return_next_state = current_state;
 
 	switch(current_state)
 	{
-		case US_SYSTEM_STARTUP_WELCOME_MESSAGE:
+		case US_SYSTEM_BOOTUP_STATE:
+		case US_SYSTEM_WELCOME:
+			// Clear events if we want to check it at this state
+			EVENT_Button_pressed_debounced = false;
 			lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S-1),0,TIMER_S, false, true);		// one-shot count down
-			//System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
-			return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
 			break;
-		case US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION:
-			if(current_output_stage!=0)
-			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_OUTPUT_REMINDER_START;
-			}
-			else
-			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
-			}
-			//System_State_Proc_timer_in_ms = ~1; // this state always goes to next state so clear count-down timer here
-			break;
-		case US_OUTPUT_REMINDER_START:
-			if(current_output_stage!=0)
-			{
-				memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][0][12], pwm_voltage_table[current_output_stage], 3);
-				lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(OUTPUT_REMINDER_DISPLAY_TIME_IN_S-1),0,TIMER_S, false, true);		// one-shot count down
-				return_next_state = US_OUTPUT_REMINDER_COUNTDOWN_TILL_ZERO;
-			}
-			else
-			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;	// Measure again
-			}
-			break;
-		case US_PC_MODE_NO_VOLTAGE_OUTPUT:
-			if(current_output_stage!=0)
-			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
-			}
-			else
-			{
-				lcd_module_display_enable_only_one_page(LCM_PC_MODE);
-				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2;
-				//System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S-1),0,TIMER_S, false, true);		// one-shot count down
-			}
-			break;
-		case US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2:
-			if(current_output_stage!=0)
-			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;
-			}
-			else
-			{
-				lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
-				//System_State_Proc_timer_in_ms = (WELCOME_MESSAGE_DISPLAY_TIME_IN_MS-1);						// Enter next state after 3 second
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S-1),0,TIMER_S, false, true);		// one-shot count down
-				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
-			}
-			break;
-		case US_OUTPUT_REMINDER_COUNTDOWN_TILL_ZERO:
-			if(current_output_stage!=0)
-			{
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(OUTPUT_REMINDER_DISPLAY_TIME_IN_S-1),0,TIMER_S, false, true);		// one-shot count down
-				return_next_state = US_OUTPUT_ENABLE;
-			}
-			else
-			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION;	// Measure again
-			}
-			break;
-
-		case US_OUTPUT_ENABLE:
-			if(current_output_stage!=0)
-			{
-				lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
-				PowerOutputSetting(current_output_stage);
-				//Upgrade_elapse_in_100ms = 0;								// reset fw upgrade elapse timer
-				Init_SW_Timer(UPGRADE_ELAPSE_IN_S,0,~1,TIMER_S, true, false);
-				// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
-				Clear_OK_pattern_state();
-				Clear_POWERON_pattern();
-				Clear_VER_string();
-
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// one-shot count down
-				return_next_state = US_OUTPUT_DEBOUNCE_BEFORE_DETECT;
-			}
-			else		// here is for protection -- normally cannot reach here
-			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_PC_MODE_NO_VOLTAGE_OUTPUT;
-			}
-			break;
-
-		case US_OUTPUT_DEBOUNCE_BEFORE_DETECT:
-			if(EVENT_filtered_current_above_threshold)
-			{
-				Play_SW_Timer(UPGRADE_ELAPSE_IN_S);
-				LED_Y_setting(5);  // 500ms as half-period (toggle period)
-				LED_G_setting(0);
-				LED_R_setting(0);
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(max_upgrade_time_in_S-1),0,TIMER_S, false, true);		// one-shot count down
-				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT;
-			}
-			else		// if still low current after debounce time, go to standby mode
-			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-				return_next_state = US_TV_IN_STANDBY;
-			}
-			break;
-
-		case US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT:
-			// If really reaching this state, it means fw upgrade for too long without OK --> so entering TV in standby state
-			//System_State_Proc_timer_timeout = true;							// Enter next state at next tick
+		case US_CHECK_USER_SELECTION:
 			Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
-			return_next_state = US_TV_IN_STANDBY;
+			break;
+		case US_COUNTDOWN_BEFORE_OUTPUT:
+			memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][0][12], pwm_voltage_table[current_output_stage], 3);
+			lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(OUTPUT_REMINDER_DISPLAY_TIME_IN_S-1),0,TIMER_S, false, true);		// one-shot count down
+			break;
+		case US_PC_MODE_VOLTAGE_LOW:
+			lcd_module_display_enable_only_one_page(LCM_PC_MODE);
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
+			break;
+		case US_START_OUTPUT:
+			PowerOutputSetting(current_output_stage);
+			// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
+			Init_SW_Timer(UPGRADE_ELAPSE_IN_S,0,~1,TIMER_S, false, true);
+			//
+			// To-be-implemented
+			// Start LED-GRY flashing 3 times then keeping 3 all on
+			//
+			Clear_OK_pattern_state();
+			Clear_POWERON_pattern();
+			Clear_VER_string();
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// one-shot count down
+			break;
+		case US_WAIT_FOR_CURRENT_HIGH:
+			lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
+			Play_SW_Timer(UPGRADE_ELAPSE_IN_S);
+			break;
+		case US_WAIT_FW_UPGRADE_OK_STRING:
+			// Clear events if we want to check it at this state
+			EVENT_OK_string_confirmed = false;
+			EVENT_Version_string_confirmed = false;
+			//lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
+			// Start LED-Y flashing 3 when at this state
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// one-shot count down
 			break;
 		case US_FW_UPGRADE_DONE:
+			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
-			//System_State_Proc_timer_in_ms = WELCOME_MESSAGE_DISPLAY_TIME_IN_MS - 1;				// endless loop for now
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(OUTPUT_REMINDER_DISPLAY_TIME_IN_S-1),0,TIMER_S, false, true);		// one-shot count down
-			return_next_state = US_FW_UPGRADE_DONE_PAGE2;
+			LED_G_setting(0xff);
+			LED_Y_setting(0);
+			LED_R_setting(0);
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
-		case US_FW_UPGRADE_DONE_PAGE2:
-			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
-			//System_State_Proc_timer_in_ms = WELCOME_MESSAGE_DISPLAY_TIME_IN_MS - 1;				// endless loop for now
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(OUTPUT_REMINDER_DISPLAY_TIME_IN_S-1),0,TIMER_S, false, true);		// one-shot count down
-			return_next_state = US_FW_UPGRADE_DONE;
+		case US_UPGRADE_TOO_LONG:
+			// Show warning message for upgrade too long
+			//lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
-		case US_TV_IN_STANDBY:
-			lcd_module_display_enable_only_one_page(LCM_TV_IN_STANDBY_PAGE);
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, true);		// repeated count down endless
-			return_next_state = US_TV_IN_STANDBY;
+		case US_WAIT_FOR_NEXT_UPDATE:
+			//
+			// To-be-implemented
+			// Start LED-GRY flashing 3 times then keeping 3 all on
+			//
+			Clear_OK_pattern_state();
+			Clear_POWERON_pattern();
+			Clear_VER_string();
+			// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
+			Init_SW_Timer(UPGRADE_ELAPSE_IN_S,0,~1,TIMER_S, false, true);
 			break;
 		default:
 			break;

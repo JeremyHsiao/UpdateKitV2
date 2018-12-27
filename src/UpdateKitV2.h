@@ -10,18 +10,17 @@
 
 typedef enum
 {
-	US_SYSTEM_STARTUP_WELCOME_MESSAGE = 0,			// 3 sec to next
-	US_CHECK_USER_OUTPUT_VOLTAGE_SELECTION,			// tick to next 2
-	US_OUTPUT_REMINDER_START,						// tick to next
-	US_OUTPUT_REMINDER_COUNTDOWN_TILL_ZERO,			// 5 sec to next
-	US_PC_MODE_NO_VOLTAGE_OUTPUT,					// 3 sec to page 2
-	US_PC_MODE_NO_VOLTAGE_OUTPUT_PAGE2,				// 3 sec to page 2
-	US_OUTPUT_ENABLE,								// tick to next
-	US_OUTPUT_DEBOUNCE_BEFORE_DETECT,				// tick to next
-	US_WAIT_FW_UPGRADE_OK_STRING_UNTIL_TIMEOUT,		// 150 sec to next
-	US_FW_UPGRADE_DONE,								// 6 sec to next page
-	US_FW_UPGRADE_DONE_PAGE2,						// 6 sec to next page
-	US_TV_IN_STANDBY,								// next by event
+	US_SYSTEM_BOOTUP_STATE = 0,
+	US_SYSTEM_WELCOME,
+	US_CHECK_USER_SELECTION,
+	US_COUNTDOWN_BEFORE_OUTPUT,
+	US_PC_MODE_VOLTAGE_LOW,
+	US_START_OUTPUT,
+	US_WAIT_FOR_CURRENT_HIGH,
+	US_WAIT_FW_UPGRADE_OK_STRING,
+	US_FW_UPGRADE_DONE,
+	US_UPGRADE_TOO_LONG,
+	US_WAIT_FOR_NEXT_UPDATE,
 	US_MAX_STATE_NO
 } UPDATE_STATE;
 
@@ -41,9 +40,12 @@ extern void init_filtered_input_current(void);
 extern uint16_t Filtered_Input_current(uint16_t latest_current);
 extern void init_filtered_input_voltage(void);
 extern uint16_t Filtered_Input_voltage(uint16_t latest_voltage);
-extern UPDATE_STATE System_State_Proc(UPDATE_STATE current_state);
-extern UPDATE_STATE System_Event_Proc(UPDATE_STATE current_state);
 extern bool UART_input_processor(uint8_t key);
+extern bool Event_Proc_State_Independent(void);
+extern UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state);
+extern UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state);
+extern UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state);
+extern UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state);
 
 extern UPDATE_STATE	current_system_proc_state;
 
