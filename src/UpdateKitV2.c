@@ -23,6 +23,31 @@
  * Private types/enumerations/variables
  ****************************************************************************/
 
+uint8_t		current_output_stage = DEFAULT_POWER_OUTPUT_STEP;
+//uint8_t		pwm_table[25] = { 100, 77, 76, 75, 74,   73, 72,  71, 70, 65,    64, 63, 54, 53, 52,     34, 33, 32, 31, 5,   4, 3, 2, 1, 0};
+const uint8_t		pwm_table[10] = { 100, 58,  49, 41,   33,   26,    19,   12,   4,   0};
+//Key toggle :				 0V, 6.0V ,6.5V, 7V,  7.5V, 8V,   8.5V, 9V,  9.5V, 10V
+						//	0 / 680 / 702 / 749 / 799 / 852 / 909 / 948/ 980
+
+const char *pwm_voltage_table [] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.7" };
+
+#define	CURRENT_HISTORY_DATA_SIZE	64
+static RINGBUFF_T current_history;
+static uint16_t current_history_data[CURRENT_HISTORY_DATA_SIZE];
+static uint32_t	total_current_value;
+
+#define	VOLTAGE_HISTORY_DATA_SIZE	64
+static RINGBUFF_T voltage_history;
+static uint16_t voltage_history_data[VOLTAGE_HISTORY_DATA_SIZE];
+static uint32_t	total_voltage_value;
+
+uint32_t	max_upgrade_time_in_S = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+
+uint16_t	raw_voltage = 0;			//  0.00v ~ 9.99v --> 0-999
+uint16_t	raw_current = 0;			// .000A ~ .999A --> 0-999
+uint16_t	filtered_voltage = 0;		//  0.00v ~ 9.99v --> 0-999
+uint16_t	filtered_current = 0;		// .000A ~ .999A --> 0-999
+
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
@@ -142,12 +167,7 @@ void lcd_module_update_message_by_state(uint8_t lcm_msg_state)
  * @brief
  * @return
  */
-uint16_t	raw_voltage = 0;			//  0.00v ~ 9.99v --> 0-999
-uint16_t	raw_current = 0;			// .000A ~ .999A --> 0-999
-uint16_t	filtered_voltage = 0;		//  0.00v ~ 9.99v --> 0-999
-uint16_t	filtered_current = 0;		// .000A ~ .999A --> 0-999
-
-bool		LED_7_SEG_showing_current = false;
+//bool		LED_7_SEG_showing_current = false;
 
 void SetRawVoltage(uint16_t voltage_new)
 {
@@ -319,15 +339,6 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	}
 }
 
-
-uint8_t		current_output_stage = DEFAULT_POWER_OUTPUT_STEP;
-//uint8_t		pwm_table[25] = { 100, 77, 76, 75, 74,   73, 72,  71, 70, 65,    64, 63, 54, 53, 52,     34, 33, 32, 31, 5,   4, 3, 2, 1, 0};
-uint8_t		pwm_table[10] = { 100, 58,  49, 41,   33,   26,    19,   12,   4,   0};
-//Key toggle :				 0V, 6.0V ,6.5V, 7V,  7.5V, 8V,   8.5V, 9V,  9.5V, 10V
-						//	0 / 680 / 702 / 749 / 799 / 852 / 909 / 948/ 980
-
-char *pwm_voltage_table [] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.7" };
-
 void PowerOutputSetting(uint8_t current_step)
 {
 	if(current_step==0)
@@ -341,11 +352,6 @@ void PowerOutputSetting(uint8_t current_step)
 		Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
 	}
 }
-
-#define	CURRENT_HISTORY_DATA_SIZE	64
-static RINGBUFF_T current_history;
-static uint16_t current_history_data[CURRENT_HISTORY_DATA_SIZE];
-static uint32_t	total_current_value;
 
 void init_filtered_input_current(void)
 {
@@ -368,11 +374,6 @@ uint16_t Filtered_Input_current(uint16_t latest_current)
 
 	return (total_current_value/CURRENT_HISTORY_DATA_SIZE);
 }
-
-#define	VOLTAGE_HISTORY_DATA_SIZE	64
-static RINGBUFF_T voltage_history;
-static uint16_t voltage_history_data[VOLTAGE_HISTORY_DATA_SIZE];
-static uint32_t	total_voltage_value;
 
 void init_filtered_input_voltage(void)
 {
@@ -407,10 +408,6 @@ void lcd_module_display_enable_only_one_page(uint8_t enabled_page)
 	while(temp_page>0);
 	lcm_force_to_display_page(enabled_page);
 }
-
-#define	WELCOME_MESSAGE_DISPLAY_TIME_IN_S		3
-#define OUTPUT_REMINDER_DISPLAY_TIME_IN_S		6
-uint32_t	max_upgrade_time_in_S = 150;
 
 static inline void Copy_Existing_FW_Upgrade_Info_to_Previous_Info(void)
 {
@@ -670,8 +667,8 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			break;
 		case US_START_OUTPUT:
 			PowerOutputSetting(current_output_stage);
-			// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
-			Init_SW_Timer(UPGRADE_ELAPSE_IN_S,0,~1,TIMER_S, false, true);
+			// Upgrade elapse timer: starting from 0 / 1000ms each count / upcount /oneshot
+			Init_SW_Timer(UPGRADE_ELAPSE_IN_S,0,~1,TIMER_S, true, true);
 			//
 			// To-be-implemented
 			// Start LED-GRY flashing 3 times then keeping 3 all on
@@ -692,7 +689,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			EVENT_Version_string_confirmed = false;
 			//lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
 			// Start LED-Y flashing 3 when at this state
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// one-shot count down
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(max_upgrade_time_in_S-1),0,TIMER_S, false, true);		// one-shot count down
 			break;
 		case US_FW_UPGRADE_DONE:
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
