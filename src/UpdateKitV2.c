@@ -512,8 +512,9 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 		case US_FW_UPGRADE_DONE:
 			if(EVENT_filtered_current_below_threshold)
 			{
-				// End-check after a while
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// countdown / oneshot
+//				// End-check after a while
+//				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// countdown / oneshot
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Switch to end-check
 			}
 			if(EVENT_Version_string_confirmed)
 			{
@@ -524,8 +525,9 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 		case US_UPGRADE_TOO_LONG:
 			if(EVENT_filtered_current_below_threshold)
 			{
-				// End-check after a while
-				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// countdown / oneshot
+//				// End-check after a while
+//				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// countdown / oneshot
+				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Switch to end-check
 			}
 			break;
 		default:
@@ -619,17 +621,11 @@ UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state)
 				return_next_state = US_UPGRADE_TOO_LONG;
 			break;
 		case US_FW_UPGRADE_DONE:
-			if(EVENT_filtered_current_below_threshold)
-			{
-				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
-				return_next_state = US_WAIT_FOR_NEXT_UPDATE;
-			}
+			Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
+			return_next_state = US_WAIT_FOR_NEXT_UPDATE;
 			break;
 		case US_UPGRADE_TOO_LONG:
-			if(EVENT_filtered_current_below_threshold)
-			{
-				return_next_state = US_WAIT_FOR_NEXT_UPDATE;
-			}
+			return_next_state = US_WAIT_FOR_NEXT_UPDATE;
 			break;
 		case US_WAIT_FOR_NEXT_UPDATE:
 			return_next_state = US_WAIT_FOR_CURRENT_HIGH;
