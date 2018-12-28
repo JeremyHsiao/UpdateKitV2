@@ -616,6 +616,9 @@ UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state)
 			{
 				return_next_state = US_WAIT_FOR_NEXT_UPDATE;
 				lcm_reset_FW_VER_Content();
+				// Error LED status
+				LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
+				LED_Status_Set_Value(LED_STATUS_R);		// only LED_R
 			}
 			else
 				return_next_state = US_UPGRADE_TOO_LONG;
@@ -623,10 +626,14 @@ UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state)
 		case US_FW_UPGRADE_DONE:
 			Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
 			Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
+			LED_Status_Set_Value(LED_STATUS_ALL);
+			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
 			return_next_state = US_WAIT_FOR_NEXT_UPDATE;
 			break;
 		case US_UPGRADE_TOO_LONG:
 			Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
+			LED_Status_Set_Value(LED_STATUS_ALL);
+			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
 			return_next_state = US_WAIT_FOR_NEXT_UPDATE;
 			break;
 		case US_WAIT_FOR_NEXT_UPDATE:
@@ -698,6 +705,8 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			break;
 		case US_UPGRADE_TOO_LONG:
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
+			LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
+			LED_Status_Set_Value(LED_STATUS_R);		// only LED_R
 			// Show warning message for upgrade too long
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
 			max_upgrade_time_in_S = CHANGE_FW_MAX_UPDATE_TIME_AFTER_TOO_LONG(max_upgrade_time_in_S);
@@ -711,8 +720,6 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, 3);
 				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][9], (void *)content1, 3);
 			}
-			LED_Status_Set_Value(LED_STATUS_ALL);
-			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
 			Clear_OK_pattern_state();
 			Clear_POWERON_pattern();
 			Clear_VER_string();
