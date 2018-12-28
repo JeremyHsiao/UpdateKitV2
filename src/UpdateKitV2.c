@@ -41,8 +41,6 @@ static RINGBUFF_T voltage_history;
 static uint16_t voltage_history_data[VOLTAGE_HISTORY_DATA_SIZE];
 static uint32_t	total_voltage_value;
 
-uint32_t	max_upgrade_time_in_S = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
-
 uint16_t	raw_voltage = 0;			//  0.00v ~ 9.99v --> 0-999
 uint16_t	raw_current = 0;			// .000A ~ .999A --> 0-999
 uint16_t	filtered_voltage = 0;		//  0.00v ~ 9.99v --> 0-999
@@ -53,6 +51,8 @@ uint16_t	filtered_current = 0;		// .000A ~ .999A --> 0-999
  ****************************************************************************/
 
 UPDATE_STATE	current_system_proc_state = US_SYSTEM_BOOTUP_STATE;
+uint16_t		max_upgrade_time_in_S = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+uint8_t			lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
 
 /*****************************************************************************
  * Private functions
@@ -117,8 +117,8 @@ void lcm_content_init(void)
     lcm_reset_Previous_FW_VER_Content();
 
 	// TV in standby page		     										   1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][0][0], "TV is in Standby", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][1][0], "Pls power on TV ", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_WAIT_NEXT_UPDATE_PAGE][0][0], "TV is in Standby", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_WAIT_NEXT_UPDATE_PAGE][1][0], "Pls power on TV ", LCM_DISPLAY_COL);
 
 	// TV is entering ISP mode page		     							   1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_ENTER_ISP_PAGE][0][0], "Enter ISP mode  ", LCM_DISPLAY_COL);
@@ -154,7 +154,7 @@ void lcd_module_update_message_by_state(uint8_t lcm_msg_state)
 			break;
 		case LCM_FW_OK_VER_PAGE:
 			break;
-		case LCM_TV_IN_STANDBY_PAGE:
+		case LCM_WAIT_NEXT_UPDATE_PAGE:
 			break;
 		case LCM_ENTER_ISP_PAGE:
 			break;
@@ -397,18 +397,6 @@ uint16_t Filtered_Input_voltage(uint16_t latest_voltage)
 	return (total_voltage_value/VOLTAGE_HISTORY_DATA_SIZE);
 }
 
-void lcd_module_display_enable_only_one_page(uint8_t enabled_page)
-{
-	uint8_t	temp_page = LCM_MAX_PAGE_NO;
-	do
-	{
-		temp_page--;
-		lcd_module_display_enable[temp_page] = (enabled_page==temp_page)?1:0;
-	}
-	while(temp_page>0);
-	lcm_force_to_display_page(enabled_page);
-}
-
 static inline void Copy_Existing_FW_Upgrade_Info_to_Previous_Info(void)
 {
 	// Move existing FW upgrade info to previous update info page               				                        1234567890123456
@@ -512,8 +500,6 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 		case US_FW_UPGRADE_DONE:
 			if(EVENT_filtered_current_below_threshold)
 			{
-//				// End-check after a while
-//				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// countdown / oneshot
 				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Switch to end-check
 			}
 			if(EVENT_Version_string_confirmed)
@@ -525,8 +511,6 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 		case US_UPGRADE_TOO_LONG:
 			if(EVENT_filtered_current_below_threshold)
 			{
-//				// End-check after a while
-//				Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// countdown / oneshot
 				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Switch to end-check
 			}
 			break;
@@ -551,14 +535,12 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 			//
 			break;
 		case US_WAIT_FW_UPGRADE_OK_STRING:
+			// Update Upgrade-elapse-time because V/A are updated regularly with new ADC value
 			{
 				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][9];
 				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, 3);
 				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][9], (void *)content1, 3);
 			}
-			//
-			// Update V/A
-			//
 			break;
 		case US_FW_UPGRADE_DONE:
 			//
@@ -566,9 +548,6 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 			//
 			break;
 		case US_WAIT_FOR_CURRENT_HIGH:
-			//
-			// Need to keep 3 LED high after 3-flashing
-			//
 			break;
 		default:
 			break;
@@ -655,6 +634,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 		case US_SYSTEM_WELCOME:
 			// Clear events if we want to check it at this state
 			EVENT_Button_pressed_debounced = false;
+			lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
 			lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S-1),0,TIMER_S, false, true);		// one-shot count down
 			break;
@@ -668,6 +648,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			break;
 		case US_PC_MODE_VOLTAGE_LOW:
 			lcd_module_display_enable_only_one_page(LCM_PC_MODE);
+			lcd_module_display_enable_page(LCM_WELCOME_PAGE);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
 		case US_START_OUTPUT:
@@ -699,6 +680,8 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
 			max_upgrade_time_in_S = CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S));
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
+			lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
+			lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_OK;
 			LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
 			LED_Status_Set_Value(LED_STATUS_G);		// only LED_G
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
@@ -708,7 +691,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
 			LED_Status_Set_Value(LED_STATUS_R);		// only LED_R
 			// Show warning message for upgrade too long
-			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
+			lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
 			max_upgrade_time_in_S = CHANGE_FW_MAX_UPDATE_TIME_AFTER_TOO_LONG(max_upgrade_time_in_S);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
@@ -720,6 +703,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, 3);
 				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][9], (void *)content1, 3);
 			}
+			//lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
 			Clear_OK_pattern_state();
 			Clear_POWERON_pattern();
 			Clear_VER_string();

@@ -440,11 +440,48 @@ void lcm_auto_disable_all_page(void)
 	memset((void *)lcd_module_display_enable, 0x00, sizeof(lcd_module_display_enable));
 }
 
+void lcd_module_display_enable_page(uint8_t enabled_page)
+{
+	lcd_module_display_enable[enabled_page] = 1;
+}
+
+void lcd_module_display_disable_page(uint8_t enabled_page)
+{
+	lcd_module_display_enable[enabled_page] = 0;
+}
+
+void lcd_module_display_enable_only_one_page(uint8_t enabled_page)
+{
+	uint8_t	temp_page = LCM_MAX_PAGE_NO;
+	do
+	{
+		temp_page--;
+		lcd_module_display_enable[temp_page] = (enabled_page==temp_page)?1:0;
+	}
+	while(temp_page>0);
+    lcm_force_to_display_page(enabled_page);
+}
+
+void lcd_module_display_find_next_enabled_page(void)
+{
+	uint8_t	temp;
+
+	for(temp=0; temp < LCM_MAX_PAGE_NO; temp++)
+	{
+		if(++lcm_current_page>=LCM_MAX_PAGE_NO)
+		{
+			lcm_current_page = 0;
+		}
+		if(lcd_module_display_enable[lcm_current_page]!=0x0)
+			break;
+	}
+}
+
+
 void lcm_auto_display_init(void)
 {
 //	lcd_module_auto_switch_in_ms = LCM_AUTO_DISPLAY_SWITCH_PAGE_MS;
 //	lcd_module_auto_switch_timer_timeout = false;
-	Start_SW_Timer(LCD_MODULE_PAGE_CHANGE_TIMER_IN_100MS,(DEFAULT_LCM_PAGE_CHANGE_100MS-1),(DEFAULT_LCM_PAGE_CHANGE_100MS-1),TIMER_100MS, false, false);
 	lcm_current_page = lcm_current_row = lcm_current_col = 0;
 	lcm_auto_display_clear_all_page();
 	lcm_auto_disable_all_page();
@@ -452,14 +489,11 @@ void lcm_auto_display_init(void)
 
 void lcm_force_to_display_page(uint8_t page_no)
 {
-	// First is checking whether current page is enabled
-	if(lcd_module_display_enable[lcm_current_page]!=0x0)
+	// First is checking whether this page is enabled
+	if(lcd_module_display_enable[page_no]!=0x0)
 	{
-//		lcd_module_auto_switch_in_ms = LCM_AUTO_DISPLAY_SWITCH_PAGE_MS;
-//		lcd_module_auto_switch_timer_timeout = false;
-		Set_SW_Timer_Count(LCD_MODULE_PAGE_CHANGE_TIMER_IN_100MS,(DEFAULT_LCM_PAGE_CHANGE_100MS-1));
-		Clear_SW_TIMER_Reload_Flag(LCD_MODULE_PAGE_CHANGE_TIMER_IN_100MS);
-//		lcm_current_row=lcm_current_col=0;
+		Set_SW_Timer_Count(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S,(lcm_page_change_duration_in_sec-1));
+		Clear_SW_TIMER_Reload_Flag(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S);
 		lcm_current_page=page_no;
 	}
 }
@@ -514,23 +548,12 @@ void lcm_auto_display_refresh_task(void)
 	//wait_for_not_busy(3);
  	lcm_write_cmd_direct(0x80+0);		// Go back to 0,0 for next page
 	lcm_current_row = 0;
-	//if(lcd_module_auto_switch_timer_timeout==true)
-	if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_PAGE_CHANGE_TIMER_IN_100MS))
-	{
-//		lcd_module_auto_switch_in_ms = LCM_AUTO_DISPLAY_SWITCH_PAGE_MS;
-//		lcd_module_auto_switch_timer_timeout = false;
 
-		// Move to next display-enabled page
-		for(temp=0; temp < MAX_LCD_CONTENT_PAGE; temp++)
-		{
-			if(++lcm_current_page>=MAX_LCD_CONTENT_PAGE)
-			{
-				lcm_current_page = 0;
-			}
-			if(lcd_module_display_enable[lcm_current_page]!=0x0)
-				break;
-		}
+	if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S))
+	{
+		lcd_module_display_find_next_enabled_page();
 	}
+
 }
 
 /*

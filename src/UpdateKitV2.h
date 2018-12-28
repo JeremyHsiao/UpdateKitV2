@@ -47,8 +47,6 @@ extern UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state);
 extern UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state);
 extern UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state);
 
-extern UPDATE_STATE	current_system_proc_state;
-
 #define	WELCOME_MESSAGE_DISPLAY_TIME_IN_S			(3)
 #define OUTPUT_REMINDER_DISPLAY_TIME_IN_S			(6)
 #define DEFAULT_MAX_FW_UPDATE_TIME_IN_S				(300)
@@ -60,7 +58,8 @@ extern UPDATE_STATE	current_system_proc_state;
 #define DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS	(100)
 #define DEFAULT_LED_DATA_CHANGE_SEC				(3)
 #define DEFAULT_LED_REFRESH_EACH_DIGIT_MS		(1)
-#define DEFAULT_LCM_PAGE_CHANGE_100MS			(3)
+#define DEFAULT_LCM_PAGE_CHANGE_S_WELCOME	(3)
+#define DEFAULT_LCM_PAGE_CHANGE_S_OK			(5)
 #define DEFAULT_OK_THRESHOLD					(5)			// 5 times ok
 #define DEFAULT_INPUT_CURRENT_THRESHOLD			(10)		// 10ma
 
@@ -75,7 +74,7 @@ enum
 	LCM_FW_UPGRADING_PAGE,
 	LCM_FW_OK_VER_PAGE,
 	LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO,
-	LCM_TV_IN_STANDBY_PAGE,
+	LCM_WAIT_NEXT_UPDATE_PAGE,
 	LCM_ENTER_ISP_PAGE,
 	LCM_DEV_TITLE_PAGE,
 	LCM_DEV_MEASURE_PAGE,
@@ -83,6 +82,11 @@ enum
 	LCM_DEV_OK_DETECT_PAGE,
 	LCM_MAX_PAGE_NO
 };
+
+
+extern UPDATE_STATE	current_system_proc_state;
+extern uint8_t lcm_page_change_duration_in_sec;
+
 
 
 #endif /* UPDATEKITV2_H_ */

@@ -73,8 +73,9 @@ int main(void)
 	Start_SW_Timer(LCD_MODULE_INTERNAL_DELAY_IN_MS,0,0,TIMER_MS, false, false);		// repeat count down
 	lcm_sw_init();
 	lcm_auto_display_init();
-	//lcm_demo();
 	lcm_content_init();
+	Start_SW_Timer(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S,(lcm_page_change_duration_in_sec-1),(lcm_page_change_duration_in_sec-1),TIMER_S, false, false);  // countdown / repeated
+
 	//LED_7seg_self_test();
 	LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
 	LED_Status_Set_Value(0);						// all off
@@ -233,7 +234,6 @@ int main(void)
 			lcm_auto_display_refresh_task();
 			//lcd_module_wait_finish_in_tick = SYSTICK_COUNT_VALUE_US(250);
 		}
-
 		//
 		// End of Output UI section
 		//

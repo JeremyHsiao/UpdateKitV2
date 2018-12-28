@@ -86,6 +86,11 @@ extern uint8_t lcd_read_data_from_RAM(void);
 extern void lcm_auto_display_init(void);
 extern void lcm_auto_display_refresh_task(void);
 extern void lcm_force_to_display_page(uint8_t page_no);
+extern void lcd_module_display_enable_page(uint8_t enabled_page);
+extern void lcd_module_display_disable_page(uint8_t enabled_page);
+extern void lcd_module_display_enable_only_one_page(uint8_t enabled_page);
+extern void lcd_module_display_find_next_enabled_page(void);
+
 #define LCM_AUTO_DISPLAY_SWITCH_PAGE_MS		(5000)
 
 extern void lcm_demo(void);
