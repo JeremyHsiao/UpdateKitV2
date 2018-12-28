@@ -51,7 +51,7 @@ extern UPDATE_STATE	current_system_proc_state;
 
 #define	WELCOME_MESSAGE_DISPLAY_TIME_IN_S			(3)
 #define OUTPUT_REMINDER_DISPLAY_TIME_IN_S			(6)
-#define DEFAULT_MAX_FW_UPDATE_TIME_IN_S				(150)
+#define DEFAULT_MAX_FW_UPDATE_TIME_IN_S				(300)
 #define LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST	(1)			// 500ms
 #define LED_STATUS_TOGGLE_DURATION_IN_100MS			(5)			// 500ms
 
@@ -64,6 +64,8 @@ extern UPDATE_STATE	current_system_proc_state;
 #define DEFAULT_OK_THRESHOLD					(5)			// 5 times ok
 #define DEFAULT_INPUT_CURRENT_THRESHOLD			(10)		// 10ma
 
+#define CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(x)		(x*3/2)
+#define CHANGE_FW_MAX_UPDATE_TIME_AFTER_TOO_LONG(x)	(x*3/2)
 
 enum
 {

@@ -689,6 +689,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			break;
 		case US_FW_UPGRADE_DONE:
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
+			max_upgrade_time_in_S = CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S));
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
 			LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
 			LED_Status_Set_Value(LED_STATUS_G);		// only LED_G
@@ -696,7 +697,8 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			break;
 		case US_UPGRADE_TOO_LONG:
 			// Show warning message for upgrade too long
-			//lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
+			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
+			max_upgrade_time_in_S = CHANGE_FW_MAX_UPDATE_TIME_AFTER_TOO_LONG(max_upgrade_time_in_S);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
 		case US_WAIT_FOR_NEXT_UPDATE:
