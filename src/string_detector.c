@@ -179,7 +179,7 @@ bool Found_VER_string(void)
 void Clear_VER_string(void)
 {
 	VER_string_end_of_line=false;
-	//VER_NO_str[0] = '\0';
+	VER_NO_str[0] = '\0';
 }
 
 uint8_t *Get_VER_string(void)
