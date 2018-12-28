@@ -25,6 +25,13 @@ const char inst1[] = "TPV UpdateKit";
 const char inst2[] = "HW: V2.0";
 const char inst3[] = "FW: "__DATE__ " " __TIME__;
 
+//#define DEBUG_RX_LOG
+#ifdef DEBUG_RX_LOG
+#define		UART_RX_LOG_LEN		(4096)
+uint8_t 	UART_Rx_log[UART_RX_LOG_LEN];
+uint8_t		*UART_Rx_ptr=UART_Rx_log;
+#endif // #ifdef DEBUG_RX_LOG
+
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
@@ -118,6 +125,13 @@ int main(void)
 			bytes = UART0_GetChar(&key);
 			if (bytes > 0)
 			{
+#ifdef DEBUG_RX_LOG
+				*UART_Rx_ptr++ = key;
+				if(UART_Rx_ptr>=(UART_Rx_log+UART_RX_LOG_LEN))
+				{
+					UART_Rx_ptr = UART_Rx_log;
+				}
+#endif // #ifdef DEBUG_RX_LOG
 				processor_event_detected = UART_input_processor(key);
 				if(processor_event_detected!=false)
 				{
