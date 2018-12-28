@@ -622,9 +622,11 @@ UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state)
 			break;
 		case US_FW_UPGRADE_DONE:
 			Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
+			Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
 			return_next_state = US_WAIT_FOR_NEXT_UPDATE;
 			break;
 		case US_UPGRADE_TOO_LONG:
+			Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
 			return_next_state = US_WAIT_FOR_NEXT_UPDATE;
 			break;
 		case US_WAIT_FOR_NEXT_UPDATE:
@@ -665,16 +667,15 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			LED_Status_Set_Value(LED_STATUS_ALL);
 			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
 			PowerOutputSetting(current_output_stage);
-			// Upgrade elapse timer: starting from 0 / 1000ms each count / upcount /oneshot
-			Init_SW_Timer(UPGRADE_ELAPSE_IN_S,0,~1,TIMER_S, true, true);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// one-shot count down
 			break;
 		case US_WAIT_FOR_CURRENT_HIGH:
 			lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
-			Play_SW_Timer(UPGRADE_ELAPSE_IN_S);
+			// Upgrade elapse timer: starting from 0 / 1000ms each count / upcount /oneshot
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
 		case US_WAIT_FW_UPGRADE_OK_STRING:
+			Start_SW_Timer(UPGRADE_ELAPSE_IN_S,0,~1,TIMER_S, true, true);
 			// Clear events if we want to check it at this state
 			EVENT_OK_string_confirmed = false;
 			EVENT_Version_string_confirmed = false;
@@ -696,19 +697,26 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
 		case US_UPGRADE_TOO_LONG:
+			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
 			// Show warning message for upgrade too long
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
 			max_upgrade_time_in_S = CHANGE_FW_MAX_UPDATE_TIME_AFTER_TOO_LONG(max_upgrade_time_in_S);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
 		case US_WAIT_FOR_NEXT_UPDATE:
+			//Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
+			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
+			{
+				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][9];
+				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, 3);
+				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][9], (void *)content1, 3);
+			}
 			LED_Status_Set_Value(LED_STATUS_ALL);
 			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
 			Clear_OK_pattern_state();
 			Clear_POWERON_pattern();
 			Clear_VER_string();
-			// Upgrade elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
-			Init_SW_Timer(UPGRADE_ELAPSE_IN_S,0,~1,TIMER_S, false, true);
+			Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 			break;
 		default:
 			break;
