@@ -49,9 +49,11 @@ extern UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state);
 
 extern UPDATE_STATE	current_system_proc_state;
 
-#define	WELCOME_MESSAGE_DISPLAY_TIME_IN_S		(3)
-#define OUTPUT_REMINDER_DISPLAY_TIME_IN_S		(6)
-#define DEFAULT_MAX_FW_UPDATE_TIME_IN_S			(150)
+#define	WELCOME_MESSAGE_DISPLAY_TIME_IN_S			(3)
+#define OUTPUT_REMINDER_DISPLAY_TIME_IN_S			(6)
+#define DEFAULT_MAX_FW_UPDATE_TIME_IN_S				(150)
+#define LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST	(1)			// 500ms
+#define LED_STATUS_TOGGLE_DURATION_IN_100MS			(5)			// 500ms
 
 #define	DEFAULT_POWER_OUTPUT_STEP				(0)
 #define DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS	(300)
@@ -61,6 +63,7 @@ extern UPDATE_STATE	current_system_proc_state;
 #define DEFAULT_LCM_PAGE_CHANGE_100MS			(3)
 #define DEFAULT_OK_THRESHOLD					(5)			// 5 times ok
 #define DEFAULT_INPUT_CURRENT_THRESHOLD			(10)		// 10ma
+
 
 enum
 {

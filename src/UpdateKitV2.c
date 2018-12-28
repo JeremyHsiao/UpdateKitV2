@@ -662,13 +662,11 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
 		case US_START_OUTPUT:
+			LED_Status_Set_Value(LED_STATUS_ALL);
+			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
 			PowerOutputSetting(current_output_stage);
 			// Upgrade elapse timer: starting from 0 / 1000ms each count / upcount /oneshot
 			Init_SW_Timer(UPGRADE_ELAPSE_IN_S,0,~1,TIMER_S, true, true);
-			//
-			// To-be-implemented
-			// Start LED-GRY flashing 3 times then keeping 3 all on
-			//
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// one-shot count down
 			break;
 		case US_WAIT_FOR_CURRENT_HIGH:
@@ -684,15 +682,16 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			Clear_POWERON_pattern();
 			Clear_VER_string();
 			//lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
-			// Start LED-Y flashing 3 when at this state
+			LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
+			LED_Status_Set_Value(LED_STATUS_Y);		// only LED_Y
+			LED_Status_Set_Auto_Toggle(LED_STATUS_Y,LED_STATUS_TOGGLE_DURATION_IN_100MS,~1);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(max_upgrade_time_in_S-1),0,TIMER_S, false, true);		// one-shot count down
 			break;
 		case US_FW_UPGRADE_DONE:
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
-			LED_G_setting(0xff);
-			LED_Y_setting(0);
-			LED_R_setting(0);
+			LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
+			LED_Status_Set_Value(LED_STATUS_G);		// only LED_G
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
 		case US_UPGRADE_TOO_LONG:
@@ -701,10 +700,8 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
 		case US_WAIT_FOR_NEXT_UPDATE:
-			//
-			// To-be-implemented
-			// Start LED-GRY flashing 3 times then keeping 3 all on
-			//
+			LED_Status_Set_Value(LED_STATUS_ALL);
+			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
 			Clear_OK_pattern_state();
 			Clear_POWERON_pattern();
 			Clear_VER_string();

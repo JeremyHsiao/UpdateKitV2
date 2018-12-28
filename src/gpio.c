@@ -12,6 +12,7 @@
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
+uint32_t LED_G_toggle_cnt = 0, LED_R_toggle_cnt = 0, LED_Y_toggle_cnt = 0;
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -149,105 +150,48 @@ bool Debounce_Button(void)
 	return false;
 }
 
-uint8_t	LED_G_flashing = 0, LED_R_flashing = 0, LED_Y_flashing = 0;
-//#define 	DEFAULT_LED_TIMER_RELOAD_VALUE	(5)
-// flashing_period 0: always low
-// flashing_period 0xff: always high
-// flashing_period others: toggle every flashing_period 100ms (max 25.4 s)
-void LED_G_setting(uint8_t flashing_100ms)
+void LED_Status_Set_Value(uint32_t LED_status_value)
 {
-	if(LED_G_flashing!=flashing_100ms)
-	{
-		uint32_t		new_timer_reload_value;
-		bool			led_high;
+	// Assumption: all status LED use the same GPIO port
+	LPC_GPIO->MASK[LED_R_GPIO_PORT] = LED_STATUS_MASK;
+	LPC_GPIO->MPIN[LED_R_GPIO_PORT] = LED_status_value;
+}
 
-		if(flashing_100ms==0)
-		{
-			//new_timer_reload_value = ~1;
-			Pause_SW_Timer(LED_G_TIMER_IN_100MS);
-			led_high = false;
-		}
-		else if (flashing_100ms==0xff)
-		{
-			//new_timer_reload_value = ~1;
-			Pause_SW_Timer(LED_G_TIMER_IN_100MS);
-			led_high = true;
-		}
-		else
-		{
-			new_timer_reload_value = flashing_100ms - 1;
-			led_high = true;
-			// System elapse timer: starting from value / reload-value / 100 ms each count / not-upcount / not-oneshot
-			Start_SW_Timer(LED_G_TIMER_IN_100MS,new_timer_reload_value,new_timer_reload_value,TIMER_100MS, false, false);
-		}
-		if(led_high) { LED_G_HIGH; } else { LED_G_LOW; }
-		LED_G_flashing = flashing_100ms;
-//		led_g_toggle_timer_in_100ms = led_g_toggle_timer_reload = new_timer_reload_value;
-//		lcd_g_toggle_timeout=false;
+void LED_Status_Set_Auto_Toggle(uint32_t LED_status_pin, uint8_t flashing_100ms, uint32_t flashing_cnt)
+{
+	if(LED_status_pin & LED_STATUS_G)
+	{
+		LED_G_toggle_cnt = flashing_cnt;
+		Start_SW_Timer(LED_G_TIMER_IN_100MS,flashing_100ms-1,flashing_100ms-1,TIMER_100MS, false, false);		// countdown / repeated
+	}
+	if(LED_status_pin & LED_STATUS_Y)
+	{
+		LED_Y_toggle_cnt = flashing_cnt;
+		Start_SW_Timer(LED_Y_TIMER_IN_100MS,flashing_100ms-1,flashing_100ms-1,TIMER_100MS, false, false);		// countdown / repeated
+	}
+	if(LED_status_pin & LED_STATUS_R)
+	{
+		LED_R_toggle_cnt = flashing_cnt;
+		Start_SW_Timer(LED_R_TIMER_IN_100MS,flashing_100ms-1,flashing_100ms-1,TIMER_100MS, false, false);		// countdown / repeated
 	}
 }
-void LED_R_setting(uint8_t flashing_100ms)
-{
-	if(LED_R_flashing!=flashing_100ms)
-	{
-		uint32_t		new_timer_reload_value;
-		bool			led_high;
 
-		if(flashing_100ms==0)
-		{
-			//new_timer_reload_value = ~1;
-			Pause_SW_Timer(LED_R_TIMER_IN_100MS);
-			led_high = false;
-		}
-		else if (flashing_100ms==0xff)
-		{
-			//new_timer_reload_value = ~1;
-			Pause_SW_Timer(LED_R_TIMER_IN_100MS);
-			led_high = true;
-		}
-		else
-		{
-			new_timer_reload_value = flashing_100ms - 1;
-			led_high = true;
-			// System elapse timer: starting from value / reload-value / 100 ms each count / not-upcount / not-oneshot
-			Start_SW_Timer(LED_R_TIMER_IN_100MS,new_timer_reload_value,new_timer_reload_value,TIMER_100MS, false, false);
-		}
-		if(led_high) { LED_R_HIGH; } else { LED_R_LOW; }
-		LED_R_flashing = flashing_100ms;
-//		led_r_toggle_timer_in_100ms = led_r_toggle_timer_reload = new_timer_reload_value;
-//		lcd_r_toggle_timeout=false;
+void LED_Status_Clear_Auto_Toggle(uint32_t LED_status_pin)
+{
+	if(LED_status_pin & LED_STATUS_G)
+	{
+		LED_G_toggle_cnt = 0;
+		Pause_SW_Timer(LED_G_TIMER_IN_100MS);
 	}
-}
-void LED_Y_setting(uint8_t flashing_100ms)
-{
-	if(LED_Y_flashing!=flashing_100ms)
+	if(LED_status_pin & LED_STATUS_Y)
 	{
-		uint32_t		new_timer_reload_value;
-		bool			led_high;
-
-		if(flashing_100ms==0)
-		{
-			//new_timer_reload_value = ~1;
-			Pause_SW_Timer(LED_Y_TIMER_IN_100MS);
-			led_high = false;
-		}
-		else if (flashing_100ms==0xff)
-		{
-			//new_timer_reload_value = ~1;
-			Pause_SW_Timer(LED_Y_TIMER_IN_100MS);
-			led_high = true;
-		}
-		else
-		{
-			new_timer_reload_value = flashing_100ms - 1;
-			led_high = true;
-			// System elapse timer: starting from value / reload-value / 100 ms each count / not-upcount / not-oneshot
-			Start_SW_Timer(LED_Y_TIMER_IN_100MS,new_timer_reload_value,new_timer_reload_value,TIMER_100MS, false, false);
-		}
-		if(led_high) { LED_Y_HIGH; } else { LED_Y_LOW; }
-		LED_Y_flashing = flashing_100ms;
-//		led_y_toggle_timer_in_100ms = led_y_toggle_timer_reload = new_timer_reload_value;
-//		lcd_y_toggle_timeout=false;
+		LED_Y_toggle_cnt = 0;
+		Pause_SW_Timer(LED_Y_TIMER_IN_100MS);
+	}
+	if(LED_status_pin & LED_STATUS_R)
+	{
+		LED_R_toggle_cnt = 0;
+		Pause_SW_Timer(LED_R_TIMER_IN_100MS);
 	}
 }
 
@@ -255,56 +199,42 @@ void LED_Status_Update_Process(void)
 {
 	if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_G_TIMER_IN_100MS))
 	{
-		if(LED_G_flashing==0)
-		{
-			LED_G_LOW;
-		}
-		else if (LED_G_flashing==0xff)
-		{
-			LED_G_HIGH;
-		}
-		else
+		if(LED_G_toggle_cnt>0)
 		{
 			LED_G_TOGGLE;
+			LED_G_toggle_cnt--;
 		}
-	}
-
-	if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_R_TIMER_IN_100MS))
-	{
-		//lcd_r_toggle_timeout=false;
-
-		if(LED_R_flashing==0)
+		if(LED_G_toggle_cnt==0)
 		{
-			LED_R_LOW;
-		}
-		else if (LED_R_flashing==0xff)
-		{
-			LED_R_HIGH;
-		}
-		else
-		{
-			LED_R_TOGGLE;
+            Pause_SW_Timer(LED_G_TIMER_IN_100MS);
 		}
 	}
 
 	if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_Y_TIMER_IN_100MS))
 	{
-		//lcd_y_toggle_timeout=false;
-
-		if(LED_Y_flashing==0)
-		{
-			LED_Y_LOW;
-		}
-		else if (LED_Y_flashing==0xff)
-		{
-			LED_Y_HIGH;
-		}
-		else
+		if(LED_Y_toggle_cnt>0)
 		{
 			LED_Y_TOGGLE;
+			LED_Y_toggle_cnt--;
+		}
+		if(LED_Y_toggle_cnt==0)
+		{
+            Pause_SW_Timer(LED_Y_TIMER_IN_100MS);
 		}
 	}
 
+	if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_R_TIMER_IN_100MS))
+	{
+		if(LED_R_toggle_cnt>0)
+		{
+			LED_R_TOGGLE;
+			LED_R_toggle_cnt--;
+		}
+		if(LED_R_toggle_cnt==0)
+		{
+            Pause_SW_Timer(LED_R_TIMER_IN_100MS);
+		}
+	}
 }
 
 void DeInit_GPIO(void)

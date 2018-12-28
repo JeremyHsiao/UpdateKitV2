@@ -68,10 +68,16 @@ extern bool Get_GPIO_Switch_Key(void);
 extern bool Debounce_Button(void);
 #define DEBOUNCE_COUNT	SYSTICK_COUNT_VALUE_MS(30)		// It should be in fact less but not so much less
 
-extern void LED_G_setting(uint8_t flashing_100ms);
-extern void LED_R_setting(uint8_t flashing_100ms);
-extern void LED_Y_setting(uint8_t flashing_100ms);
+extern void LED_Status_Set_Value(uint32_t LED_status_value);
+extern void LED_Status_Set_Auto_Toggle(uint32_t LED_status_pin, uint8_t flashing_100ms, uint32_t flashing_cnt);
+extern void LED_Status_Clear_Auto_Toggle(uint32_t LED_status_pin);
 extern void LED_Status_Update_Process(void);
+
+#define	LED_STATUS_G		(1L<<LED_G_GPIO_PIN)
+#define	LED_STATUS_Y		(1L<<LED_Y_GPIO_PIN)
+#define	LED_STATUS_R		(1L<<LED_R_GPIO_PIN)
+#define LED_STATUS_ALL		(LED_STATUS_G|LED_STATUS_Y|LED_STATUS_R)
+#define LED_STATUS_MASK		(~(LED_STATUS_G|LED_STATUS_Y|LED_STATUS_R))
 
 #define LED_R_LOW		Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_R_GPIO_PORT, LED_R_GPIO_PIN)
 #define LED_G_LOW		Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_G_GPIO_PORT, LED_G_GPIO_PIN)

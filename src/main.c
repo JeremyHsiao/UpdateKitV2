@@ -76,9 +76,8 @@ int main(void)
 	//lcm_demo();
 	lcm_content_init();
 	//LED_7seg_self_test();
-	LED_G_setting(0);
-	LED_R_setting(0);
-	LED_Y_setting(0);
+	LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
+	LED_Status_Set_Value(0);						// all off
 //	LED_Voltage_Current_Refresh_reload = DEFAULT_LED_DATA_CHANGE_SEC - 1;		// 3 second
 
 	init_filtered_input_current();
