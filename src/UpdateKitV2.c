@@ -73,16 +73,16 @@ void lcm_content_init_old(void)
 
 void lcm_reset_FW_VER_Content(void)
 {
-	// FW upgrade is done and show software version page				   1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][0], "FW:             ", LCM_DISPLAY_COL);
+	// FW upgrade is done and show software version page				   						 0123456789012345
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][0], 						"Upgrade:   0 Sec", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][0], 						"FW:             ", LCM_DISPLAY_COL);
 }
 
 void lcm_reset_Previous_FW_VER_Content(void)
 {
-	// FW upgrade info of previous update                				                        1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][0], "LastUPG:   0 Sec", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][0], "FW:             ", LCM_DISPLAY_COL);
+	// FW upgrade info of previous update                				                         0123456789012345
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][0], 	"LastUPG:   0 Sec", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][0], 	"FW:             ", LCM_DISPLAY_COL);
 }
 
 void lcm_content_init(void)
@@ -401,7 +401,7 @@ uint16_t Filtered_Input_voltage(uint16_t latest_voltage)
 static inline void Copy_Existing_FW_Upgrade_Info_to_Previous_Info(void)
 {
 	// Move existing FW upgrade info to previous update info page               				                        1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][11], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][11], 3);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][8], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][8], 5);
 	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][3], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], LCM_DISPLAY_COL-3);
 	lcm_reset_FW_VER_Content();
 }
