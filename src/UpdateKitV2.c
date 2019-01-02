@@ -18,6 +18,7 @@
 #include "UpdateKitV2.h"
 #include "build_defs.h"
 #include "event.h"
+#include "user_opt.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -25,11 +26,11 @@
 
 uint8_t		current_output_stage = DEFAULT_POWER_OUTPUT_STEP;
 //uint8_t		pwm_table[25] = { 100, 77, 76, 75, 74,   73, 72,  71, 70, 65,    64, 63, 54, 53, 52,     34, 33, 32, 31, 5,   4, 3, 2, 1, 0};
-const uint8_t		pwm_table[10] = { 100, 58,  49, 41,   33,   26,    19,   12,   4,   0};
+const uint8_t		pwm_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 100, 58,  49, 41,   33,   26,    19,   12,   4,   0};
 //Key toggle :				 0V, 6.0V ,6.5V, 7V,  7.5V, 8V,   8.5V, 9V,  9.5V, 10V
 						//	0 / 680 / 702 / 749 / 799 / 852 / 909 / 948/ 980
 
-const char *pwm_voltage_table [] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.7" };
+const char *pwm_voltage_table [POWER_OUTPUT_STEP_TOTAL_NO] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.7" };
 
 #define	CURRENT_HISTORY_DATA_SIZE	64
 static RINGBUFF_T current_history;
@@ -415,7 +416,7 @@ static inline void LCM_Fill_Version_String(void)
 
 static inline void Change_Output_Selection(void)
 {
-	if(++current_output_stage>=(sizeof(pwm_table)/sizeof(uint8_t)))
+	if(++current_output_stage>=POWER_OUTPUT_STEP_TOTAL_NO)
 	{
 		current_output_stage = 0;
 	}
@@ -632,6 +633,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 	{
 		case US_SYSTEM_BOOTUP_STATE:
 		case US_SYSTEM_WELCOME:
+			Load_User_Selection(&current_output_stage);
 			// Clear events if we want to check it at this state
 			EVENT_Button_pressed_debounced = false;
 			lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
@@ -648,13 +650,21 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			break;
 		case US_PC_MODE_VOLTAGE_LOW:
 			lcd_module_display_enable_only_one_page(LCM_PC_MODE);
-			lcd_module_display_enable_page(LCM_WELCOME_PAGE);
+			//lcd_module_display_enable_page(LCM_WELCOME_PAGE);
+			if(Check_if_different_from_last_ReadWrite(current_output_stage))
+			{
+				Save_User_Selection(current_output_stage);
+			}
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
 		case US_START_OUTPUT:
 			LED_Status_Set_Value(LED_STATUS_ALL);
 			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
 			PowerOutputSetting(current_output_stage);
+			if(Check_if_different_from_last_ReadWrite(current_output_stage))
+			{
+				Save_User_Selection(current_output_stage);
+			}
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// one-shot count down
 			break;
 		case US_WAIT_FOR_CURRENT_HIGH:

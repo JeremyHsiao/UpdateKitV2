@@ -54,11 +54,12 @@ extern UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state);
 #define LED_STATUS_TOGGLE_DURATION_IN_100MS			(5)			// 500ms
 
 #define	DEFAULT_POWER_OUTPUT_STEP				(0)
+#define POWER_OUTPUT_STEP_TOTAL_NO				(10)
 #define DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS	(600)
 #define DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS	(100)
 #define DEFAULT_LED_DATA_CHANGE_SEC				(3)
 #define DEFAULT_LED_REFRESH_EACH_DIGIT_MS		(1)
-#define DEFAULT_LCM_PAGE_CHANGE_S_WELCOME	(3)
+#define DEFAULT_LCM_PAGE_CHANGE_S_WELCOME		(3)
 #define DEFAULT_LCM_PAGE_CHANGE_S_OK			(5)
 #define DEFAULT_OK_THRESHOLD					(5)			// 5 times ok
 #define DEFAULT_INPUT_CURRENT_THRESHOLD			(10)		// 10ma
@@ -86,7 +87,5 @@ enum
 
 extern UPDATE_STATE	current_system_proc_state;
 extern uint8_t lcm_page_change_duration_in_sec;
-
-
 
 #endif /* UPDATEKITV2_H_ */
