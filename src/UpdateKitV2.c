@@ -71,23 +71,48 @@ void lcm_content_init_old(void)
      //lcd_module_display_enable[1]=1;
 }
 
-#define ELAPSE_TIME_POS	(9)
+// Across several pages
+#define ELAPSE_TIME_LEN 	(4)
+#define MAX_FW_VER_LEN		(LCM_DISPLAY_COL-3)
+
+// LCM_FW_UPGRADING_PAGE
+#define ELAPSE_TIME_POS		(8)
+#define ELAPSE_TIME_ROW 	(0)
+
+// LCM_FW_OK_VER_PAGE
+#define OK_TIME_POS			(8)
+#define OK_TIME_ROW 		(0)
+#define CURRENT_FW_POS 		(3)
+#define CURRENT_FW_ROW 		(1)
+
+// LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO
+#define PREVIOUS_TIME_POS	(8)
+#define PREVIOUS_TIME_ROW 	(0)
+#define PREVIOUS_FW_POS 	(3)
+#define PREVIOUS_FW_ROW 	(1)
+
+// LCM_FW_UPGRADE_TOO_LONG_PAGE
+#define TIMEOUT_TIME_POS	(8)
+#define TIMEOUT_TIME_ROW 	(0)
+
+// LCM_REMINDER_BEFORE_OUTPUT
+#define COUNTDOWN_TIME_LEN 	(1)
+#define COUNTDOWN_TIME_POS	(10)
+#define COUNTDOWN_TIME_ROW	(1)
 
 void lcm_reset_FW_VER_Content(void)
 {
 	// FW upgrade is done and show software version page				   						 0123456789012345
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][0], 						"Upgrade:   0 Sec", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][0], 						"FW:             ", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][ELAPSE_TIME_ROW][0], 		"Upgrade:   0 Sec", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][0], 			"FW:             ", LCM_DISPLAY_COL);
 }
 
 void lcm_reset_Previous_FW_VER_Content(void)
 {
-	// FW upgrade info of previous update                				                         0123456789012345
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][0], 	"LastUPG:   0 Sec", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][0], 	"FW:             ", LCM_DISPLAY_COL);
+	// FW upgrade info of previous update                				                         				 0123456789012345
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_TIME_ROW][0], 	"LastUPG:   0 Sec", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_FW_ROW][0], 	"FW:             ", LCM_DISPLAY_COL);
 }
-
-#define COUNTDOWN_TIME_POS	(10)
 
 void lcm_content_init(void)
 {
@@ -409,8 +434,8 @@ uint16_t Filtered_Input_voltage(uint16_t latest_voltage)
 static inline void Copy_Existing_FW_Upgrade_Info_to_Previous_Info(void)
 {
 	// Move existing FW upgrade info to previous update info page               				                        1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][0][ELAPSE_TIME_POS], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][ELAPSE_TIME_POS], 3);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][1][3], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], LCM_DISPLAY_COL-3);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_TIME_ROW][PREVIOUS_TIME_POS], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS], ELAPSE_TIME_LEN);
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_FW_ROW][PREVIOUS_FW_POS], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS], MAX_FW_VER_LEN);
 	lcm_reset_FW_VER_Content();
 }
 
@@ -418,8 +443,8 @@ static inline void LCM_Fill_Version_String(void)
 {
 	char	*temp_str = (char *) Get_VER_string();
 	uint8_t	temp_len = strlen(temp_str);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3], temp_str, temp_len);
-	memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][1][3+temp_len], ' ', LCM_DISPLAY_COL-3-(temp_len));
+	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS], temp_str, temp_len);
+	memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS+temp_len], ' ', MAX_FW_VER_LEN-(temp_len));
 }
 
 static inline void Change_Output_Selection(void)
@@ -541,7 +566,7 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 	{
 		case US_COUNTDOWN_BEFORE_OUTPUT:
 			// update countdown seconds to output on LCM
-			lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][1][COUNTDOWN_TIME_POS] = (Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER))+'0';	// Timer here should be 1000ms as unit
+			lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][COUNTDOWN_TIME_ROW][COUNTDOWN_TIME_POS] = (Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER))+'0';	// Timer here should be 1000ms as unit
 			break;
 		case US_PC_MODE_VOLTAGE_LOW:
 			//
@@ -551,9 +576,9 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 		case US_WAIT_FW_UPGRADE_OK_STRING:
 			// Update Upgrade-elapse-time because V/A are updated regularly with new ADC value
 			{
-				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][ELAPSE_TIME_POS];
-				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, 3);
-				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][ELAPSE_TIME_POS], (void *)content1, 3);
+				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS];
+				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, ELAPSE_TIME_LEN);
+//				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS], (void *)content1, 3);
 			}
 			break;
 		case US_FW_UPGRADE_DONE:
@@ -564,9 +589,9 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 		case US_UPGRADE_TOO_LONG:
 			// Update Upgrade-elapse-time
 			{
-				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADE_TOO_LONG_PAGE][0][ELAPSE_TIME_POS];
-				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, 3);
-				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][ELAPSE_TIME_POS], (void *)content1, 3);
+				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADE_TOO_LONG_PAGE][TIMEOUT_TIME_ROW][TIMEOUT_TIME_POS];
+				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, ELAPSE_TIME_LEN);
+//				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][ELAPSE_TIME_POS], (void *)content1, 3);
 			}
 			break;
 		case US_WAIT_FOR_CURRENT_HIGH:
@@ -709,6 +734,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			break;
 		case US_FW_UPGRADE_DONE:
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
+			itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS], ELAPSE_TIME_LEN);
 			max_upgrade_time_in_S = CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S));
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
 			lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
@@ -730,9 +756,9 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			//Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
 			{
-				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][9];
-				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, 3);
-				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][9], (void *)content1, 3);
+				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS];
+				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, ELAPSE_TIME_LEN);
+				//memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS], (void *)content1, ELAPSE_TIME_LEN);
 			}
 			//lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
 			Clear_OK_pattern_state();
