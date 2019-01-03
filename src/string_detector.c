@@ -56,6 +56,87 @@ void Clear_OK_pattern_state(void)
 	OK_cnt = 0;
 }
 
+uint32_t Read_OK_Count(void)
+{
+	return OK_cnt;
+}
+
+bool OK_pattern_process(char input_ch)
+{
+	bool	bRet = false;
+
+	// Skip '\r', '\n', ' '
+	if ((input_ch=='\r')||(input_ch=='\n')||(input_ch==' ')||(input_ch=='\t'))
+	{
+		//bRet = true;
+	}
+	else
+	{
+		switch(OK_state)
+		{
+			case 0:
+				if((input_ch=='O')||(input_ch=='o')) // Check "O"
+				{
+					OK_state = 1;
+				}
+				else
+				{
+					OK_state = 0;
+					OK_cnt = 0;
+				}
+				break;
+			case 1:
+				if((input_ch=='K')||(input_ch=='k')) // Check "K"
+				{
+					OK_state = 2;
+					OK_cnt++;
+				}
+				else
+				{
+					if((input_ch=='O')||(input_ch=='o')) // Check "O"
+					{
+						OK_state = 1;
+					}
+					else
+					{
+						OK_state = 0;
+						OK_cnt=0;
+					}
+				}
+				break;
+			case 2:
+				if((input_ch=='O')||(input_ch=='o')) // Check "O" -- after 1st OK
+				{
+					OK_state = 3;
+				}
+				else
+				{
+					OK_state = 0;
+					OK_cnt=0;
+				}
+				break;
+			case 3:
+				if((input_ch=='K')||(input_ch=='k')) // Check "K" -- after 1st OK
+				{
+					OK_state = 2;
+					OK_cnt++;
+				}
+				else
+				{
+					OK_state = 0;
+					OK_cnt=0;
+				}
+				break;
+			default:
+				OK_state = 0;
+				OK_cnt=0;
+				break;
+		}
+		return OK_cnt;
+	}
+	return bRet;
+}
+
 uint32_t locate_OK_pattern_process(char input_ch)
 {
 	// Skip '\r', '\n', ' '

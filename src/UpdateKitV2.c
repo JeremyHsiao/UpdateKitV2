@@ -96,6 +96,9 @@ void lcm_content_init_old(void)
 #define TIMEOUT_TIME_ROW 	(0)
 
 // LCM_REMINDER_BEFORE_OUTPUT
+#define OUTPUT_SELECT_LEN 	(3)
+#define OUTPUT_SELECT_POS	(12)
+#define OUTPUT_SELECT_ROW	(0)
 #define COUNTDOWN_TIME_LEN 	(1)
 #define COUNTDOWN_TIME_POS	(10)
 #define COUNTDOWN_TIME_ROW	(1)
@@ -151,8 +154,8 @@ void lcm_content_init(void)
     lcm_reset_Previous_FW_VER_Content();
 
 	// TV in standby page		     										   1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_WAIT_NEXT_UPDATE_PAGE][0][0], "TV is in Standby", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_WAIT_NEXT_UPDATE_PAGE][1][0], "Pls power on TV ", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][0][0], "TV is in Standby", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_TV_IN_STANDBY_PAGE][1][0], "Pls power on TV ", LCM_DISPLAY_COL);
 
 	// TV is entering ISP mode page		     							   1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_ENTER_ISP_PAGE][0][0], "Enter ISP mode  ", LCM_DISPLAY_COL);
@@ -174,29 +177,29 @@ void lcm_content_init(void)
 
 }
 
-void lcd_module_update_message_by_state(uint8_t lcm_msg_state)
-{
-	switch(lcm_msg_state)
-	{
-//		case LCM_WELCOME_PAGE:
+//void lcd_module_update_message_by_state(uint8_t lcm_msg_state)
+//{
+//	switch(lcm_msg_state)
+//	{
+////		case LCM_WELCOME_PAGE:
+////			break;
+////		case LCM_PC_MODE:
+////			break;
+//		case LCM_REMINDER_BEFORE_OUTPUT:
 //			break;
-//		case LCM_PC_MODE:
+//		case LCM_FW_UPGRADING_PAGE:
 //			break;
-		case LCM_REMINDER_BEFORE_OUTPUT:
-			break;
-		case LCM_FW_UPGRADING_PAGE:
-			break;
-		case LCM_FW_OK_VER_PAGE:
-			break;
-		case LCM_WAIT_NEXT_UPDATE_PAGE:
-			break;
-		case LCM_ENTER_ISP_PAGE:
-			break;
-		default:
-			break;
-	}
-}
-
+//		case LCM_FW_OK_VER_PAGE:
+//			break;
+//		case LCM_WAIT_NEXT_UPDATE_PAGE:
+//			break;
+//		case LCM_ENTER_ISP_PAGE:
+//			break;
+//		default:
+//			break;
+//	}
+//}
+//
 /**
  * @brief
  * @return
@@ -214,12 +217,12 @@ void SetRawCurrent(uint16_t current_new)
 	uint16_t	previous_filtered_current;
 
 	// Event checker
-	if((current_new>=DEFAULT_INPUT_CURRENT_THRESHOLD)&&(raw_current<DEFAULT_INPUT_CURRENT_THRESHOLD))
+	if((current_new>=DEFAULT_STANDBY_CURRENT_THRESHOLD)&&(raw_current<DEFAULT_STANDBY_CURRENT_THRESHOLD))
 	{
 		EVENT_raw_current_goes_above_threshold = true;
 	}
 	// Event checker
-	if((current_new<DEFAULT_INPUT_CURRENT_THRESHOLD)&&(raw_current>=DEFAULT_INPUT_CURRENT_THRESHOLD))
+	if((current_new<DEFAULT_STANDBY_CURRENT_THRESHOLD)&&(raw_current>=DEFAULT_STANDBY_CURRENT_THRESHOLD))
 	{
 		EVENT_raw_current_goes_below_threshold = true;
 	}
@@ -227,11 +230,11 @@ void SetRawCurrent(uint16_t current_new)
 	previous_filtered_current = filtered_current;
 	filtered_current = Filtered_Input_current(current_new);
 	// Event checker
-	if(filtered_current>=DEFAULT_INPUT_CURRENT_THRESHOLD)
+	if(filtered_current>=DEFAULT_STANDBY_CURRENT_THRESHOLD)
 	{
 		EVENT_filtered_current_above_threshold = true;
-		EVENT_filtered_current_below_threshold = false;
-		if(previous_filtered_current<DEFAULT_INPUT_CURRENT_THRESHOLD)
+		EVENT_filtered_current_below_threshold = EVENT_filtered_current_TV_standby = EVENT_filtered_current_no_output = false;
+		if(previous_filtered_current<DEFAULT_STANDBY_CURRENT_THRESHOLD)
 		{
 			EVENT_filtered_current_goes_above_threshold = true;
 		}
@@ -240,9 +243,20 @@ void SetRawCurrent(uint16_t current_new)
 	{
 		EVENT_filtered_current_above_threshold = false;
 		EVENT_filtered_current_below_threshold = true;
-		if(previous_filtered_current>=DEFAULT_INPUT_CURRENT_THRESHOLD)
+		if(previous_filtered_current>=DEFAULT_STANDBY_CURRENT_THRESHOLD)
 		{
 			EVENT_filtered_current_goes_below_threshold = true;
+		}
+
+		if(filtered_current<DEFAULT_NO_CURRENT_THRESHOLD)
+		{
+			EVENT_filtered_current_no_output = true;
+			EVENT_filtered_current_TV_standby = false;
+		}
+		else
+		{
+			EVENT_filtered_current_no_output = false;
+			EVENT_filtered_current_TV_standby = true;
 		}
 	}
 
@@ -489,69 +503,64 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 		case US_SYSTEM_WELCOME:
 			if(EVENT_Button_pressed_debounced)
 			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately switch to end-check
+				EVENT_Button_pressed_debounced = false;
+				return_next_state = US_CHECK_USER_SELECTION;
 			}
 			break;
 //		case US_CHECK_USER_SELECTION:
 //			break;
 		case US_COUNTDOWN_BEFORE_OUTPUT:
-			if(EVENT_Button_pressed_debounced)
-			{
-				Change_Output_Selection();
-				return_next_state = US_CHECK_USER_SELECTION;	// NOTE: change to specific state immediately after exit
-			}
-			break;
 		case US_PC_MODE_VOLTAGE_LOW:
 			if(EVENT_Button_pressed_debounced)
 			{
-				Change_Output_Selection();
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Immediately switch to end-check
 				EVENT_Button_pressed_debounced = false;
+				Change_Output_Selection();
+				return_next_state = US_CHECK_USER_SELECTION;
 			}
 			break;
 //		case US_START_OUTPUT:
 //			break;
-		case US_WAIT_FOR_CURRENT_HIGH:
+		case US_NO_CURRENT:
 			if(EVENT_filtered_current_above_threshold)
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Switch to end-check
+				return_next_state = US_CHECK_USER_SELECTION;
+			else if (EVENT_filtered_current_TV_standby)
+				return_next_state = US_TV_IN_STANDBY;
 			break;
 		case US_WAIT_FW_UPGRADE_OK_STRING:
+		case US_UPGRADE_TOO_LONG:
+			if(EVENT_Version_string_confirmed)
+			{
+				LCM_Fill_Version_String();
+				EVENT_Version_string_confirmed = false;
+			}
 			if(EVENT_OK_string_confirmed)
 			{
 				return_next_state = US_FW_UPGRADE_DONE;			// NOTE: change to specific state immediately after exit				EVENT_OK_string_confirmed = false;
 				EVENT_OK_string_confirmed = false;
 			}
-			if(EVENT_filtered_current_below_threshold)
+			else if(EVENT_filtered_current_below_threshold)
 			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Switch to end-check				// reset current upgrade info but do not overwrite previous one
-			}
-			if(EVENT_Version_string_confirmed)
-			{
-				LCM_Fill_Version_String();
-				EVENT_Version_string_confirmed = false;
+				return_next_state = US_WAIT_FOR_LOW_STABLE;
 			}
 			break;
 		case US_FW_UPGRADE_DONE:
-			if(EVENT_filtered_current_below_threshold)
-			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Switch to end-check
-			}
 			if(EVENT_Version_string_confirmed)
 			{
 				LCM_Fill_Version_String();
 				EVENT_Version_string_confirmed = false;
 			}
-			break;
-		case US_UPGRADE_TOO_LONG:
-			if(EVENT_OK_string_confirmed)
-			{
-				return_next_state = US_FW_UPGRADE_DONE;			// NOTE: change to specific state immediately after exit				EVENT_OK_string_confirmed = false;
-				EVENT_OK_string_confirmed = false;
-			}
+			// Next update is triggered
 			if(EVENT_filtered_current_below_threshold)
 			{
-				Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// Switch to end-check
+				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
+				return_next_state = US_WAIT_FOR_LOW_STABLE;
 			}
+			break;
+		case US_TV_IN_STANDBY:
+			if(EVENT_filtered_current_above_threshold)
+				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
+			else if (EVENT_filtered_current_no_output)
+				return_next_state = US_TV_LEAVE_STANDBY;
 			break;
 		default:
 			break;
@@ -569,32 +578,31 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 			lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][COUNTDOWN_TIME_ROW][COUNTDOWN_TIME_POS] = (Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER))+'0';	// Timer here should be 1000ms as unit
 			break;
 		case US_PC_MODE_VOLTAGE_LOW:
-			//
-			// Swap PC mode message & welcome message -- maybe could revise LCM page-swap with variable duration
-			//
+			// Save User Selection after 5 seconds
+			if(Check_if_different_from_last_ReadWrite(current_output_stage))
+			{
+				if(Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER)>=5)
+				{
+					Save_User_Selection(current_output_stage);
+				}
+			}
 			break;
 		case US_WAIT_FW_UPGRADE_OK_STRING:
 			// Update Upgrade-elapse-time because V/A are updated regularly with new ADC value
 			{
 				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS];
 				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, ELAPSE_TIME_LEN);
-//				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS], (void *)content1, 3);
 			}
-			break;
-		case US_FW_UPGRADE_DONE:
-			//
-			// Swap upgrade info
-			//
 			break;
 		case US_UPGRADE_TOO_LONG:
 			// Update Upgrade-elapse-time
 			{
-				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADE_TOO_LONG_PAGE][TIMEOUT_TIME_ROW][TIMEOUT_TIME_POS];
-				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, ELAPSE_TIME_LEN);
-//				memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][0][ELAPSE_TIME_POS], (void *)content1, 3);
+				uint8_t	elapse_time = Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S);
+				if(elapse_time<=9999)
+				{
+					itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)&lcd_module_display_content[LCM_FW_UPGRADE_TOO_LONG_PAGE][TIMEOUT_TIME_ROW][TIMEOUT_TIME_POS], ELAPSE_TIME_LEN);
+				}
 			}
-			break;
-		case US_WAIT_FOR_CURRENT_HIGH:
 			break;
 		default:
 			break;
@@ -618,52 +626,67 @@ UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state)
 				return_next_state = US_COUNTDOWN_BEFORE_OUTPUT;
 			else
 				return_next_state = US_PC_MODE_VOLTAGE_LOW;
-			//System_State_Proc_timer_in_ms = ~1; // this state always goes to next state so clear count-down timer here
 			break;
 		case US_COUNTDOWN_BEFORE_OUTPUT:
-			if(current_output_stage!=0)
-				return_next_state = US_START_OUTPUT;
-			else
-				return_next_state = US_PC_MODE_VOLTAGE_LOW;
-			//System_State_Proc_timer_in_ms = ~1; // this state always goes to next state so clear count-down timer here
-			break;
-		case US_PC_MODE_VOLTAGE_LOW:
-			return_next_state = US_CHECK_USER_SELECTION;
+			// Save Selection -- move to US_START_OUTPUT begin proc
+			return_next_state = US_START_OUTPUT;
 			break;
 		case US_START_OUTPUT:
-			return_next_state = US_WAIT_FOR_CURRENT_HIGH;
-			break;
-		case US_WAIT_FOR_CURRENT_HIGH:
 			if(EVENT_filtered_current_above_threshold)
-				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
-			break;
-		case US_WAIT_FW_UPGRADE_OK_STRING:
-			if(EVENT_filtered_current_below_threshold)
 			{
-				return_next_state = US_WAIT_FOR_NEXT_UPDATE;
-				lcm_reset_FW_VER_Content();
-				// Error LED status
-				LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
-				LED_Status_Set_Value(LED_STATUS_R);		// only LED_R
+				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
 			}
 			else
+			{
+				return_next_state = US_NO_CURRENT;
+			}
+			break;
+		case US_WAIT_FW_UPGRADE_OK_STRING:
 				return_next_state = US_UPGRADE_TOO_LONG;
 			break;
-		case US_FW_UPGRADE_DONE:
-			Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
-			Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
-			LED_Status_Set_Value(LED_STATUS_ALL);
-			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
-			return_next_state = US_WAIT_FOR_NEXT_UPDATE;
+//		case US_FW_UPGRADE_DONE:
+//			Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
+//			Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
+//			LED_Status_Set_Value(LED_STATUS_ALL);
+//			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
+//			return_next_state = US_READY_FOR_NEXT_UPDATE;
+//			break;
+//		case US_UPGRADE_TOO_LONG:
+//			Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
+//			LED_Status_Set_Value(LED_STATUS_ALL);
+//			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
+//			return_next_state = US_READY_FOR_NEXT_UPDATE;
+//			break;
+		case US_READY_FOR_NEXT_UPDATE:
+			return_next_state = US_NO_CURRENT;
 			break;
-		case US_UPGRADE_TOO_LONG:
-			Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
-			LED_Status_Set_Value(LED_STATUS_ALL);
-			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
-			return_next_state = US_WAIT_FOR_NEXT_UPDATE;
+		case US_TV_LEAVE_STANDBY:
+			if(EVENT_filtered_current_no_output)
+			{
+				return_next_state = US_READY_FOR_NEXT_UPDATE;
+			}
+			else if(EVENT_filtered_current_above_threshold)
+			{
+				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
+			}
+			else
+			{
+				return_next_state = US_TV_IN_STANDBY;
+			}
 			break;
-		case US_WAIT_FOR_NEXT_UPDATE:
-			return_next_state = US_WAIT_FOR_CURRENT_HIGH;
+		case US_WAIT_FOR_LOW_STABLE:
+			if(EVENT_filtered_current_TV_standby)
+			{
+				return_next_state = US_TV_IN_STANDBY;
+			}
+			else if(EVENT_filtered_current_above_threshold)
+			{
+				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
+			}
+			else
+			{
+				return_next_state = US_READY_FOR_NEXT_UPDATE;
+			}
 			break;
 		default:
 			break;
@@ -680,57 +703,61 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 		case US_SYSTEM_BOOTUP_STATE:
 		case US_SYSTEM_WELCOME:
 			Load_User_Selection(&current_output_stage);
-			// Clear events if we want to check it at this state
-			EVENT_Button_pressed_debounced = false;
 			lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
 			lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S-1),0,TIMER_S, false, true);		// one-shot count down
+			// Clear events if we want to check it at this state
+			EVENT_Button_pressed_debounced = false;
+			Countdown_Once(SYSTEM_STATE_PROC_TIMER,WELCOME_MESSAGE_DISPLAY_TIME_IN_S-1,TIMER_S);
 			break;
 		case US_CHECK_USER_SELECTION:
 			Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 			break;
 		case US_COUNTDOWN_BEFORE_OUTPUT:
-			memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][0][12], pwm_voltage_table[current_output_stage], 3);
+			memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][OUTPUT_SELECT_ROW][OUTPUT_SELECT_POS], pwm_voltage_table[current_output_stage], OUTPUT_SELECT_LEN);
 			lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(OUTPUT_REMINDER_DISPLAY_TIME_IN_S-1),0,TIMER_S, false, true);		// one-shot count down
+			Countdown_Once(SYSTEM_STATE_PROC_TIMER,OUTPUT_REMINDER_DISPLAY_TIME_IN_S,TIMER_S);		// one-shot count down
 			break;
 		case US_PC_MODE_VOLTAGE_LOW:
 			lcd_module_display_enable_only_one_page(LCM_PC_MODE);
 			//lcd_module_display_enable_page(LCM_WELCOME_PAGE);
-			if(Check_if_different_from_last_ReadWrite(current_output_stage))
-			{
-				Save_User_Selection(current_output_stage);
-			}
+			// Move to System_State_Running_Proc() and execute it after 5 seconds.
+//			if(Check_if_different_from_last_ReadWrite(current_output_stage))
+//			{
+//				Save_User_Selection(current_output_stage);
+//			}
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
 		case US_START_OUTPUT:
 			LED_Status_Set_Value(LED_STATUS_ALL);
 			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
 			PowerOutputSetting(current_output_stage);
+			// Upgrade elapse timer: starting from 0 / 1000ms each count / upcount /oneshot
+			Start_SW_Timer(UPGRADE_ELAPSE_IN_S,0,~1,TIMER_S, true, true);
 			if(Check_if_different_from_last_ReadWrite(current_output_stage))
 			{
 				Save_User_Selection(current_output_stage);
 			}
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS-1),0,TIMER_MS, false, true);		// one-shot count down
-			break;
-		case US_WAIT_FOR_CURRENT_HIGH:
 			lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
-			// Upgrade elapse timer: starting from 0 / 1000ms each count / upcount /oneshot
+			Countdown_Once(SYSTEM_STATE_PROC_TIMER,DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS,TIMER_MS);		// one-shot count down
+			break;
+		case US_NO_CURRENT:
+			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
+			Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
 		case US_WAIT_FW_UPGRADE_OK_STRING:
-			Start_SW_Timer(UPGRADE_ELAPSE_IN_S,0,~1,TIMER_S, true, true);
+			Play_SW_Timer(UPGRADE_ELAPSE_IN_S);
 			// Clear events if we want to check it at this state
 			EVENT_OK_string_confirmed = false;
 			EVENT_Version_string_confirmed = false;
 			Clear_OK_pattern_state();
 			Clear_POWERON_pattern();
 			Clear_VER_string();
-			//lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
+			lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
 			LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
 			LED_Status_Set_Value(LED_STATUS_Y);		// only LED_Y
 			LED_Status_Set_Auto_Toggle(LED_STATUS_Y,LED_STATUS_TOGGLE_DURATION_IN_100MS,~1);
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,(max_upgrade_time_in_S-1),0,TIMER_S, false, true);		// one-shot count down
+			Countdown_Once(SYSTEM_STATE_PROC_TIMER,max_upgrade_time_in_S,TIMER_S);		// one-shot count down
 			break;
 		case US_FW_UPGRADE_DONE:
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
@@ -748,11 +775,11 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
 			LED_Status_Set_Value(LED_STATUS_R);		// only LED_R
 			lcd_module_display_enable_only_one_page(LCM_FW_UPGRADE_TOO_LONG_PAGE);
-			lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
+			//lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
 			//max_upgrade_time_in_S = CHANGE_FW_MAX_UPDATE_TIME_AFTER_TOO_LONG(max_upgrade_time_in_S);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;
-		case US_WAIT_FOR_NEXT_UPDATE:
+		case US_READY_FOR_NEXT_UPDATE:
 			//Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
 			{
@@ -761,10 +788,26 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 				//memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS], (void *)content1, ELAPSE_TIME_LEN);
 			}
 			//lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
+			LED_Status_Set_Value(LED_STATUS_ALL);
+			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
+			lcd_module_display_enable_only_one_page(LCM_TV_IN_STANDBY_PAGE);
 			Clear_OK_pattern_state();
 			Clear_POWERON_pattern();
 			Clear_VER_string();
 			Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
+			break;
+		case US_TV_IN_STANDBY:
+			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
+			Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
+			LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
+			LED_Status_Set_Value(LED_STATUS_R);		// only LED_R
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
+			break;
+		case US_TV_LEAVE_STANDBY:
+			Countdown_Once(SYSTEM_STATE_PROC_TIMER,DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS,TIMER_MS);		// one-shot count down
+			break;
+		case US_WAIT_FOR_LOW_STABLE:
+			Countdown_Once(SYSTEM_STATE_PROC_TIMER,DEFAULT_HIGH_TO_LOW_DEBOUNCE_TIME_MS,TIMER_MS);		// one-shot count down
 			break;
 		default:
 			break;
