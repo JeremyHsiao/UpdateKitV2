@@ -43,7 +43,7 @@
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
-bool sequenceComplete, thresholdCrossed;
+bool sequenceComplete = false, thresholdCrossed = false;
 
 /*****************************************************************************
  * Private functions
