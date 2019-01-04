@@ -102,6 +102,7 @@ extern void Clear_SW_TIMER_Reload_Flag(TIMER_ID timer_no);
 extern void Raise_SW_TIMER_Reload_Flag(TIMER_ID timer_no);
 extern bool Set_SW_Timer_Count(TIMER_ID timer_no, uint32_t new_count);
 
-#define Countdown_Once(id,duration,unit)		Start_SW_Timer(id,(duration-1),0,unit, false, true)
+#define Countdown_Once(id,duration,unit)			Start_SW_Timer(id,(duration-1),0,unit, false, true)
+#define Repeat_DownCounter(id,duration,unit)		Start_SW_Timer(id,(duration-1),(duration-1),unit, false, false)
 
 #endif /* SW_TIMER_H_ */

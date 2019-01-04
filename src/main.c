@@ -70,21 +70,26 @@ int main(void)
 	Init_ADC();
 	Init_LCD_Module_GPIO();
 
-	Start_SW_Timer(LCD_MODULE_INTERNAL_DELAY_IN_MS,0,0,TIMER_MS, false, false);		// repeat count down
+	// This is used for (1) software delay within lcm_sw_init() (2) regular content update lcm_auto_display_refresh_task() in main loop
+	Repeat_DownCounter(LCD_MODULE_INTERNAL_DELAY_IN_MS,(LONGER_DELAY_US/1000),TIMER_MS);	// Take longer delay for more tolerance of all possible LCM usages.
 	lcm_sw_init();
 	lcm_auto_display_init();
 	lcm_content_init();
-	Start_SW_Timer(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S,(lcm_page_change_duration_in_sec-1),(lcm_page_change_duration_in_sec-1),TIMER_S, false, false);  // countdown / repeated
+	//Start_SW_Timer(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S,(lcm_page_change_duration_in_sec-1),(lcm_page_change_duration_in_sec-1),TIMER_S, false, false);  // countdown / repeated
+	Repeat_DownCounter(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S,lcm_page_change_duration_in_sec,TIMER_S);
 
 	//LED_7seg_self_test();
 	LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
 	LED_Status_Set_Value(0);						// all off
 
-	Start_SW_Timer(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS,0,(DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS-1),TIMER_MS, false, false);
+	//Start_SW_Timer(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS,0,(DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS-1),TIMER_MS, false, false);
+	Repeat_DownCounter(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS,DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS,TIMER_MS);
 	// LED display data swap timer: starting from DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1 / reload-upper-value / 1000ms each count / downcount / not-oneshot
-	Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1),(DEFAULT_LED_DATA_CHANGE_SEC-1),TIMER_S, false, false);
+	//Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1),(DEFAULT_LED_DATA_CHANGE_SEC-1),TIMER_S, false, false);
+	Repeat_DownCounter(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,DEFAULT_LED_DATA_CHANGE_SEC,TIMER_S);
 	// count-down, repeated (not one shot timer)
-	Start_SW_Timer(LED_REFRESH_EACH_DIGIT_TIMER_MS,0,(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),TIMER_MS, false, false);
+	//Start_SW_Timer(LED_REFRESH_EACH_DIGIT_TIMER_MS,0,(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),TIMER_MS, false, false);
+	Repeat_DownCounter(LED_REFRESH_EACH_DIGIT_TIMER_MS,DEFAULT_LED_REFRESH_EACH_DIGIT_MS,TIMER_MS);
 //	// count-down, one-shot timer
 //	Countdown_Once(SYSTEM_STATE_PROC_TIMER,0,TIMER_MS);		// one-shot count down
 

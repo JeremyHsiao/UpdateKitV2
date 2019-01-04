@@ -162,17 +162,20 @@ void LED_Status_Set_Auto_Toggle(uint32_t LED_status_pin, uint8_t flashing_100ms,
 	if(LED_status_pin & LED_STATUS_G)
 	{
 		LED_G_toggle_cnt = flashing_cnt;
-		Start_SW_Timer(LED_G_TIMER_IN_100MS,flashing_100ms-1,flashing_100ms-1,TIMER_100MS, false, false);		// countdown / repeated
+		//Start_SW_Timer(LED_G_TIMER_IN_100MS,flashing_100ms-1,flashing_100ms-1,TIMER_100MS, false, false);		// countdown / repeated
+		Repeat_DownCounter(LED_G_TIMER_IN_100MS,flashing_100ms,TIMER_100MS);
 	}
 	if(LED_status_pin & LED_STATUS_Y)
 	{
 		LED_Y_toggle_cnt = flashing_cnt;
-		Start_SW_Timer(LED_Y_TIMER_IN_100MS,flashing_100ms-1,flashing_100ms-1,TIMER_100MS, false, false);		// countdown / repeated
+		//Start_SW_Timer(LED_Y_TIMER_IN_100MS,flashing_100ms-1,flashing_100ms-1,TIMER_100MS, false, false);		// countdown / repeated
+		Repeat_DownCounter(LED_Y_TIMER_IN_100MS,flashing_100ms,TIMER_100MS);
 	}
 	if(LED_status_pin & LED_STATUS_R)
 	{
 		LED_R_toggle_cnt = flashing_cnt;
-		Start_SW_Timer(LED_R_TIMER_IN_100MS,flashing_100ms-1,flashing_100ms-1,TIMER_100MS, false, false);		// countdown / repeated
+		//Start_SW_Timer(LED_R_TIMER_IN_100MS,flashing_100ms-1,flashing_100ms-1,TIMER_100MS, false, false);		// countdown / repeated
+		Repeat_DownCounter(LED_R_TIMER_IN_100MS,flashing_100ms,TIMER_100MS);
 	}
 }
 
