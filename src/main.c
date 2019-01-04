@@ -85,8 +85,8 @@ int main(void)
 	Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1),(DEFAULT_LED_DATA_CHANGE_SEC-1),TIMER_S, false, false);
 	// count-down, repeated (not one shot timer)
 	Start_SW_Timer(LED_REFRESH_EACH_DIGIT_TIMER_MS,0,(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),TIMER_MS, false, false);
-	// count-down, one-shot timer
-	Countdown_Once(SYSTEM_STATE_PROC_TIMER,0,TIMER_MS);		// one-shot count down
+//	// count-down, one-shot timer
+//	Countdown_Once(SYSTEM_STATE_PROC_TIMER,0,TIMER_MS);		// one-shot count down
 
 	reset_string_detector();
 //	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer

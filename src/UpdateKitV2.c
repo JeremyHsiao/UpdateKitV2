@@ -662,6 +662,9 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 	UPDATE_STATE return_next_state = current_state;
 	switch(current_state)
 	{
+		case US_SYSTEM_BOOTUP_STATE:
+			return_next_state = US_SYSTEM_WELCOME;
+			break;
 		case US_COUNTDOWN_BEFORE_OUTPUT:
 			// update countdown seconds to output on LCM
 			lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][COUNTDOWN_TIME_ROW][COUNTDOWN_TIME_POS] = (Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER))+'0';	// Timer here should be 1000ms as unit
