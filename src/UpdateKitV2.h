@@ -16,14 +16,14 @@ typedef enum
 	US_COUNTDOWN_BEFORE_OUTPUT,
 	US_PC_MODE_VOLTAGE_LOW,
 	US_START_OUTPUT,
-	US_NO_CURRENT,
+//	US_NO_CURRENT,
 	US_WAIT_FW_UPGRADE_OK_STRING,
 	US_FW_UPGRADE_DONE,
 	US_UPGRADE_TOO_LONG,
 	US_READY_FOR_NEXT_UPDATE,
 	US_TV_IN_STANDBY,
-	US_TV_LEAVE_STANDBY,
-	US_WAIT_FOR_LOW_STABLE,
+//	US_TV_LEAVE_STANDBY,
+//	US_WAIT_FOR_LOW_STABLE,
 	US_MAX_STATE_NO
 } UPDATE_STATE;
 
@@ -43,6 +43,7 @@ extern void init_filtered_input_current(void);
 extern uint16_t Filtered_Input_current(uint16_t latest_current);
 extern void init_filtered_input_voltage(void);
 extern uint16_t Filtered_Input_voltage(uint16_t latest_voltage);
+extern void ResetCurrentDebounceTimer(void);
 extern bool UART_input_processor(uint8_t key);
 extern bool Event_Proc_State_Independent(void);
 extern UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state);
@@ -59,19 +60,23 @@ extern UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state);
 #define	DEFAULT_POWER_OUTPUT_STEP				(0)
 #define POWER_OUTPUT_STEP_TOTAL_NO				(10)
 #define DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS	(800)
-#define DEFAULT_LEAVE_STANDBY_DEBOUNCE_TIME_MS	(800)
-#define DEFAULT_HIGH_TO_LOW_DEBOUNCE_TIME_MS	(800)
+//#define DEFAULT_LEAVE_STANDBY_DEBOUNCE_TIME_MS	(800)
+//#define DEFAULT_HIGH_TO_LOW_DEBOUNCE_TIME_MS	(800)
 #define DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS	(100)
 #define DEFAULT_LED_DATA_CHANGE_SEC				(3)
 #define DEFAULT_LED_REFRESH_EACH_DIGIT_MS		(1)
 #define DEFAULT_LCM_PAGE_CHANGE_S_WELCOME		(3)
 #define DEFAULT_LCM_PAGE_CHANGE_S_OK			(5)
 #define DEFAULT_OK_THRESHOLD					(5)			// 5 times ok
-#define DEFAULT_STANDBY_CURRENT_THRESHOLD		(20)		// 20ma
-#define DEFAULT_NO_CURRENT_THRESHOLD			(10)
+#define DEFAULT_STANDBY_CURRENT_THRESHOLD		(40)		// 40ma
+#define DEFAULT_NO_CURRENT_THRESHOLD			(9)			// 9ma
+#define DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS	(50)		// 5S
+#define DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS		(20)		// 2.5S
 
-#define CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(x)		(x*3/2)
-#define CHANGE_FW_MAX_UPDATE_TIME_AFTER_TOO_LONG(x)	(x*3/2)
+#define CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(x)		(((x*3)+1)/2)
+#define CHANGE_FW_MAX_UPDATE_TIME_AFTER_TOO_LONG(x)	(((x*3)+1)/2)
+
+//#define POWERON_IS_DETECTING
 
 enum
 {

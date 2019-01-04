@@ -39,7 +39,7 @@ typedef	struct {
 	unsigned	timeup_flag:1;			// countdown to 0 or countup to reload_value
 } SW_TIMER;
 
-enum
+typedef enum
 {
 	UPGRADE_ELAPSE_IN_S = 0,
 	LED_G_TIMER_IN_100MS,
@@ -53,17 +53,19 @@ enum
 	SYSTEM_STATE_PROC_TIMER,
 	SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS,
 	LCD_MODULE_INTERNAL_DELAY_IN_MS,
+	FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,
+	FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,
 	SW_TIMER_MAX_NO
-};
+} TIMER_ID;
 
-enum
+typedef enum
 {
 	TIMER_MS = 0,
 	TIMER_10MS,
 	TIMER_100MS,
 	TIMER_S,
 	TIMER_UNIT_MAX_NO
-};
+} TIMER_UNIT_ID;
 
 extern SW_TIMER	sw_timer[];
 
@@ -90,15 +92,15 @@ extern uint32_t		System_State_Proc_timer_in_ms;
 extern uint8_t time_elapse_str[];
 extern void Update_Elapse_Timer(void);
 
-extern bool Start_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot);
-extern bool Init_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot);
-extern bool Pause_SW_Timer(uint8_t timer_no);
-extern bool Play_SW_Timer(uint8_t timer_no);
-extern uint32_t Read_SW_TIMER_Value(uint8_t timer_no);
-extern bool Read_and_Clear_SW_TIMER_Reload_Flag(uint8_t timer_no);
-extern void Clear_SW_TIMER_Reload_Flag(uint8_t timer_no);
-extern void Raise_SW_TIMER_Reload_Flag(uint8_t timer_no);
-extern bool Set_SW_Timer_Count(uint8_t timer_no, uint32_t new_count);
+extern bool Start_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_value, TIMER_UNIT_ID unit, bool upcount, bool oneshot);
+extern bool Init_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_value, TIMER_UNIT_ID unit, bool upcount, bool oneshot);
+extern bool Pause_SW_Timer(TIMER_ID timer_no);
+extern bool Play_SW_Timer(TIMER_ID timer_no);
+extern uint32_t Read_SW_TIMER_Value(TIMER_ID timer_no);
+extern bool Read_and_Clear_SW_TIMER_Reload_Flag(TIMER_ID timer_no);
+extern void Clear_SW_TIMER_Reload_Flag(TIMER_ID timer_no);
+extern void Raise_SW_TIMER_Reload_Flag(TIMER_ID timer_no);
+extern bool Set_SW_Timer_Count(TIMER_ID timer_no, uint32_t new_count);
 
 #define Countdown_Once(id,duration,unit)		Start_SW_Timer(id,(duration-1),0,unit, false, true)
 

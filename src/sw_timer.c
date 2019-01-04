@@ -63,7 +63,7 @@ SW_TIMER	sw_timer[SW_TIMER_MAX_NO];
 //	unsigned	running:1;
 //} SW_TIMER;
 
-bool Start_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot)
+bool Start_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_value, TIMER_UNIT_ID unit, bool upcount, bool oneshot)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
 	ptr->counts = default_count;
@@ -77,7 +77,7 @@ bool Start_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_val
 	return true;			// always successful at the moment
 }
 
-bool Init_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_value, uint8_t unit, bool upcount, bool oneshot)
+bool Init_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_value, TIMER_UNIT_ID unit, bool upcount, bool oneshot)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
 	ptr->counts = default_count;
@@ -91,34 +91,34 @@ bool Init_SW_Timer(uint8_t timer_no, uint32_t default_count, uint32_t upper_valu
 	return true;			// always successful at the moment
 }
 
-bool Set_SW_Timer_Count(uint8_t timer_no, uint32_t new_count)
+bool Set_SW_Timer_Count(TIMER_ID timer_no, uint32_t new_count)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
 	ptr->counts = new_count;
 	return true;			// always successful at the moment
 }
 
-bool Pause_SW_Timer(uint8_t timer_no)
+bool Pause_SW_Timer(TIMER_ID timer_no)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
 	ptr->running = 0;
 	return true;			// always successful at the moment
 }
 
-bool Play_SW_Timer(uint8_t timer_no)
+bool Play_SW_Timer(TIMER_ID timer_no)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
 	ptr->running = 1;
 	return true;			// always successful at the moment
 }
 
-uint32_t Read_SW_TIMER_Value(uint8_t timer_no)
+uint32_t Read_SW_TIMER_Value(TIMER_ID timer_no)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
 	return ptr->counts;
 }
 
-bool Read_and_Clear_SW_TIMER_Reload_Flag(uint8_t timer_no)
+bool Read_and_Clear_SW_TIMER_Reload_Flag(TIMER_ID timer_no)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
 	if(ptr->timeup_flag)
@@ -132,7 +132,7 @@ bool Read_and_Clear_SW_TIMER_Reload_Flag(uint8_t timer_no)
 	}
 }
 
-void Raise_SW_TIMER_Reload_Flag(uint8_t timer_no)
+void Raise_SW_TIMER_Reload_Flag(TIMER_ID timer_no)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
 	ptr->timeup_flag = 1;

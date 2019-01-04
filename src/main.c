@@ -79,20 +79,23 @@ int main(void)
 	//LED_7seg_self_test();
 	LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
 	LED_Status_Set_Value(0);						// all off
-//	LED_Voltage_Current_Refresh_reload = DEFAULT_LED_DATA_CHANGE_SEC - 1;		// 3 second
 
-	init_filtered_input_current();
-	init_filtered_input_voltage();
 	Start_SW_Timer(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS,0,(DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS-1),TIMER_MS, false, false);
 	// LED display data swap timer: starting from DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1 / reload-upper-value / 1000ms each count / downcount / not-oneshot
 	Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1),(DEFAULT_LED_DATA_CHANGE_SEC-1),TIMER_S, false, false);
 	// count-down, repeated (not one shot timer)
 	Start_SW_Timer(LED_REFRESH_EACH_DIGIT_TIMER_MS,0,(DEFAULT_LED_REFRESH_EACH_DIGIT_MS-1),TIMER_MS, false, false);
 	// count-down, one-shot timer
-	Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,0,TIMER_MS, false, true);		// one-shot count down
+	Countdown_Once(SYSTEM_STATE_PROC_TIMER,0,TIMER_MS);		// one-shot count down
 
 	reset_string_detector();
 //	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer
+
+	// Force to ADC again before entering main loop
+	Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
+	sequenceComplete=false;
+	init_filtered_input_current();
+	init_filtered_input_voltage();
 
 	// Endless loop at the moment
 	while (1)
