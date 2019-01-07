@@ -120,6 +120,7 @@
 
 #define LED_DISPLAY_PAGE		(2)
 #define LED_DISPLAY_COL			(4)
+#define	LED_GPIO_NO				(3)
 extern uint8_t led_7SEG_display_content[LED_DISPLAY_PAGE][LED_DISPLAY_COL];
 extern uint8_t led_7SEG_display_enable[LED_DISPLAY_PAGE];
 extern uint8_t led_7SEG_display_dp[LED_DISPLAY_PAGE];			// 1-4, 0 means no dp

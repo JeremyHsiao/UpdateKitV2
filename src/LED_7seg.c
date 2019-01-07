@@ -9,8 +9,8 @@
 #include "LED_7seg.h"
 #include "sw_timer.h"
 
-uint32_t	gpio_mask[3];
-uint8_t		/*led_7seg_message[4], dp_point,*/ next_refresh_index;
+uint32_t	gpio_mask[LED_GPIO_NO];
+uint8_t		/*led_7seg_message[LED_DISPLAY_COL], dp_point,*/ next_refresh_index;
 
 uint8_t const LED_7SEG_GPIO_LUT[] =
 {
@@ -101,7 +101,36 @@ uint8_t const LED_character_index_LUT[] =
 };
 
 // This array stores actual GPIO output value calculated during Init_LED_7seg_GPIO()
-uint32_t LED_Char_GPIO_Output_Value_LUT[sizeof(LED_character_index_LUT)];
+uint32_t LED_Char_GPIO_Output_Value_LUT[sizeof(LED_character_index_LUT)*LED_GPIO_NO]; // 3 GPIO values
+
+static inline void LED_Char_GPIO_Output_Value_LUT_Generator(void)
+{
+	uint32_t 		out_port[LED_GPIO_NO], *ptr_out_port_value;
+	uint8_t const 	*ptr_char_def_lut;
+	uint8_t			temp_char_index;
+
+	ptr_char_def_lut = LED_character_definition_LUT;
+	ptr_out_port_value = LED_Char_GPIO_Output_Value_LUT;
+
+	for(temp_char_index=0;temp_char_index<sizeof(LED_character_index_LUT);temp_char_index++)
+	{
+		// Init port data
+		out_port[0] = out_port[1] = out_port[2] = 0;
+
+		// Please note that first 7 element of LED_7SEG_GPIO_LUT is LED_a~g
+		if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGa_PORT] |= 1L<<(LED_7SEG_SEGa_PIN);}
+		if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGb_PORT] |= 1L<<(LED_7SEG_SEGb_PIN);}
+		if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGc_PORT] |= 1L<<(LED_7SEG_SEGc_PIN);}
+		if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGd_PORT] |= 1L<<(LED_7SEG_SEGd_PIN);}
+		if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGe_PORT] |= 1L<<(LED_7SEG_SEGe_PIN);}
+		if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGf_PORT] |= 1L<<(LED_7SEG_SEGf_PIN);}
+		if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGg_PORT] |= 1L<<(LED_7SEG_SEGg_PIN);}
+
+		*ptr_out_port_value++ = out_port[0];
+		*ptr_out_port_value++ = out_port[1];
+		*ptr_out_port_value++ = out_port[2];
+	}
+}
 
 void Init_LED_7seg_GPIO(void)
 {
@@ -142,13 +171,15 @@ void Init_LED_7seg_GPIO(void)
 	LPC_GPIO->MASK[1] = gpio_mask[1];
 	LPC_GPIO->MASK[2] = gpio_mask[2];
 	LPC_GPIO->MPIN[0] = LPC_GPIO->MPIN[1] = LPC_GPIO->MPIN[2] = 0;
+
+	LED_Char_GPIO_Output_Value_LUT_Generator();
 }
 
 void Update_LED_7SEG_Message_Buffer(uint8_t page, uint8_t *msg, uint8_t new_dp_point)
 {
 	uint8_t	temp_msg_index, temp_char_index, temp_char;
 
-	temp_msg_index = 4;
+	temp_msg_index = LED_DISPLAY_COL;
 	while(temp_msg_index-->0)
 	{
 		temp_char = msg[temp_msg_index];
@@ -162,7 +193,7 @@ void Update_LED_7SEG_Message_Buffer(uint8_t page, uint8_t *msg, uint8_t new_dp_p
 			}
 		}
 	}
-	if(new_dp_point<=4)
+	if(new_dp_point<=LED_DISPLAY_COL)
 	{
 		led_7SEG_display_dp[page] = new_dp_point;
 	}
@@ -225,8 +256,8 @@ uint8_t led_7SEG_display_dp[LED_DISPLAY_PAGE];			// 1-4, 0 means no dp
 
 void refresh_LED_7SEG_periodic_task(void)
 {
-	uint32_t 		out_port[3];
-	uint8_t const 	*ptr_char_def_lut;
+	uint32_t 		out_port[LED_GPIO_NO], *ptr_port_value;
+	//uint8_t const 	*ptr_char_def_lut;
 	uint8_t			page, col, display_char;
 
 	// Get current page & current col
@@ -255,17 +286,21 @@ void refresh_LED_7SEG_periodic_task(void)
 	}
 
 	// Init port data & pointer to LUT
-	out_port[0] = out_port[1] = out_port[2] = 0;
-	ptr_char_def_lut = LED_character_definition_LUT + (display_char*LED_character_definition_LUT_width);
-
-	// Please note that first 7 element of LED_7SEG_GPIO_LUT is LED_a~g
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGa_PORT] |= 1L<<(LED_7SEG_SEGa_PIN);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGb_PORT] |= 1L<<(LED_7SEG_SEGb_PIN);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGc_PORT] |= 1L<<(LED_7SEG_SEGc_PIN);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGd_PORT] |= 1L<<(LED_7SEG_SEGd_PIN);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGe_PORT] |= 1L<<(LED_7SEG_SEGe_PIN);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGf_PORT] |= 1L<<(LED_7SEG_SEGf_PIN);}
-	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGg_PORT] |= 1L<<(LED_7SEG_SEGg_PIN);}
+//	out_port[0] = out_port[1] = out_port[2] = 0;
+//	ptr_char_def_lut = LED_character_definition_LUT + (display_char*LED_character_definition_LUT_width);
+//
+//	// Please note that first 7 element of LED_7SEG_GPIO_LUT is LED_a~g
+//	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGa_PORT] |= 1L<<(LED_7SEG_SEGa_PIN);}
+//	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGb_PORT] |= 1L<<(LED_7SEG_SEGb_PIN);}
+//	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGc_PORT] |= 1L<<(LED_7SEG_SEGc_PIN);}
+//	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGd_PORT] |= 1L<<(LED_7SEG_SEGd_PIN);}
+//	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGe_PORT] |= 1L<<(LED_7SEG_SEGe_PIN);}
+//	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGf_PORT] |= 1L<<(LED_7SEG_SEGf_PIN);}
+//	if(*ptr_char_def_lut++) {out_port[LED_7SEG_SEGg_PORT] |= 1L<<(LED_7SEG_SEGg_PIN);}
+	ptr_port_value = LED_Char_GPIO_Output_Value_LUT+(display_char*LED_GPIO_NO);
+	out_port[0] = *ptr_port_value++;
+	out_port[1] = *ptr_port_value++;
+	out_port[2] = *ptr_port_value++;
 
 	col++; // In processing LED position, column is 1-4 instead of 0-3
 	// Please note that next element of LED_7SEG_GPIO_LUT is LED_dp
@@ -303,7 +338,7 @@ void refresh_LED_7SEG_periodic_task(void)
 
 //void LED_7seg_self_test(void)
 //{
-//	uint32_t 		out_port[3];
+//	uint32_t 		out_port[LED_GPIO_NO];
 //	uint8_t			temp_io_index, *temp_io_data_ptr;
 //	uint8_t			test_pin_high_low[12] = { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0}; // a b c d e f g dp 1 2 3 4
 //
@@ -331,7 +366,7 @@ void refresh_LED_7SEG_periodic_task(void)
 //	while(temp_io_index>0);
 //
 //	// output to gpio with mask
-//	temp_io_index = 3;
+//	temp_io_index = LED_GPIO_NO;
 //	while(temp_io_index-->0)
 //	{
 //		LPC_GPIO->MASK[temp_io_index] = ~gpio_mask[temp_io_index];
