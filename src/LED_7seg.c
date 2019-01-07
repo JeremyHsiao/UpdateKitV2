@@ -9,7 +9,7 @@
 #include "LED_7seg.h"
 #include "sw_timer.h"
 
-uint32_t	gpio_mask[LED_GPIO_NO];
+uint32_t	segment_dp_gpio_mask[LED_GPIO_NO], digit_gpio_mask[LED_GPIO_NO];
 uint8_t		/*led_7seg_message[LED_DISPLAY_COL], dp_point,*/ next_refresh_index;
 
 uint8_t const LED_7SEG_GPIO_LUT[] =
@@ -136,10 +136,10 @@ void Init_LED_7seg_GPIO(void)
 {
 	uint8_t const 	*prt_7seg_gpio_lut;
 	uint32_t const 	*prt_7seg_gpio_iofunc_lut;
+	uint8_t			temp_index;
 
 	// Init variables
 	next_refresh_index=0;
-	gpio_mask[0]=gpio_mask[1]=gpio_mask[2]= ~(0);			// 0 means bits to be written
 	//led_7seg_message[0]=led_7seg_message[1]=led_7seg_message[2]=led_7seg_message[3]=dp_point=0;
 	led_7SEG_display_enable[LED_VOLTAGE_PAGE] = led_7SEG_display_enable[LED_CURRENT_PAGE] = 1;
 	Update_LED_7SEG_Message_Buffer(LED_VOLTAGE_PAGE,(uint8_t*)"000U",1);
@@ -148,6 +148,8 @@ void Init_LED_7seg_GPIO(void)
 	// Init all LED 7SEG IO port by using table LED_7SEG_GPIO_LUT & LED_7SEG_GPIO_IOFUNC_LUT
 	prt_7seg_gpio_lut = LED_7SEG_GPIO_LUT;
 	prt_7seg_gpio_iofunc_lut = LED_7SEG_GPIO_IOFUNC_LUT;
+	temp_index=0;
+	segment_dp_gpio_mask[0] = segment_dp_gpio_mask[1] = segment_dp_gpio_mask[2] = digit_gpio_mask[0] = digit_gpio_mask[1] = digit_gpio_mask[2] = ~(0);			// 0 means bits to be written
 	while (prt_7seg_gpio_iofunc_lut<LED_7SEG_GPIO_IOFUNC_LUT+(sizeof(LED_7SEG_GPIO_IOFUNC_LUT)/sizeof(uint32_t)))
 	{
 		uint8_t	port_no, pin_no;
@@ -159,18 +161,24 @@ void Init_LED_7seg_GPIO(void)
 
 		// Set as output
 		Chip_GPIO_SetPinDIROutput(LPC_GPIO, port_no, pin_no);
-		gpio_mask[port_no] &= ~(1L<<(pin_no));
-
 		// Set as gpio
 		Chip_IOCON_PinMuxSet(LPC_IOCON, port_no, pin_no, (*prt_7seg_gpio_iofunc_lut));
+
+		// store GPIO mask value
+		if(temp_index++<8)				// if within 7-segment & dp (total 8)
+			segment_dp_gpio_mask[port_no] &= ~(1L<<(pin_no));
+		else
+			digit_gpio_mask[port_no] &= ~(1L<<(pin_no));
+
 		prt_7seg_gpio_iofunc_lut++;
 	}
 
     // output to gpio with mask (note that 0 means that bit is to be written/read
-	LPC_GPIO->MASK[0] = gpio_mask[0];
-	LPC_GPIO->MASK[1] = gpio_mask[1];
-	LPC_GPIO->MASK[2] = gpio_mask[2];
-	LPC_GPIO->MPIN[0] = LPC_GPIO->MPIN[1] = LPC_GPIO->MPIN[2] = 0;
+	LPC_GPIO->MASK[0] = digit_gpio_mask[0];
+	LPC_GPIO->MASK[1] = digit_gpio_mask[1];
+	LPC_GPIO->MASK[2] = digit_gpio_mask[2];
+	// all digit-pins to high means no LED output
+	LPC_GPIO->MPIN[0] = LPC_GPIO->MPIN[1] = LPC_GPIO->MPIN[2] = ~(0L);
 
 	LED_Char_GPIO_Output_Value_LUT_Generator();
 }
@@ -256,9 +264,9 @@ uint8_t led_7SEG_display_dp[LED_DISPLAY_PAGE];			// 1-4, 0 means no dp
 
 void refresh_LED_7SEG_periodic_task(void)
 {
-	uint32_t 		out_port[LED_GPIO_NO], *ptr_port_value;
+	uint32_t 		out_port[LED_GPIO_NO], *ptr_port_value, temp_value;
 	//uint8_t const 	*ptr_char_def_lut;
-	uint8_t			page, col, display_char;
+	uint8_t			page, col, display_char, temp_index, temp_port;
 
 	// Get current page & current col
 	page =  next_refresh_index / LED_DISPLAY_COL;
@@ -302,6 +310,11 @@ void refresh_LED_7SEG_periodic_task(void)
 	out_port[1] = *ptr_port_value++;
 	out_port[2] = *ptr_port_value++;
 
+	// Temp data t be used later
+	temp_index 	= (8+col)*2;			// LED_7SEG_GPIO_LUT[] with entry (port,pin) so * 2; starting from 8 because 0~7 is 7 segment & dp
+	temp_port 	= LED_7SEG_GPIO_LUT[temp_index++];
+	temp_value  = ~(1L<<(LED_7SEG_GPIO_LUT[temp_index]));		// Only the digit-pin value is 0 otherwise all 1
+
 	col++; // In processing LED position, column is 1-4 instead of 0-3
 	// Please note that next element of LED_7SEG_GPIO_LUT is LED_dp
 	if (led_7SEG_display_dp[page]==col)
@@ -309,19 +322,37 @@ void refresh_LED_7SEG_periodic_task(void)
 		out_port[LED_7SEG_SEGdp_PORT] |= 1L<<(LED_7SEG_SEGdp_PIN);
 	}
 
-	// Please note that next 4 element of LED_7SEG_GPIO_LUT is LED_1~4
-	// The GPIO for the digit to be displayed should be set to low; others is keep as high
-	if(1!=col) {out_port[LED_7SEG_SEG1_PORT] |= 1L<<(LED_7SEG_SEG1_PIN);}
-	if(2!=col) {out_port[LED_7SEG_SEG2_PORT] |= 1L<<(LED_7SEG_SEG2_PIN);}
-	if(3!=col) {out_port[LED_7SEG_SEG3_PORT] |= 1L<<(LED_7SEG_SEG3_PIN);}
-	if(4!=col) {out_port[LED_7SEG_SEG4_PORT] |= 1L<<(LED_7SEG_SEG4_PIN);}
+//	// Please note that next 4 element of LED_7SEG_GPIO_LUT is LED_1~4
+//	// The GPIO for the digit to be displayed should be set to low; others is keep as high
+//	if(1!=col) {out_port[LED_7SEG_SEG1_PORT] |= 1L<<(LED_7SEG_SEG1_PIN);}
+//	if(2!=col) {out_port[LED_7SEG_SEG2_PORT] |= 1L<<(LED_7SEG_SEG2_PIN);}
+//	if(3!=col) {out_port[LED_7SEG_SEG3_PORT] |= 1L<<(LED_7SEG_SEG3_PIN);}
+//	if(4!=col) {out_port[LED_7SEG_SEG4_PORT] |= 1L<<(LED_7SEG_SEG4_PIN);}
 
-	LPC_GPIO->MASK[0] = gpio_mask[0];
+	//
+	// All data for 7 segment & dp are prepared
+	// The digit to be shown is also prepared
+	//
+
+	// Hide current LED digit before showing next digit;
+    // output to gpio with mask (note that 0 means that bit is to be written/read
+	LPC_GPIO->MASK[0] = digit_gpio_mask[0];
+	LPC_GPIO->MASK[1] = digit_gpio_mask[1];
+	LPC_GPIO->MASK[2] = digit_gpio_mask[2];
+	// all digit-pins to high means no LED output
+	LPC_GPIO->MPIN[0] = LPC_GPIO->MPIN[1] = LPC_GPIO->MPIN[2] = ~(0L);
+
+	// Setup 7 segment & dp
+	LPC_GPIO->MASK[0] = segment_dp_gpio_mask[0];
+	LPC_GPIO->MASK[1] = segment_dp_gpio_mask[1];
+	LPC_GPIO->MASK[2] = segment_dp_gpio_mask[2];
 	LPC_GPIO->MPIN[0] = out_port[0];
-	LPC_GPIO->MASK[1] = gpio_mask[1];
 	LPC_GPIO->MPIN[1] = out_port[1];
-	LPC_GPIO->MASK[2] = gpio_mask[2];
 	LPC_GPIO->MPIN[2] = out_port[2];
+
+	// Setup digit to be displayed and others untouched.
+	LPC_GPIO->MASK[temp_port] = temp_value;
+	LPC_GPIO->MPIN[temp_port] = temp_value;
 
 	// Check if restart from 1st col of the same page
 	// col has been added by 1 before
