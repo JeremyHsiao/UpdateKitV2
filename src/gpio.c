@@ -153,8 +153,8 @@ bool Debounce_Button(void)
 void LED_Status_Set_Value(uint32_t LED_status_value)
 {
 	// Assumption: all status LED use the same GPIO port
-	LPC_GPIO->MASK[LED_R_GPIO_PORT] = LED_STATUS_MASK;
-	LPC_GPIO->MPIN[LED_R_GPIO_PORT] = LED_status_value;
+	Chip_GPIO_SetPortMask(LPC_GPIO, LED_R_GPIO_PORT, LED_STATUS_MASK);
+	Chip_GPIO_SetMaskedPortValue(LPC_GPIO,LED_R_GPIO_PORT,LED_status_value);
 }
 
 void LED_Status_Set_Auto_Toggle(uint32_t LED_status_pin, uint8_t flashing_100ms, uint32_t flashing_cnt)
