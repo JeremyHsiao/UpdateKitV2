@@ -59,17 +59,17 @@ uint8_t const LED_character_definition_LUT[] =
 	1,1,1,1,1,1,1,//8
 	1,1,1,1,0,1,1,//9
 	1,1,1,0,1,1,1,//A
-	0,0,1,1,1,0,0,//u
+//	0,0,1,1,1,0,0,//u
 	0,1,1,1,1,1,0,//U
-	1,0,0,1,1,1,1,//E
-	0,0,0,1,1,0,1,//c
-	0,0,0,1,1,1,0,//L
-	1,1,0,0,1,1,1,//P
-	0,1,1,1,1,0,0,//J
-	0,1,1,1,1,0,1,//d
-	0,0,1,1,1,0,1,//o
-	1,1,1,1,1,0,1,//a
-	0,0,0,0,1,1,0,//l
+//	1,0,0,1,1,1,1,//E
+//	0,0,0,1,1,0,1,//c
+//	0,0,0,1,1,1,0,//L
+//	1,1,0,0,1,1,1,//P
+//	0,1,1,1,1,0,0,//J
+//	0,1,1,1,1,0,1,//d
+//	0,0,1,1,1,0,1,//o
+//	1,1,1,1,1,0,1,//a
+//	0,0,0,0,1,1,0,//l
 	0,0,0,0,0,0,0,//' '
 };
 
@@ -86,19 +86,22 @@ uint8_t const LED_character_index_LUT[] =
 	'8',
 	'9',
 	'A',
-	'u',
+//	'u',
 	'U',
-	'E',
-	'c',
-	'L',
-	'P',
-	'J',
-	'd',
-	'o',
-	'a',
-	'l',
+//	'E',
+//	'c',
+//	'L',
+//	'P',
+//	'J',
+//	'd',
+//	'o',
+//	'a',
+//	'l',
 	' ',
 };
+
+// This array stores actual GPIO output value calculated during Init_LED_7seg_GPIO()
+uint32_t LED_Char_GPIO_Output_Value_LUT[sizeof(LED_character_index_LUT)];
 
 void Init_LED_7seg_GPIO(void)
 {
@@ -107,7 +110,7 @@ void Init_LED_7seg_GPIO(void)
 
 	// Init variables
 	next_refresh_index=0;
-	gpio_mask[0]=gpio_mask[1]=gpio_mask[2]=0;
+	gpio_mask[0]=gpio_mask[1]=gpio_mask[2]= ~(0);			// 0 means bits to be written
 	//led_7seg_message[0]=led_7seg_message[1]=led_7seg_message[2]=led_7seg_message[3]=dp_point=0;
 	led_7SEG_display_enable[LED_VOLTAGE_PAGE] = led_7SEG_display_enable[LED_CURRENT_PAGE] = 1;
 	Update_LED_7SEG_Message_Buffer(LED_VOLTAGE_PAGE,(uint8_t*)"000U",1);
@@ -127,20 +130,18 @@ void Init_LED_7seg_GPIO(void)
 
 		// Set as output
 		Chip_GPIO_SetPinDIROutput(LPC_GPIO, port_no, pin_no);
-		gpio_mask[port_no] |= 1L<<(pin_no);
+		gpio_mask[port_no] &= ~(1L<<(pin_no));
 
 		// Set as gpio
 		Chip_IOCON_PinMuxSet(LPC_IOCON, port_no, pin_no, (*prt_7seg_gpio_iofunc_lut));
 		prt_7seg_gpio_iofunc_lut++;
 	}
 
-    // output to gpio with mask
-	LPC_GPIO->MASK[0] = ~gpio_mask[0];
-	LPC_GPIO->MPIN[0] = 0;
-	LPC_GPIO->MASK[1] = ~gpio_mask[1];
-	LPC_GPIO->MPIN[1] = 0;
-	LPC_GPIO->MASK[2] = ~gpio_mask[2];
-	LPC_GPIO->MPIN[2] = 0;
+    // output to gpio with mask (note that 0 means that bit is to be written/read
+	LPC_GPIO->MASK[0] = gpio_mask[0];
+	LPC_GPIO->MASK[1] = gpio_mask[1];
+	LPC_GPIO->MASK[2] = gpio_mask[2];
+	LPC_GPIO->MPIN[0] = LPC_GPIO->MPIN[1] = LPC_GPIO->MPIN[2] = 0;
 }
 
 void Update_LED_7SEG_Message_Buffer(uint8_t page, uint8_t *msg, uint8_t new_dp_point)
@@ -280,11 +281,11 @@ void refresh_LED_7SEG_periodic_task(void)
 	if(3!=col) {out_port[LED_7SEG_SEG3_PORT] |= 1L<<(LED_7SEG_SEG3_PIN);}
 	if(4!=col) {out_port[LED_7SEG_SEG4_PORT] |= 1L<<(LED_7SEG_SEG4_PIN);}
 
-	LPC_GPIO->MASK[0] = ~gpio_mask[0];
+	LPC_GPIO->MASK[0] = gpio_mask[0];
 	LPC_GPIO->MPIN[0] = out_port[0];
-	LPC_GPIO->MASK[1] = ~gpio_mask[1];
+	LPC_GPIO->MASK[1] = gpio_mask[1];
 	LPC_GPIO->MPIN[1] = out_port[1];
-	LPC_GPIO->MASK[2] = ~gpio_mask[2];
+	LPC_GPIO->MASK[2] = gpio_mask[2];
 	LPC_GPIO->MPIN[2] = out_port[2];
 
 	// Check if restart from 1st col of the same page
