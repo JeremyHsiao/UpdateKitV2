@@ -298,8 +298,6 @@ void SetRawCurrent(uint16_t current_new)
 
 	}
 
-	// Event checker
-
 	raw_current = current_new;
 }
 
@@ -613,7 +611,7 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 				EVENT_Version_string_confirmed = false;
 			}
 			// Next update is triggered only after no_output -- no changed if standby
-			else if (EVENT_filtered_current_unplugged_debounced)
+			if (EVENT_filtered_current_unplugged_debounced)
 			{
 				EVENT_filtered_current_unplugged_debounced = false;
 				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();		// Save current successful FW upgrade info before it is cleared in next state
