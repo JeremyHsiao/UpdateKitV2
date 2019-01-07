@@ -206,6 +206,18 @@ void lcm_content_init(void)
  */
 //bool		LED_7_SEG_showing_current = false;
 
+//const char *pwm_voltage_table [POWER_OUTPUT_STEP_TOTAL_NO] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.7" };
+const uint8_t StandbyCurrentThresholdLUT[POWER_OUTPUT_STEP_TOTAL_NO] =
+	{ 0xff, (DEFAULT_STANDBY_POWER_THRESHOLD*10/60+1), (DEFAULT_STANDBY_POWER_THRESHOLD*10/65+1),
+			(DEFAULT_STANDBY_POWER_THRESHOLD*10/70+1), (DEFAULT_STANDBY_POWER_THRESHOLD*10/75+1),
+			(DEFAULT_STANDBY_POWER_THRESHOLD*10/80+1), (DEFAULT_STANDBY_POWER_THRESHOLD*10/85+1),
+			(DEFAULT_STANDBY_POWER_THRESHOLD*10/90+1), (DEFAULT_STANDBY_POWER_THRESHOLD*10/95+1), (DEFAULT_STANDBY_POWER_THRESHOLD*10/97+1),
+	};
+static inline uint8_t CalculateStandyCurrent(void)
+{
+	return (StandbyCurrentThresholdLUT[current_output_stage]);
+}
+
 void ResetCurrentDebounceTimer(void)
 {
 	Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
@@ -220,68 +232,28 @@ void SetRawVoltage(uint16_t voltage_new)
 
 void SetRawCurrent(uint16_t current_new)
 {
-/*
-	uint16_t	previous_filtered_current;
-
-	// Event checker
-	if((current_new>=DEFAULT_STANDBY_CURRENT_THRESHOLD)&&(raw_current<DEFAULT_STANDBY_CURRENT_THRESHOLD))
-	{
-		EVENT_raw_current_goes_above_threshold = true;
-	}
-	// Event checker
-	if((current_new<DEFAULT_STANDBY_CURRENT_THRESHOLD)&&(raw_current>=DEFAULT_STANDBY_CURRENT_THRESHOLD))
-	{
-		EVENT_raw_current_goes_below_threshold = true;
-	}
-
-	previous_filtered_current = filtered_current;
-*/
-
 	filtered_current = Filtered_Input_current(current_new);
+
 	// Event checker
-	if(filtered_current>=DEFAULT_STANDBY_CURRENT_THRESHOLD)
+	if(filtered_current>=(CalculateStandyCurrent()+20))			// Add 20mA as lower-bound of fw upgrade current
 	{
 		// output is normal
-		EVENT_filtered_current_above_threshold = true;
-/*
-
-		EVENT_filtered_current_below_threshold = EVENT_filtered_current_TV_standby = EVENT_filtered_current_no_output = false;
-		if(previous_filtered_current<DEFAULT_STANDBY_CURRENT_THRESHOLD)
-		{
-			EVENT_filtered_current_goes_above_threshold = true;
-		}
-*/
-
+		EVENT_filtered_current_above_fw_upgrade_threshold = true;
 		ResetCurrentDebounceTimer();																	// Reset both Standby & no_output debounce timer when output is normal
 	}
 	else
 	{
-		EVENT_filtered_current_above_threshold = false;
-/*
-		EVENT_filtered_current_below_threshold = true;
-		if(previous_filtered_current>=DEFAULT_STANDBY_CURRENT_THRESHOLD)
-		{
-			EVENT_filtered_current_goes_below_threshold = true;
-		}
-*/
+		EVENT_filtered_current_above_fw_upgrade_threshold = false;
 
 		if(filtered_current<DEFAULT_NO_CURRENT_THRESHOLD)
 		{
 			// looks like no output
-/*
-			EVENT_filtered_current_no_output = true;
-			EVENT_filtered_current_TV_standby = false;
-*/
 			// reset standby debounce timer
 			Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// Clear Standby debounce timer because it is no_output now
 		}
 		else
 		{
 			// looks like standby
-/*
-			EVENT_filtered_current_no_output = false;
-			EVENT_filtered_current_TV_standby = true;
-*/
 			// reset no-output debounce timer
 			Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// Clear No-output debounce timer because it is standby now
 		}
@@ -295,7 +267,6 @@ void SetRawCurrent(uint16_t current_new)
 		{
 			EVENT_filtered_current_unplugged_debounced = true;
 		}
-
 	}
 
 	raw_current = current_new;
@@ -566,7 +537,7 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 				EVENT_filtered_current_TV_standby_debounced = false;
 				return_next_state = US_TV_IN_STANDBY;
 			}
-			else if(EVENT_filtered_current_above_threshold)
+			else if(EVENT_filtered_current_above_fw_upgrade_threshold)
 			{
 				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
 			}
@@ -629,7 +600,7 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 				EVENT_filtered_current_TV_standby_debounced = false;
 				return_next_state = US_TV_IN_STANDBY;
 			}
-			else if(EVENT_filtered_current_above_threshold)
+			else if(EVENT_filtered_current_above_fw_upgrade_threshold)
 			{
 				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
 			}
@@ -644,7 +615,7 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 				EVENT_filtered_current_unplugged_debounced = false;
 				return_next_state = US_READY_FOR_NEXT_UPDATE;
 			}
-			else if(EVENT_filtered_current_above_threshold)
+			else if(EVENT_filtered_current_above_fw_upgrade_threshold)
 			{
 				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
 			}
