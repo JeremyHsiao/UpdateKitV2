@@ -306,10 +306,10 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 //		}
 		temp_voltage_str_len = itoa_10(filtered_voltage, temp_voltage_str);
 	}
-	// showing current 0.00A~0.99A -- but current is 0.0001A as unit
+	// showing current 0.00A~9.99A -- but current is 0.001A as unit
 	{
 //		temp_value = filtered_current;
-//		if(temp_value>999)		// protection //  showing // 0.00A~0.99A	// 0.001A as unit
+//		if(temp_value>999)		// protection //  showing // 0.00A~9.99A	// 0.001A as unit
 //		{
 //			temp_value = 999;
 //		}
@@ -358,24 +358,33 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][5], final_voltage_str, 5);
 
 	// filtered_current
-	final_current_str[0] = '0';
 	final_current_str[1] = '.';
 	final_current_str[4] = 'A';
 	switch(temp_current_str_len)
 	{
 		case 1:
+			final_current_str[0] = '0';
 			final_current_str[2] = '0';
 			final_current_str[3] = '0';
 			break;
 		case 2:
+			final_current_str[0] = '0';
 			final_current_str[2] = '0';
 			final_current_str[3] = temp_current_str[0];
 			break;
 		case 3:
+			final_current_str[0] = '0';
 			final_current_str[2] = temp_current_str[0];
 			final_current_str[3] = temp_current_str[1];
 			break;
+		case 4:
+			final_current_str[0] = temp_current_str[0];
+			final_current_str[2] = temp_current_str[1];
+			final_current_str[3] = temp_current_str[2];
+			break;
 		default:
+			final_current_str[0] = '9';
+			final_current_str[1] = '.';
 			final_current_str[2] = '9';
 			final_current_str[3] = '9';
 			break;
