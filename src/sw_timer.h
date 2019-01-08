@@ -11,23 +11,11 @@
 //#define 	SYSTICK_PER_SECOND			(10000)		// 10000 ticks per second == 100us each tick --> make sure deviation of delay is M 50us
 //#define 	SYSTICK_PER_SECOND			(4000)		// 4000 ticks per second == 250us each tick
 #define 	SYSTICK_PER_SECOND			(8000)		// 8000 ticks per second == 125us each tick
+#define     SYSTICK_COUNT_VALUE_S(x)	((SYSTICK_PER_SECOND*x)-1)
 #define     SYSTICK_COUNT_VALUE_MS(x)	((SYSTICK_PER_SECOND*x/1000)-1)
 #define     SYSTICK_COUNT_VALUE_US(x)	((SYSTICK_PER_SECOND*x/1000000)-1)
 
-//extern bool 		SysTick_1s_timeout;
-//extern bool 		SysTick_100ms_timeout;
-//extern bool 		SysTick_led_7seg_refresh_timeout;
-extern bool			SW_delay_timeout;
-//extern bool			lcd_module_auto_switch_timer_timeout;
-//extern bool			lcd_g_toggle_timeout;
-//extern bool			lcd_r_toggle_timeout;
-//extern bool			lcd_y_toggle_timeout;
-//extern bool			LED_Voltage_Current_Refresh_in_sec_timeout;
-extern bool			lcd_module_wait_finish_timeout;
-//extern bool			System_State_Proc_timer_timeout;
-extern bool			SysTick_flag;
-
-typedef		uint16_t	TICK_UNIT;
+typedef		uint16_t	TICK_UNIT;		// range is now between 8~8000 (minus 1)
 typedef	struct {
 	uint32_t	counts;
 	uint32_t	reload_value;
@@ -68,30 +56,11 @@ typedef enum
 } TIMER_UNIT_ID;
 
 extern SW_TIMER	sw_timer[];
+extern bool			SysTick_flag;
 
-//extern uint32_t		time_elapse_in_sec;
-//#define				time_elapse_in_sec	(sw_timer[SYSTEM_TIME_ELAPSE_IN_SEC].counts)
-//#define				Upgrade_elapse_in_100ms	(sw_timer[UPGRADE_ELAPSE_IN_100MS].counts)
+//extern uint8_t time_elapse_str[];
 
-//extern uint32_t		Upgrade_elapse_in_100ms;
-//extern uint32_t		SW_delay_sys_tick_cnt;
-extern uint16_t		lcd_module_auto_switch_in_ms;
-//extern uint32_t		led_g_toggle_timer_in_100ms;
-//extern uint32_t		led_r_toggle_timer_in_100ms;
-//extern uint32_t		led_y_toggle_timer_in_100ms;
-//extern uint32_t		led_g_toggle_timer_reload;
-//extern uint32_t		led_r_toggle_timer_reload;
-//extern uint32_t		led_y_toggle_timer_reload;
-
-//extern uint8_t		LED_Voltage_Current_Refresh_in_sec;
-//extern uint8_t		LED_Voltage_Current_Refresh_reload;
-extern uint8_t		lcd_module_wait_finish_in_tick;
-
-extern uint32_t		System_State_Proc_timer_in_ms;
-
-extern uint8_t time_elapse_str[];
 extern void Update_Elapse_Timer(void);
-
 extern bool Start_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_value, TIMER_UNIT_ID unit, bool upcount, bool oneshot);
 extern bool Init_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_value, TIMER_UNIT_ID unit, bool upcount, bool oneshot);
 extern bool Pause_SW_Timer(TIMER_ID timer_no);
