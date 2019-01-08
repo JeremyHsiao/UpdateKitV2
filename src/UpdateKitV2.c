@@ -45,7 +45,7 @@ uint32_t	total_voltage_value = 0;
 uint16_t			raw_voltage = 0;			//  0.00v ~ 9.99v --> 0-999
 uint16_t			raw_current = 0;			// .000A ~ .999A --> 0-999
 uint16_t			filtered_voltage = 0;		//  0.00v ~ 9.99v --> 0-999
-volatile uint16_t	filtered_current = 0;		// .000A ~ .999A --> 0-999
+uint16_t			filtered_current = 0;		// .000A ~ .999A --> 0-999
 
 /*****************************************************************************
  * Public types/enumerations/variables
