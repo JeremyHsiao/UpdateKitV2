@@ -154,7 +154,14 @@ bool Debounce_Button(void)
 	//switch rise edge debounce success.
 	if(!negFlag && posFlag && (count > DEBOUNCE_COUNT) )
 	{
-	    posFlag = false; //finish rising-edge Debounce cycle.
+	    if(Get_GPIO_Switch_Key())
+	    {
+	    	posFlag = false; //finish rising-edge Debounce cycle.
+	    }
+	    else
+	    {
+	    	negFlag = true;
+	    }
 	}
 
 	return false;
