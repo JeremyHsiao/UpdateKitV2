@@ -43,7 +43,7 @@ extern void init_filtered_input_current(void);
 extern uint16_t Filtered_Input_current(uint16_t latest_current);
 extern void init_filtered_input_voltage(void);
 extern uint16_t Filtered_Input_voltage(uint16_t latest_voltage);
-extern void ResetCurrentDebounceTimer(void);
+extern void ResetAllCurrentDebounceTimer(void);
 extern bool UART_input_processor(uint8_t key);
 extern bool Event_Proc_State_Independent(void);
 extern UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state);
@@ -73,7 +73,8 @@ extern UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state);
 //#define DEFAULT_FW_UPGRADE_CURRENT_THRESHOLD	(120)
 #define DEFAULT_NO_CURRENT_THRESHOLD			(9)			// 9ma
 #define DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS	(50)		// 5S
-#define DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS		(20)		// 2.5S
+#define DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS		(20)		// 2S
+#define DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS	(20)		// 2S
 
 #define CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(x)		(((x*3)+1)/2)
 #define CHANGE_FW_MAX_UPDATE_TIME_AFTER_TOO_LONG(x)	(((x*3)+1)/2)

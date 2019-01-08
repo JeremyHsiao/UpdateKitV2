@@ -218,10 +218,11 @@ static inline uint8_t CalculateStandyCurrent(void)
 	return (StandbyCurrentThresholdLUT[current_output_stage]);
 }
 
-void ResetCurrentDebounceTimer(void)
+void ResetAllCurrentDebounceTimer(void)
 {
 	Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
-	Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
+	Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS-1),TIMER_100MS);			// one-shot count down
+	Countdown_Once(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,(DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
 }
 
 void SetRawVoltage(uint16_t voltage_new)
@@ -238,12 +239,18 @@ void SetRawCurrent(uint16_t current_new)
 	if(filtered_current>=(CalculateStandyCurrent()+20))			// Add 20mA as lower-bound of fw upgrade current
 	{
 		// output is normal
-		EVENT_filtered_current_above_fw_upgrade_threshold = true;
-		ResetCurrentDebounceTimer();																	// Reset both Standby & no_output debounce timer when output is normal
+		if (Read_and_Clear_SW_TIMER_Reload_Flag(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS))
+		{
+			EVENT_filtered_current_above_fw_upgrade_threshold = true;
+		}
+		// reset standby / no-output debounce timer
+		Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
+		Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS-1),TIMER_100MS);			// one-shot count down
 	}
 	else
 	{
-		EVENT_filtered_current_above_fw_upgrade_threshold = false;
+		// reset output goes normal debounce timer
+		Countdown_Once(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,(DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
 
 		if(filtered_current<DEFAULT_NO_CURRENT_THRESHOLD)
 		{
@@ -539,7 +546,13 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 			}
 			else if(EVENT_filtered_current_above_fw_upgrade_threshold)
 			{
+				EVENT_filtered_current_above_fw_upgrade_threshold = false;
 				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
+			}
+			else if(EVENT_filtered_current_unplugged_debounced)
+			{
+				EVENT_filtered_current_unplugged_debounced = false;
+				Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
 			}
 			break;
 //		case US_NO_CURRENT:
@@ -570,10 +583,10 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 				EVENT_filtered_current_unplugged_debounced = false;
 				return_next_state = US_READY_FOR_NEXT_UPDATE;
 			}
-//			else if(EVENT_filtered_current_below_threshold)
-//			{
-//				return_next_state = US_WAIT_FOR_LOW_STABLE;
-//			}
+//			else if(EVENT_filtered_current_above_fw_upgrade_threshold)
+			{
+				EVENT_filtered_current_above_fw_upgrade_threshold = false;
+			}
 			break;
 		case US_FW_UPGRADE_DONE:
 			if(EVENT_Version_string_confirmed)
@@ -588,11 +601,14 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();		// Save current successful FW upgrade info before it is cleared in next state
 				return_next_state = US_READY_FOR_NEXT_UPDATE;
 			}
-//			if(EVENT_filtered_current_below_threshold)
-//			{
-//				Copy_Existing_FW_Upgrade_Info_to_Previous_Info();
-//				return_next_state = US_WAIT_FOR_LOW_STABLE;
-//			}
+//			else if (EVENT_filtered_current_TV_standby_debounced)
+			{
+				EVENT_filtered_current_TV_standby_debounced = false;
+			}
+//			else if(EVENT_filtered_current_above_fw_upgrade_threshold)
+			{
+				EVENT_filtered_current_above_fw_upgrade_threshold = false;
+			}
 			break;
 		case US_READY_FOR_NEXT_UPDATE:
 			if (EVENT_filtered_current_TV_standby_debounced)
@@ -602,7 +618,12 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 			}
 			else if(EVENT_filtered_current_above_fw_upgrade_threshold)
 			{
+				EVENT_filtered_current_above_fw_upgrade_threshold = false;
 				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
+			}
+//			else if (EVENT_filtered_current_unplugged_debounced)
+			{
+				EVENT_filtered_current_unplugged_debounced = false;
 			}
 			break;
 		case US_TV_IN_STANDBY:
@@ -617,7 +638,12 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 			}
 			else if(EVENT_filtered_current_above_fw_upgrade_threshold)
 			{
+				EVENT_filtered_current_above_fw_upgrade_threshold = false;
 				return_next_state = US_WAIT_FW_UPGRADE_OK_STRING;
+			}
+//			else if (EVENT_filtered_current_TV_standby_debounced)
+			{
+				EVENT_filtered_current_TV_standby_debounced = false;
 			}
 			break;
 		default:
@@ -798,7 +824,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			{
 				Save_User_Selection(current_output_stage);
 			}
-			ResetCurrentDebounceTimer();	// Force to init after first output
+			ResetAllCurrentDebounceTimer();	// Force to init after first output
 			lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
 			//Countdown_Once(SYSTEM_STATE_PROC_TIMER,DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS,TIMER_MS);		// one-shot count down
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
