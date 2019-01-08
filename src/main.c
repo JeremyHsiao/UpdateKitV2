@@ -83,7 +83,7 @@ int main(void)
 	LED_Status_Set_Value(0);						// all off
 
 	//Start_SW_Timer(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS,0,(DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS-1),TIMER_MS, false, false);
-	Repeat_DownCounter(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS,DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_MS,TIMER_MS);
+	Repeat_DownCounter(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_100MS,DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_100MS,TIMER_100MS);
 	// LED display data swap timer: starting from DEFAULT_VOLTAGE_CURRENT_REFRESH_SEC-1 / reload-upper-value / 1000ms each count / downcount / not-oneshot
 	//Start_SW_Timer(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1),(DEFAULT_LED_DATA_CHANGE_SEC-1),TIMER_S, false, false);
 	Repeat_DownCounter(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,DEFAULT_LED_DATA_CHANGE_SEC,TIMER_S);
@@ -163,7 +163,7 @@ int main(void)
 		}
 
 		// Update displaying value of voltage/current (from adc read-back value)
-		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_MS))
+		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_100MS))
 		{
 			UpdateKitV2_UpdateDisplayValueForADC_Task();
 		}
