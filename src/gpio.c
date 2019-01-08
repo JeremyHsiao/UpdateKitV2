@@ -111,6 +111,7 @@ bool Get_GPIO_Switch_Key(void)
 bool		negFlag = false;
 bool    	posFlag = false;
 uint32_t	count;
+bool		event_already_raised = false;
 
 bool Debounce_Button(void)
 {
@@ -121,14 +122,23 @@ bool Debounce_Button(void)
 	{
 	    count = 0;         		//first debounce count start.
 	    negFlag = true;     	//fall edge debounce
-	    return true;
+	    event_already_raised=false;
+	    return false;
+//	    return true;
 	}
 
 	//if falling-edge debounce time-out
 	if(negFlag && !posFlag && (count > DEBOUNCE_COUNT))
 	{
 	    if(!Get_GPIO_Switch_Key())
-	        posFlag = true;      //  rising edge debounce is required later when button is released
+	    {
+	    	if(event_already_raised==false)
+	    	{
+	    		event_already_raised = true;
+	    		return true;
+	    	}
+    		posFlag = true;      //  rising edge debounce is required later when button is released
+	    }
 	    else
 	        negFlag = false;     // already back-to-high, no need to debounce low-to-high when release pressing
 	}

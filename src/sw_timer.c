@@ -107,13 +107,9 @@ void Clear_SW_TIMER_Reload_Flag(uint8_t timer_no)
 void SysTick_Handler(void)
 {
 	// Experimenting new way of timer
-	uint8_t		timer_index = SW_TIMER_MAX_NO-1;
-
-	SysTick_flag = true;
-
+	SW_TIMER	*timer_ptr = &sw_timer[SW_TIMER_MAX_NO-1];
 	do
 	{
-		SW_TIMER	*timer_ptr = &sw_timer[timer_index];
 		if(timer_ptr->running)
 		{
 			if(timer_ptr->ticks)
@@ -165,8 +161,8 @@ void SysTick_Handler(void)
 			}
 		}
 	}
-	while(timer_index-->0);		// if 0 (before minus 1) then end of loops
-
+	while(timer_ptr-->sw_timer);		// if 0 (before minus 1) then end of loops
+	SysTick_flag = true;
 }
 
 /*
