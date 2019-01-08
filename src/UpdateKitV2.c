@@ -552,6 +552,7 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 			else if(EVENT_filtered_current_unplugged_debounced)
 			{
 				EVENT_filtered_current_unplugged_debounced = false;
+				Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
 				Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
 			}
 			break;
@@ -675,11 +676,7 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 			}
 			break;
 		case US_WAIT_FW_UPGRADE_OK_STRING:
-			// Update Upgrade-elapse-time because V/A are updated regularly with new ADC value
-			{
-				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS];
-				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, ELAPSE_TIME_LEN);
-			}
+			itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS], ELAPSE_TIME_LEN);
 			break;
 		case US_UPGRADE_TOO_LONG:
 			// Update Upgrade-elapse-time
