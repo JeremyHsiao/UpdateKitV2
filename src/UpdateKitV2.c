@@ -31,6 +31,7 @@ const uint8_t		pwm_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 100, 58,  49, 41,   33,
 						//	0 / 680 / 702 / 749 / 799 / 852 / 909 / 948/ 980
 
 const char *pwm_voltage_table [POWER_OUTPUT_STEP_TOTAL_NO] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.7" };
+const uint8_t		default_no_current_threshold_lut[POWER_OUTPUT_STEP_TOTAL_NO] = { 9, 9, 10, 11, 12, 13, 14, 15, 15, 15 };
 
 #define	CURRENT_HISTORY_DATA_SIZE	64
 RINGBUFF_T 	current_history;
@@ -284,7 +285,7 @@ void SetRawCurrent(uint16_t current_new)
 		// reset output goes normal debounce timer
 		Countdown_Once(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,(DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
 
-		if(filtered_current<DEFAULT_NO_CURRENT_THRESHOLD)
+		if(filtered_current<default_no_current_threshold_lut[current_output_stage])
 		{
 			// looks like no output
 			// reset standby debounce timer
