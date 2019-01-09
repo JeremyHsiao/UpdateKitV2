@@ -14,13 +14,13 @@
  ****************************************************************************/
 typedef enum {
 	OK_wait_1st_O = 0,
-	OK_wait_1st_K,
+//	OK_wait_1st_K,
 	OK_wait_next_O,
 	OK_wait_next_K,
 } OK_PATTERN_STATE;
 
 OK_PATTERN_STATE 	OK_state;
-uint32_t	OK_cnt;
+uint32_t			OK_cnt;
 
 uint8_t POWERON_state;
 const uint8_t poweron_string[] = "@POWERON";
@@ -83,29 +83,35 @@ bool locate_OK_pattern_process(char input_ch)
 			break;
 		case 'O':
 		case 'o':
-			if(OK_state==OK_wait_next_O)
+			if((OK_state==OK_wait_1st_O)||(OK_state==OK_wait_next_O))
 			{
 				// don't need to reset OK_cnt if already detecting OK pattern
 				OK_state = OK_wait_next_K;
 			}
 			else
 			{
-				OK_cnt = 0;
 				OK_state = OK_wait_next_K;
+				OK_cnt = 0;
 			}
 			break;
 		case 'K':
 		case 'k':
-			if(++OK_cnt==DEFAULT_OK_THRESHOLD)
+			if(OK_state==OK_wait_next_K)
 			{
-				bRet = true;
+				if(++OK_cnt==DEFAULT_OK_THRESHOLD)
+				{
+					bRet = true;
+				}
+				OK_state = OK_wait_next_O;
 			}
-			OK_state = OK_wait_next_O;
+			else
+			{
+				Clear_OK_pattern_state();
+			}
 			break;
 		default:
 			// always reset if other char
-			OK_cnt = 0;
-			OK_state = OK_wait_1st_O;
+			Clear_OK_pattern_state();
 			break;
 	}
 
@@ -215,13 +221,9 @@ void locate_VER_pattern_process(char input_ch)
 		else
 		{
 			VER_NO_str[VER_state-(sizeof(ver_string)-1)] = input_ch;
-			VER_state++;
-			if((VER_state-(sizeof(ver_string)-1))==(MAX_VER_NO_LEN-1))		// only 1 more space left
+			if((VER_state-(sizeof(ver_string)-1))<(MAX_VER_NO_LEN-1))		// still >1 space left --> add one more char; otherwise simply discard this char
 			{
-				VER_string_end_of_line = true;
-				VER_NO_str[MAX_VER_NO_LEN-1] = '\0';		// End of version string is enforced.
-				VER_string_detected = false;
-				VER_state = 0;
+				VER_state++;
 			}
 		}
 	}
@@ -234,3 +236,25 @@ void locate_VER_pattern_process(char input_ch)
 	}
 }
 
+int Remove_NonLCMASCII_ESCCode(char *str)
+{
+	char 		*ptr = str;
+	bool		esc_now = false;
+	int			str_len=0;
+
+	while(ptr!=0)
+	{
+		if(esc_now)
+		{
+
+		}
+		else
+		{
+			if(*ptr)
+			{
+
+			}
+		}
+	}
+	return str_len;
+}
