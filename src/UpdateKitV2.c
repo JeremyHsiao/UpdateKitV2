@@ -666,6 +666,20 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 	return return_next_state;
 }
 
+static inline void Update_FW_Upgrading_Elapse_Time(void)
+{
+	itoa_10_fixed_position(	Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S),
+							(char*)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS],
+							ELAPSE_TIME_LEN);
+}
+
+static inline void Update_FW_OK_Upgrade_Time(void)
+{
+	itoa_10_fixed_position(	Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S),
+							(char*)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS],
+							ELAPSE_TIME_LEN);
+}
+
 UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 {
 	UPDATE_STATE return_next_state = current_state;
@@ -689,7 +703,8 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 			}
 			break;
 		case US_WAIT_FW_UPGRADE_OK_STRING:
-			itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS], ELAPSE_TIME_LEN);
+			Update_FW_Upgrading_Elapse_Time();
+			//itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS], ELAPSE_TIME_LEN);
 			break;
 		case US_UPGRADE_TOO_LONG:
 			// Update Upgrade-elapse-time
@@ -697,7 +712,7 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 				uint8_t	elapse_time = Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S);
 				if(elapse_time<=9999)
 				{
-					itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)&lcd_module_display_content[LCM_FW_UPGRADE_TOO_LONG_PAGE][TIMEOUT_TIME_ROW][TIMEOUT_TIME_POS], ELAPSE_TIME_LEN);
+					Update_FW_Upgrading_Elapse_Time();
 				}
 			}
 			break;
@@ -860,7 +875,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			break;
 		case US_FW_UPGRADE_DONE:
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
-			itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS], ELAPSE_TIME_LEN);
+			Update_FW_OK_Upgrade_Time();
 			max_upgrade_time_in_S = CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S));
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
 			lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
@@ -882,12 +897,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			//Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
 			Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
-			itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS], ELAPSE_TIME_LEN);
-//			{
-//				uint8_t *content1 = &lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS];
-//				itoa_10_fixed_position(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S), (char*)content1, ELAPSE_TIME_LEN);
-//				//memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS], (void *)content1, ELAPSE_TIME_LEN);
-//			}
+			Update_FW_Upgrading_Elapse_Time();
 			//lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
 			LED_Status_Set_Value(LED_STATUS_ALL);
 			LED_Status_Set_Auto_Toggle(LED_STATUS_ALL,LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST,6);
