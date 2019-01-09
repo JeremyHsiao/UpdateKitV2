@@ -7,11 +7,19 @@
 #include "chip.h"
 #include "string.h"
 #include "string_detector.h"
+#include "UpdateKitV2.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
-uint8_t 	OK_state;
+typedef enum {
+	OK_wait_1st_O = 0,
+	OK_wait_1st_K,
+	OK_wait_next_O,
+	OK_wait_next_K,
+} OK_PATTERN_STATE;
+
+OK_PATTERN_STATE 	OK_state;
 uint32_t	OK_cnt;
 
 uint8_t POWERON_state;
@@ -52,7 +60,7 @@ void reset_string_detector(void)
 
 void Clear_OK_pattern_state(void)
 {
-	OK_state = 0;
+	OK_state = OK_wait_1st_O;
 	OK_cnt = 0;
 }
 
@@ -61,153 +69,47 @@ uint32_t Read_OK_Count(void)
 	return OK_cnt;
 }
 
-bool OK_pattern_process(char input_ch)
+bool locate_OK_pattern_process(char input_ch)
 {
 	bool	bRet = false;
 
-	// Skip '\r', '\n', ' '
-	if ((input_ch=='\r')||(input_ch=='\n')||(input_ch==' ')||(input_ch=='\t'))
+	switch(input_ch)
 	{
-		//bRet = true;
+		case '\r':
+		case '\n':
+		case '\t':
+		case ' ':
+			// simply skip this
+			break;
+		case 'O':
+		case 'o':
+			if(OK_state==OK_wait_next_O)
+			{
+				// don't need to reset OK_cnt if already detecting OK pattern
+				OK_state = OK_wait_next_K;
+			}
+			else
+			{
+				OK_cnt = 0;
+				OK_state = OK_wait_next_K;
+			}
+			break;
+		case 'K':
+		case 'k':
+			if(++OK_cnt==DEFAULT_OK_THRESHOLD)
+			{
+				bRet = true;
+			}
+			OK_state = OK_wait_next_O;
+			break;
+		default:
+			// always reset if other char
+			OK_cnt = 0;
+			OK_state = OK_wait_1st_O;
+			break;
 	}
-	else
-	{
-		switch(OK_state)
-		{
-			case 0:
-				if((input_ch=='O')||(input_ch=='o')) // Check "O"
-				{
-					OK_state = 1;
-				}
-				else
-				{
-					OK_state = 0;
-					OK_cnt = 0;
-				}
-				break;
-			case 1:
-				if((input_ch=='K')||(input_ch=='k')) // Check "K"
-				{
-					OK_state = 2;
-					OK_cnt++;
-				}
-				else
-				{
-					if((input_ch=='O')||(input_ch=='o')) // Check "O"
-					{
-						OK_state = 1;
-					}
-					else
-					{
-						OK_state = 0;
-						OK_cnt=0;
-					}
-				}
-				break;
-			case 2:
-				if((input_ch=='O')||(input_ch=='o')) // Check "O" -- after 1st OK
-				{
-					OK_state = 3;
-				}
-				else
-				{
-					OK_state = 0;
-					OK_cnt=0;
-				}
-				break;
-			case 3:
-				if((input_ch=='K')||(input_ch=='k')) // Check "K" -- after 1st OK
-				{
-					OK_state = 2;
-					OK_cnt++;
-				}
-				else
-				{
-					OK_state = 0;
-					OK_cnt=0;
-				}
-				break;
-			default:
-				OK_state = 0;
-				OK_cnt=0;
-				break;
-		}
-		return OK_cnt;
-	}
-	return bRet;
-}
 
-uint32_t locate_OK_pattern_process(char input_ch)
-{
-	// Skip '\r', '\n', ' '
-	if ((input_ch=='\r')||(input_ch=='\n')||(input_ch==' ')||(input_ch=='\t'))
-	{
-		return OK_cnt;
-	}
-	else
-	{
-		switch(OK_state)
-		{
-			case 0:
-				if((input_ch=='O')||(input_ch=='o')) // Check "O"
-				{
-					OK_state = 1;
-				}
-				else
-				{
-					OK_state = 0;
-					OK_cnt = 0;
-				}
-				break;
-			case 1:
-				if((input_ch=='K')||(input_ch=='k')) // Check "K"
-				{
-					OK_state = 2;
-					OK_cnt++;
-				}
-				else
-				{
-					if((input_ch=='O')||(input_ch=='o')) // Check "O"
-					{
-						OK_state = 1;
-					}
-					else
-					{
-						OK_state = 0;
-						OK_cnt=0;
-					}
-				}
-				break;
-			case 2:
-				if((input_ch=='O')||(input_ch=='o')) // Check "O" -- after 1st OK
-				{
-					OK_state = 3;
-				}
-				else
-				{
-					OK_state = 0;
-					OK_cnt=0;
-				}
-				break;
-			case 3:
-				if((input_ch=='K')||(input_ch=='k')) // Check "K" -- after 1st OK
-				{
-					OK_state = 2;
-					OK_cnt++;
-				}
-				else
-				{
-					OK_state = 0;
-					OK_cnt=0;
-				}
-				break;
-			default:
-				OK_state = 0;
-				OK_cnt=0;
-				break;
-		}
-		return OK_cnt;
-	}
+	return bRet;
 }
 
 bool Get_POWERON_pattern(void)

@@ -484,6 +484,10 @@ static inline void LCM_Fill_Version_String(void)
 {
 	char	*temp_str = (char *) Get_VER_string();
 	uint8_t	temp_len = strlen(temp_str);
+	if (temp_len>MAX_FW_VER_LEN)
+	{
+		temp_len = MAX_FW_VER_LEN;
+	}
 	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS], temp_str, temp_len);
 	memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS+temp_len], ' ', MAX_FW_VER_LEN-(temp_len));
 }
@@ -916,15 +920,19 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 
 bool UART_input_processor(uint8_t key)
 {
-	uint8_t	temp_ok_cnt;
 	bool	bRet_any_event_raised = false;
 
 	/* Wrap value back around */
 	//UART0_PutChar((char)key);
 
 	// To identify *N times OK
-	temp_ok_cnt=locate_OK_pattern_process(key);
-	if(temp_ok_cnt==DEFAULT_OK_THRESHOLD)
+//	temp_ok_cnt=locate_OK_pattern_process(key);
+//	if(temp_ok_cnt==DEFAULT_OK_THRESHOLD)
+//	{
+//		EVENT_OK_string_confirmed = true;
+//		bRet_any_event_raised = true;
+//	}
+	if(locate_OK_pattern_process(key))
 	{
 		EVENT_OK_string_confirmed = true;
 		bRet_any_event_raised = true;
