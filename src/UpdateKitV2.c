@@ -414,12 +414,12 @@ void PowerOutputSetting(uint8_t current_step)
 {
 	if(current_step==0)
 	{
-		setPWMRate(0, pwm_table[current_output_stage]);
+		setPWMRate(0, pwm_table[current_step]);
 		Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
 	}
 	else
 	{
-		setPWMRate(0, pwm_table[current_output_stage]);
+		setPWMRate(0, pwm_table[current_step]);
 		Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
 	}
 }
