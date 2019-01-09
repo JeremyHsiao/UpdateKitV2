@@ -30,6 +30,7 @@ const char inst3[] = "FW: "__DATE__ " " __TIME__;
 #define		UART_RX_LOG_LEN		(4096)
 uint8_t 	UART_Rx_log[UART_RX_LOG_LEN];
 uint8_t		*UART_Rx_ptr=UART_Rx_log;
+uint16_t	UART_TX_LOG_Index = 0;
 #endif // #ifdef DEBUG_RX_LOG
 
 /*****************************************************************************
@@ -135,9 +136,11 @@ int main(void)
 			{
 #ifdef DEBUG_RX_LOG
 				*UART_Rx_ptr++ = key;
+				UART_TX_LOG_Index++;
 				if(UART_Rx_ptr>=(UART_Rx_log+UART_RX_LOG_LEN))
 				{
 					UART_Rx_ptr = UART_Rx_log;
+					UART_TX_LOG_Index=0;
 				}
 #endif // #ifdef DEBUG_RX_LOG
 				processor_event_detected = UART_input_processor(key);
