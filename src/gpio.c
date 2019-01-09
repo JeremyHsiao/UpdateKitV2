@@ -12,7 +12,7 @@
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
-uint32_t LED_G_toggle_cnt = 0, LED_R_toggle_cnt = 0, LED_Y_toggle_cnt = 0;
+uint32_t LED_G_toggle_cnt, LED_R_toggle_cnt, LED_Y_toggle_cnt;
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -79,6 +79,8 @@ void Init_GPIO(void)
 	Chip_IOCON_PinMuxSet(LPC_IOCON, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN, LED_Y_GPIO_PIN_MUX);
 	Chip_GPIO_SetPinDIROutput(LPC_GPIO, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN);
 	Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN);
+
+	LED_G_toggle_cnt = LED_R_toggle_cnt = LED_Y_toggle_cnt = 0;
 
 #else
 	Chip_IOCON_PinMuxSet(LPC_IOCON, SWITCH_KEY_GPIO_PORT, SWITCH_KEY_GPIO_PIN, (SWITCH_KEY_PIN_AS_GPIO | IOCON_MODE_INACT ));

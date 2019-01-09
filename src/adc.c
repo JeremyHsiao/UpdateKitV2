@@ -43,7 +43,7 @@
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
-bool sequenceComplete = false, thresholdCrossed = false;
+bool sequenceComplete, thresholdCrossed;
 
 /*****************************************************************************
  * Private functions
@@ -79,6 +79,8 @@ void ADCA_IRQHandler(void)
 
 void Init_ADC(void)
 {
+	sequenceComplete = thresholdCrossed = false;
+
 	/* Setup ADC for 12-bit mode and normal power */
 	Chip_ADC_Init(LPC_ADC, 0);
 
