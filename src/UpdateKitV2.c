@@ -24,7 +24,7 @@
  * Private types/enumerations/variables
  ****************************************************************************/
 
-uint8_t		current_output_stage = DEFAULT_POWER_OUTPUT_STEP;
+uint8_t		current_output_stage;
 //uint8_t		pwm_table[25] = { 100, 77, 76, 75, 74,   73, 72,  71, 70, 65,    64, 63, 54, 53, 52,     34, 33, 32, 31, 5,   4, 3, 2, 1, 0};
 const uint8_t		pwm_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 100, 58,  49, 41,   33,   26,    19,   12,   4,   0};
 //Key toggle :				 0V, 6.0V ,6.5V, 7V,  7.5V, 8V,   8.5V, 9V,  9.5V, 10V
@@ -40,20 +40,20 @@ uint32_t	total_current_value = 0;
 #define	VOLTAGE_HISTORY_DATA_SIZE	64
 RINGBUFF_T 	voltage_history;
 uint16_t 	voltage_history_data[VOLTAGE_HISTORY_DATA_SIZE];
-uint32_t	total_voltage_value = 0;
+uint32_t	total_voltage_value;
 
-uint16_t			raw_voltage = 0;			//  0.00v ~ 9.99v --> 0-999
-uint16_t			raw_current = 0;			// .000A ~ .999A --> 0-999
-uint16_t			filtered_voltage = 0;		//  0.00v ~ 9.99v --> 0-999
-uint16_t			filtered_current = 0;		// .000A ~ .999A --> 0-999
+uint16_t			raw_voltage;			//  0.00v ~ 9.99v --> 0-999
+uint16_t			raw_current;			// .000A ~ .999A --> 0-999
+uint16_t			filtered_voltage;		//  0.00v ~ 9.99v --> 0-999
+uint16_t			filtered_current;		// .000A ~ .999A --> 0-999
 
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
 
-UPDATE_STATE	current_system_proc_state = US_SYSTEM_BOOTUP_STATE;
-uint16_t		max_upgrade_time_in_S = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
-uint8_t			lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
+UPDATE_STATE	current_system_proc_state;
+uint16_t		max_upgrade_time_in_S;
+uint8_t			lcm_page_change_duration_in_sec;
 
 /*****************************************************************************
  * Private functions
@@ -62,6 +62,38 @@ uint8_t			lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
 /*****************************************************************************
  * Public functions
  ****************************************************************************/
+void init_filtered_input_current(void)
+{
+	total_current_value = 0;
+	filtered_current = 0;
+
+	RingBuffer_Init(&current_history, current_history_data, sizeof(uint16_t), CURRENT_HISTORY_DATA_SIZE);
+	RingBuffer_Flush(&current_history);
+}
+
+void init_filtered_input_voltage(void)
+{
+	total_voltage_value = 0;
+	filtered_voltage = 0;
+
+	RingBuffer_Init(&voltage_history, voltage_history_data, sizeof(uint16_t), VOLTAGE_HISTORY_DATA_SIZE);
+	RingBuffer_Flush(&voltage_history);
+}
+
+void Init_UpdateKitV2_variables(void)
+{
+	current_system_proc_state = US_SYSTEM_BOOTUP_STATE;
+	max_upgrade_time_in_S = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+	lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
+	raw_voltage = 0;			//  0.00v ~ 9.99v --> 0-999
+	raw_current = 0;			// .000A ~ .999A --> 0-999
+	filtered_voltage = 0;		//  0.00v ~ 9.99v --> 0-999
+	filtered_current = 0;		// .000A ~ .999A --> 0-999
+	total_current_value = 0;
+	init_filtered_input_current();
+	init_filtered_input_voltage();
+	current_output_stage = DEFAULT_POWER_OUTPUT_STEP;
+}
 
 void lcm_content_init_old(void)
 {
@@ -424,15 +456,6 @@ void PowerOutputSetting(uint8_t current_step)
 	}
 }
 
-void init_filtered_input_current(void)
-{
-	total_current_value = 0;
-	filtered_current = 0;
-
-	RingBuffer_Init(&current_history, current_history_data, sizeof(uint16_t), CURRENT_HISTORY_DATA_SIZE);
-	RingBuffer_Flush(&current_history);
-}
-
 uint16_t Filtered_Input_current(uint16_t latest_current)
 {
 	uint16_t	temp;
@@ -446,15 +469,6 @@ uint16_t Filtered_Input_current(uint16_t latest_current)
 	RingBuffer_Insert(&current_history, &latest_current);
 
 	return (total_current_value/CURRENT_HISTORY_DATA_SIZE);
-}
-
-void init_filtered_input_voltage(void)
-{
-	total_voltage_value = 0;
-	filtered_voltage = 0;
-
-	RingBuffer_Init(&voltage_history, voltage_history_data, sizeof(uint16_t), VOLTAGE_HISTORY_DATA_SIZE);
-	RingBuffer_Flush(&voltage_history);
 }
 
 uint16_t Filtered_Input_voltage(uint16_t latest_voltage)

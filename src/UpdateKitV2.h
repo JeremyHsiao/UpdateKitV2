@@ -27,6 +27,7 @@ typedef enum
 	US_MAX_STATE_NO
 } UPDATE_STATE;
 
+extern void Init_UpdateKitV2_variables(void);
 extern void lcm_reset_FW_VER_Content(void);
 extern void lcm_reset_Previous_FW_VER_Content(void);
 extern void lcm_content_init(void);
