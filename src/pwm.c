@@ -108,7 +108,7 @@ void Init_PWM(void)
 	LPC_SCT0->OUTPUT = (1 << 3);
 
 	/* The PWM will use a cycle time of (PWMCYCLERATE)Hz based off the bus clock */
-	cycleTicks = Chip_Clock_GetSystemClockRate() / PWMCYCLERATE;
+	cycleTicks = Chip_Clock_GetSystemClockRate() / DEFUALT_PWMCYCLERATE;
 
 	/* Setup for match mode */
 	LPC_SCT0->REGMODE_L = 0;
