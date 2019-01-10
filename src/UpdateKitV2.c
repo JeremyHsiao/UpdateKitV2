@@ -27,7 +27,7 @@
 uint8_t		current_output_stage;
 const uint8_t		pwm_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 100, 60,  52, 44, 36, 28, 20, 13, 5, 0};
 const char *pwm_voltage_table [POWER_OUTPUT_STEP_TOTAL_NO] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.8" };
-const uint8_t		default_no_current_threshold_lut[POWER_OUTPUT_STEP_TOTAL_NO] = { 9, 9, 10, 11, 12, 13, 14, 15, 15, 15 };
+const uint8_t		default_no_current_threshold_lut[POWER_OUTPUT_STEP_TOTAL_NO] = { 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 };
 
 #define	CURRENT_HISTORY_DATA_SIZE	64
 RINGBUFF_T 	current_history;
