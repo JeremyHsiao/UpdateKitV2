@@ -25,12 +25,8 @@
  ****************************************************************************/
 
 uint8_t		current_output_stage;
-//uint8_t		pwm_table[25] = { 100, 77, 76, 75, 74,   73, 72,  71, 70, 65,    64, 63, 54, 53, 52,     34, 33, 32, 31, 5,   4, 3, 2, 1, 0};
-const uint8_t		pwm_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 100, 58,  49, 41,   33,   26,    19,   12,   4,   0};
-//Key toggle :				 0V, 6.0V ,6.5V, 7V,  7.5V, 8V,   8.5V, 9V,  9.5V, 10V
-						//	0 / 680 / 702 / 749 / 799 / 852 / 909 / 948/ 980
-
-const char *pwm_voltage_table [POWER_OUTPUT_STEP_TOTAL_NO] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.7" };
+const uint8_t		pwm_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 100, 60,  52, 44, 36, 28, 20, 13, 5, 0};
+const char *pwm_voltage_table [POWER_OUTPUT_STEP_TOTAL_NO] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.8" };
 const uint8_t		default_no_current_threshold_lut[POWER_OUTPUT_STEP_TOTAL_NO] = { 9, 9, 10, 11, 12, 13, 14, 15, 15, 15 };
 
 #define	CURRENT_HISTORY_DATA_SIZE	64
@@ -447,7 +443,7 @@ void PowerOutputSetting(uint8_t current_step)
 {
 	if(current_step==0)
 	{
-		setPWMRate(0, pwm_table[current_step]);
+		setPWMRate(0, pwm_table[0]);
 		Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
 	}
 	else
