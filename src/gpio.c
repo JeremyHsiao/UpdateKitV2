@@ -128,7 +128,7 @@ bool Debounce_Button(void)
 	    negFlag = true;     	//fall edge debounce - stage 2
 	    event_already_raised=false;
 	}
-	//after debounce time-out, check if button is still pressed
+	//after debounce time-out, check if button is still pressed - stage 2
 	else if(negFlag && !posFlag && (count > DEBOUNCE_COUNT))
 	{
 	    if(!Get_GPIO_Switch_Key())
@@ -144,13 +144,13 @@ bool Debounce_Button(void)
 	    else
 	        negFlag = false;     // already back-to-high after debounce-time --> treat it as glitch of GPIO and back to stage 1
 	}
-	// if button released then wait debounce
+	// if button released then wait debounce - stage 3
 	else if(Get_GPIO_Switch_Key() && negFlag && posFlag)
 	{
 	    count = 0;          //rise edge debounce count start.
 	    negFlag = false;
 	}
-	// after debounce of button released, always back to stage 1
+	// after debounce of button released (stage 4), always back to stage 1
 	else if(!negFlag && posFlag && (count > DEBOUNCE_COUNT) )
 	{
     	posFlag = false; //finish rising-edge Debounce cycle.
