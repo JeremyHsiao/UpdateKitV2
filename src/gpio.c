@@ -117,56 +117,46 @@ bool		event_already_raised = false;
 
 bool Debounce_Button(void)
 {
+	bool bRet = false;
+
 	count++;
 
 	//check switch
 	if(!(Get_GPIO_Switch_Key()) && !negFlag && !posFlag)
 	{
 	    count = 0;         		//first debounce count start.
-	    negFlag = true;     	//fall edge debounce
+	    negFlag = true;     	//fall edge debounce - stage 2
 	    event_already_raised=false;
-	    return false;
-//	    return true;
 	}
-
-	//if falling-edge debounce time-out
-	if(negFlag && !posFlag && (count > DEBOUNCE_COUNT))
+	//after debounce time-out, check if button is still pressed
+	else if(negFlag && !posFlag && (count > DEBOUNCE_COUNT))
 	{
 	    if(!Get_GPIO_Switch_Key())
 	    {
+	    	// If still button-pressed & if event not-yet raised for this button-pressed (after debounce)
 	    	if(event_already_raised==false)
 	    	{
 	    		event_already_raised = true;
-	    		return true;
+	    		bRet = true;
 	    	}
-    		posFlag = true;      //  rising edge debounce is required later when button is released
+    		posFlag = true;      //  wait for button-release & debounce (stage 3)
 	    }
 	    else
-	        negFlag = false;     // already back-to-high, no need to debounce low-to-high when release pressing
+	        negFlag = false;     // already back-to-high after debounce-time --> treat it as glitch of GPIO and back to stage 1
 	}
-
-	// falling debounce is done & now start a rising debounce
-	if(Get_GPIO_Switch_Key() && negFlag && posFlag)
+	// if button released then wait debounce
+	else if(Get_GPIO_Switch_Key() && negFlag && posFlag)
 	{
 	    count = 0;          //rise edge debounce count start.
 	    negFlag = false;
-	    return false;
 	}
-
-	//switch rise edge debounce success.
-	if(!negFlag && posFlag && (count > DEBOUNCE_COUNT) )
+	// after debounce of button released, always back to stage 1
+	else if(!negFlag && posFlag && (count > DEBOUNCE_COUNT) )
 	{
-	    if(Get_GPIO_Switch_Key())
-	    {
-	    	posFlag = false; //finish rising-edge Debounce cycle.
-	    }
-	    else
-	    {
-	    	negFlag = true;
-	    }
+    	posFlag = false; //finish rising-edge Debounce cycle.
 	}
 
-	return false;
+	return bRet;
 }
 
 void LED_Status_Set_Value(uint32_t LED_status_value)
