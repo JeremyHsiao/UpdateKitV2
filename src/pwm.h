@@ -23,5 +23,6 @@
 extern void Init_PWM(void);
 extern void DeInit_PWM(void);
 extern void setPWMRate(int pwnNum, uint8_t percentage);
+extern void setPWMRate_p4(int pwnNum, uint16_t percentage_p4);
 
 #endif /* PWM_H_ */
