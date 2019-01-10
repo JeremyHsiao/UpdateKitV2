@@ -28,6 +28,7 @@ uint8_t		current_output_stage;
 const uint8_t		pwm_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 100, 60,  52, 44, 36, 28, 20, 13, 5, 0};
 const char *pwm_voltage_table [POWER_OUTPUT_STEP_TOTAL_NO] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.8" };
 const uint8_t		default_no_current_threshold_lut[POWER_OUTPUT_STEP_TOTAL_NO] = { 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 };
+const uint16_t		target_voltage_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 0, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 9800 };
 
 #define	CURRENT_HISTORY_DATA_SIZE	64
 RINGBUFF_T 	current_history;
@@ -439,17 +440,35 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	}
 }
 
+#define DEFAULT_OUTPUT_VOLTAGE_LOSS		(200)
+static uint16_t PWMRate_Value_P4=400;
+
 void PowerOutputSetting(uint8_t current_step)
 {
 	if(current_step==0)
 	{
 		setPWMRate(0, pwm_table[0]);
+		PWMRate_Value_P4 = pwm_table[current_step]*4;
 		Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
 	}
 	else
 	{
 		setPWMRate(0, pwm_table[current_step]);
+		PWMRate_Value_P4 = pwm_table[current_step]*4;
 		Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+	}
+}
+
+void SimpleOutputVoltageCalibration(void)
+{
+	// Goes up if not sufficient
+	if(GetFilteredVoltage()<(target_voltage_table[current_output_stage]+DEFAULT_OUTPUT_VOLTAGE_LOSS))
+	{
+		if(PWMRate_Value_P4>0)
+		{
+			PWMRate_Value_P4--;
+			setPWMRate_p4(3,PWMRate_Value_P4);
+		}
 	}
 }
 
@@ -983,4 +1002,3 @@ bool UART_input_processor(uint8_t key)
 
 	return bRet_any_event_raised;
 }
-

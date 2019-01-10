@@ -75,6 +75,32 @@ void setPWMRate(int pwnNum, uint8_t percentage)
 	LPC_SCT0->MATCHREL[pwnNum + 1].U = value;
 }
 
+void setPWMRate_p4(int pwnNum, uint16_t percentage_4)
+{
+	uint32_t value;
+
+	/* Limit valid PWMs to 3 */
+	if ((pwnNum < 0) || (pwnNum > 3)) {
+		return;
+	}
+
+	if (percentage_4 >= (100*4)) {
+		value = 1;
+	}
+	else if (percentage_4 == 0) {
+		value = cycleTicks + 1;
+	}
+	else {
+		uint32_t newTicks;
+
+		newTicks = (cycleTicks * percentage_4) / (100*4);
+
+		/* Approximate duty cycle rate */
+		value = cycleTicks - newTicks;
+	}
+
+	LPC_SCT0->MATCHREL[pwnNum + 1].U = value;
+}
 /*****************************************************************************
  * Public functions
  ****************************************************************************/
