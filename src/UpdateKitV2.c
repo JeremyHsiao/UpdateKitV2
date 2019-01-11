@@ -93,14 +93,6 @@ void Init_UpdateKitV2_variables(void)
 	current_output_stage = DEFAULT_POWER_OUTPUT_STEP;
 }
 
-void lcm_content_init_old(void)
-{
-//    strcpy((void *)&lcd_module_display_content[0][0][0], "TPV UpdateKit V2" __TIME__);
-    //lcd_module_display_enable[3] = 0x00;
-     //memset((void *)lcd_module_display_enable, 0x00, 4);
-     //lcd_module_display_enable[1]=1;
-}
-
 // Across several pages
 #define ELAPSE_TIME_LEN 	(4)
 #define MAX_FW_VER_LEN		(LCM_DISPLAY_COL-3)
@@ -133,18 +125,41 @@ void lcm_content_init_old(void)
 #define COUNTDOWN_TIME_POS	(10)
 #define COUNTDOWN_TIME_ROW	(1)
 
+static inline bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, const void * restrict __s2, size_t len)
+{
+	// If row/col is out-of-range, skip
+	if((row>=LCM_DISPLAY_ROW)||(col>=LCM_DISPLAY_COL))
+	{
+		return false;
+	}
+	// If size is larger, simply skip out-of-boundary text
+	if((col+len-1)>=LCM_DISPLAY_COL)
+	{
+		len=LCM_DISPLAY_COL-col;
+	}
+	// execute actual memcpy
+	memcpy((void *)&lcd_module_display_content[page_id][row][col],__s2, len);
+	return true;
+}
+
 void lcm_reset_FW_VER_Content(void)
 {
 	// FW upgrade is done and show software version page				   						 0123456789012345
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][ELAPSE_TIME_ROW][0], 		"Upgrade:   0 Sec", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][0], 			"FW:             ", LCM_DISPLAY_COL);
+//	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][ELAPSE_TIME_ROW][0], 		"Upgrade:   0 Sec", LCM_DISPLAY_COL);
+//	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][0], 			"FW:             ", LCM_DISPLAY_COL);
+	//                                                        0123456789012345
+	lcm_text_buffer_cpy(LCM_FW_OK_VER_PAGE,ELAPSE_TIME_ROW,0,"Upgrade:   0 Sec",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_FW_OK_VER_PAGE,CURRENT_FW_ROW ,0,"FW:             ",LCM_DISPLAY_COL);
 }
 
 void lcm_reset_Previous_FW_VER_Content(void)
 {
 	// FW upgrade info of previous update                				                         				 0123456789012345
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_TIME_ROW][0], 	"LastUPG:   0 Sec", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_FW_ROW][0], 	"FW:             ", LCM_DISPLAY_COL);
+//	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_TIME_ROW][0], 	"LastUPG:   0 Sec", LCM_DISPLAY_COL);
+//	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_FW_ROW][0], 	"FW:             ", LCM_DISPLAY_COL);
+	//                                                                               0123456789012345
+	lcm_text_buffer_cpy(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO,PREVIOUS_TIME_ROW,0,"LastUPG:   0 Sec",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO,PREVIOUS_FW_ROW,  0,"FW:             ",LCM_DISPLAY_COL);
 }
 
 void lcm_content_init(void)
@@ -158,8 +173,10 @@ void lcm_content_init(void)
 	// Prepare firmware version for welcome page
 
 	// Welcome page														 1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_WELCOME_PAGE][0][0], welcome_message_line1, LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_WELCOME_PAGE][1][0], welcome_message_line2, LCM_DISPLAY_COL);
+//	memcpy((void *)&lcd_module_display_content[LCM_WELCOME_PAGE][0][0], welcome_message_line1, LCM_DISPLAY_COL);
+//	memcpy((void *)&lcd_module_display_content[LCM_WELCOME_PAGE][1][0], welcome_message_line2, LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_WELCOME_PAGE,0,0,welcome_message_line1,LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_WELCOME_PAGE,1,0,welcome_message_line2,LCM_DISPLAY_COL);
 
 	// PC Mode page		     										1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_PC_MODE][0][0], "PC Mode: Press  ", LCM_DISPLAY_COL);
@@ -385,7 +402,8 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 			break;
 	}
 //	memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][5], final_voltage_str, 5);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][5], final_voltage_str, 5);
+	//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][5], final_voltage_str, 5);
+	lcm_text_buffer_cpy(LCM_FW_UPGRADING_PAGE,1,5, final_voltage_str, 5);
 
 	// filtered_current
 	final_current_str[1] = '.';
@@ -420,7 +438,8 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 			break;
 	}
 //	memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][11], final_current_str, 5);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][11], final_current_str, 5);
+	//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][11], final_current_str, 5);
+	lcm_text_buffer_cpy(LCM_FW_UPGRADING_PAGE,1,11, final_current_str, 5);
 
 	//
 	// Update LED 7-segment
@@ -487,8 +506,10 @@ uint16_t Filtered_Input_voltage(uint16_t latest_voltage)
 static inline void Copy_Existing_FW_Upgrade_Info_to_Previous_Info(void)
 {
 	// Move existing FW upgrade info to previous update info page               				                        1234567890123456
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_TIME_ROW][PREVIOUS_TIME_POS], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS], ELAPSE_TIME_LEN);
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_FW_ROW][PREVIOUS_FW_POS], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS], MAX_FW_VER_LEN);
+	//memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_TIME_ROW][PREVIOUS_TIME_POS], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS], ELAPSE_TIME_LEN);
+	lcm_text_buffer_cpy(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO,PREVIOUS_TIME_ROW,PREVIOUS_TIME_POS, (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS], ELAPSE_TIME_LEN);
+	//memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO][PREVIOUS_FW_ROW][PREVIOUS_FW_POS], (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS], MAX_FW_VER_LEN);
+	lcm_text_buffer_cpy(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO,PREVIOUS_FW_ROW,PREVIOUS_FW_POS, (void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS], MAX_FW_VER_LEN);
 	lcm_reset_FW_VER_Content();
 }
 
@@ -496,12 +517,20 @@ static inline void LCM_Fill_Version_String(void)
 {
 	char	*temp_str = (char *) Get_VER_string();
 	uint8_t	temp_len = strlen(temp_str);
-	if (temp_len>MAX_FW_VER_LEN)
+	if (temp_len>=MAX_FW_VER_LEN)
 	{
+		// If longer than max-length, cut it
+		// If equaled, actually do nothing
 		temp_len = MAX_FW_VER_LEN;
 	}
-	memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS], temp_str, temp_len);
-	memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS+temp_len], ' ', MAX_FW_VER_LEN-(temp_len));
+	else
+	{
+		// If shorter, fill ' ' to rest of char
+		memset((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS+temp_len], ' ', MAX_FW_VER_LEN-(temp_len));
+	}
+	//memcpy((void *)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][CURRENT_FW_ROW][CURRENT_FW_POS], temp_str, temp_len);
+	lcm_text_buffer_cpy(LCM_FW_OK_VER_PAGE,CURRENT_FW_ROW,CURRENT_FW_POS, temp_str, temp_len);
+
 }
 
 static inline void Change_Output_Selection(void)
@@ -782,7 +811,8 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
 			break;
 		case US_COUNTDOWN_BEFORE_OUTPUT:
-			memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][OUTPUT_SELECT_ROW][OUTPUT_SELECT_POS], pwm_voltage_table[current_output_stage], OUTPUT_SELECT_LEN);
+			//memcpy((void *)&lcd_module_display_content[LCM_REMINDER_BEFORE_OUTPUT][OUTPUT_SELECT_ROW][OUTPUT_SELECT_POS], pwm_voltage_table[current_output_stage], OUTPUT_SELECT_LEN);
+			lcm_text_buffer_cpy(LCM_REMINDER_BEFORE_OUTPUT,OUTPUT_SELECT_ROW,OUTPUT_SELECT_POS, pwm_voltage_table[current_output_stage], OUTPUT_SELECT_LEN);
 			lcd_module_display_enable_only_one_page(LCM_REMINDER_BEFORE_OUTPUT);
 			Countdown_Once(SYSTEM_STATE_PROC_TIMER,OUTPUT_REMINDER_DISPLAY_TIME_IN_S,TIMER_S);		// one-shot count down
 			break;
