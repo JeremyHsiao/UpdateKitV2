@@ -27,6 +27,12 @@ typedef	struct {
 	unsigned	timeup_flag:1;			// countdown to 0 or countup to reload_value
 } SW_TIMER;
 
+/*
+typedef	struct {
+	int32_t		counter;				// running(1) + timeout(1) + counter (30) so 1,342,177.275 if 8000 ticks each second.
+	int32_t		reload_value;			// downcount(1) +  repeat(1) + reload_value
+} SW_TIMER;
+*/
 typedef enum
 {
 	UPGRADE_ELAPSE_IN_S = 0,
