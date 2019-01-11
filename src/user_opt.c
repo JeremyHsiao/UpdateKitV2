@@ -52,7 +52,7 @@
 // User Selection
 #define	USER_SELECTION_POSITION		(0x20)
 #define USER_SELECTION_LENGTH		(4)
-volatile uint8_t User_Select_Last_ReadWrite = POWER_OUTPUT_STEP_TOTAL_NO;
+uint8_t User_Select_Last_ReadWrite = POWER_OUTPUT_STEP_TOTAL_NO;
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -109,10 +109,6 @@ bool Load_User_Selection(uint8_t *pUserSelect)
 		return false;		// cannot validate
 	}
 
-	// ptr[0] = sel
-	// ptr[1] = ~sel
-	// ptr[2] = ~sel
-	// ptr[3] = sel
 	if((ptr[0]==ptr[3])&&(ptr[1]==ptr[2])&&(ptr[0]==(ptr[1]^0xff))&&(ptr[0]<POWER_OUTPUT_STEP_TOTAL_NO))
 	{
 		*pUserSelect = User_Select_Last_ReadWrite = *ptr;
