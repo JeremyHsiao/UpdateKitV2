@@ -74,33 +74,6 @@ void setPWMRate(int pwnNum, uint8_t percentage)
 
 	LPC_SCT0->MATCHREL[pwnNum + 1].U = value;
 }
-
-void setPWMRate_p4(int pwnNum, uint16_t percentage_4)
-{
-	uint32_t value;
-
-	/* Limit valid PWMs to 3 */
-	if ((pwnNum < 0) || (pwnNum > 3)) {
-		return;
-	}
-
-	if (percentage_4 >= (100*4)) {
-		value = 1;
-	}
-	else if (percentage_4 == 0) {
-		value = cycleTicks + 1;
-	}
-	else {
-		uint32_t newTicks;
-
-		newTicks = (cycleTicks * percentage_4) / (100*4);
-
-		/* Approximate duty cycle rate */
-		value = cycleTicks - newTicks;
-	}
-
-	LPC_SCT0->MATCHREL[pwnNum + 1].U = value;
-}
 /*****************************************************************************
  * Public functions
  ****************************************************************************/
@@ -117,6 +90,8 @@ void SCT_IRQHandler(void)
 // Added/modified by Jeremy
 void Init_PWM(void)
 {
+	uint32_t	temp;
+
 	/* Chip specific SCT setup - clocks and peripheral reset
 	   There are a lot of registers in the SCT peripheral. Performing
 	   the reset allows the default states of the SCT to be loaded, so
@@ -134,7 +109,8 @@ void Init_PWM(void)
 	LPC_SCT0->OUTPUT = (1 << 3);
 
 	/* The PWM will use a cycle time of (PWMCYCLERATE)Hz based off the bus clock */
-	cycleTicks = Chip_Clock_GetSystemClockRate() / DEFUALT_PWMCYCLERATE;
+	temp = DEFUALT_PWMCYCLERATE;
+	cycleTicks = Chip_Clock_GetSystemClockRate() / temp;
 
 	/* Setup for match mode */
 	LPC_SCT0->REGMODE_L = 0;
@@ -244,7 +220,7 @@ void Init_PWM(void)
 	LPC_SCT1->OUTPUT = (7 << 0);
 
 	/* The PWM will use a cycle time of (PWMCYCLERATE)Hz based off the bus clock */
-	cycleTicks = Chip_Clock_GetSystemClockRate() / PWMCYCLERATE;
+	cycleTicks = Chip_Clock_GetSystemClockRate() / DEFUALT_PWMCYCLERATE;
 
 	/* Setup for match mode */
 	LPC_SCT1->REGMODE_L = 0;

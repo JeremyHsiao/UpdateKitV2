@@ -440,35 +440,17 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	}
 }
 
-#define DEFAULT_OUTPUT_VOLTAGE_LOSS		(200)
-static uint16_t PWMRate_Value_P4=400;
-
 void PowerOutputSetting(uint8_t current_step)
 {
 	if(current_step==0)
 	{
 		setPWMRate(0, pwm_table[0]);
-		PWMRate_Value_P4 = pwm_table[current_step]*4;
 		Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
 	}
 	else
 	{
 		setPWMRate(0, pwm_table[current_step]);
-		PWMRate_Value_P4 = pwm_table[current_step]*4;
 		Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
-	}
-}
-
-void SimpleOutputVoltageCalibration(void)
-{
-	// Goes up if not sufficient
-	if(GetFilteredVoltage()<(target_voltage_table[current_output_stage]+DEFAULT_OUTPUT_VOLTAGE_LOSS))
-	{
-		if(PWMRate_Value_P4>0)
-		{
-			PWMRate_Value_P4--;
-			setPWMRate_p4(3,PWMRate_Value_P4);
-		}
 	}
 }
 
