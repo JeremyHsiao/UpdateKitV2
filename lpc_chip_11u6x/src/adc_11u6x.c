@@ -118,6 +118,9 @@ void Chip_ADC_StartCalibration(LPC_ADC_T *pADC)
 	Chip_ADC_SetClockRate(LPC_ADC, ADC_CALIBRATE_RATE);
 	
 	pADC->CTRL = (pADC->CTRL | ADC_CR_CALMODEBIT) & ~ADC_CR_LPWRMODEBIT;
+	while (!(Chip_ADC_IsCalibrationDone(LPC_ADC))) {}
+
+	pADC->CTRL = save_ADC_CTRL;
 }
 
 /**

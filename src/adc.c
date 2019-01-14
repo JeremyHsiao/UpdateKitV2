@@ -86,7 +86,6 @@ void Init_ADC(void)
 
 	/* Need to do a calibration after initialization and trim */
 	Chip_ADC_StartCalibration(LPC_ADC);
-	while (!(Chip_ADC_IsCalibrationDone(LPC_ADC))) {}
 
 	/* Setup for maximum ADC clock rate using sycnchronous clocking */
 	Chip_ADC_SetClockRate(LPC_ADC, ADC_MAX_CLOCK_RATE);
