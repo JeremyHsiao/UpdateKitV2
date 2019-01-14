@@ -39,11 +39,14 @@
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
+#define ADC_CH_VOLTAGE		(6)
+#define ADC_CH_CURRENT		(8)
 
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
-bool sequenceComplete, thresholdCrossed;
+//bool sequenceComplete, thresholdCrossed;
+bool sequenceComplete;
 
 /*****************************************************************************
  * Private functions
@@ -68,10 +71,10 @@ void ADCA_IRQHandler(void)
 		sequenceComplete = true;
 	}
 
-	/* Threshold crossing interrupt on ADC input channel */
-	if (pending & ADC_FLAGS_THCMP_MASK(BOARD_ADC_CH)) {
-		thresholdCrossed = true;
-	}
+//	/* Threshold crossing interrupt on ADC input channel */
+//	if (pending & ADC_FLAGS_THCMP_MASK(BOARD_ADC_CH)) {
+//		thresholdCrossed = true;
+//	}
 
 	/* Clear any pending interrupts */
 	Chip_ADC_ClearFlags(LPC_ADC, pending);
@@ -79,10 +82,11 @@ void ADCA_IRQHandler(void)
 
 void Init_ADC(void)
 {
-	sequenceComplete = thresholdCrossed = false;
+//	sequenceComplete = thresholdCrossed = false;
+	sequenceComplete = false;
 
 	/* Setup ADC for 12-bit mode and normal power */
-	Chip_ADC_Init(LPC_ADC, 0);
+	Chip_ADC_Init(LPC_ADC, ADC_CR_LPWRMODEBIT);
 
 	/* Need to do a calibration after initialization and trim */
 	Chip_ADC_StartCalibration(LPC_ADC);
@@ -102,8 +106,10 @@ void Init_ADC(void)
 	/* Setup sequencer A for ADC channel 0, EOS interrupt */
 
 	/* Setup a sequencer to do the following:
-	   Perform ADC conversion of ADC channels 0 only */
-	Chip_ADC_SetupSequencer(LPC_ADC, ADC_SEQA_IDX,(ADC_SEQ_CTRL_CHANSEL(6) | ADC_SEQ_CTRL_CHANSEL(8) | ADC_SEQ_CTRL_MODE_EOS));
+	   Perform ADC conversion of ADC channels 6/8 */
+	Chip_ADC_DisableSequencer(LPC_ADC, ADC_SEQA_IDX);		// Make sure it is disabled before setting other bits
+	Chip_ADC_SetupSequencer(LPC_ADC, ADC_SEQA_IDX,(ADC_SEQ_CTRL_CHANSEL(ADC_CH_VOLTAGE) | ADC_SEQ_CTRL_CHANSEL(ADC_CH_CURRENT) |
+							ADC_SEQ_CTRL_MODE_EOS | ADC_SEQ_CTRL_HWTRIG_POLPOS));
 
 	/* ADC input 0 is on PIO1_9 mapped to FUNC3 */
 	//Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 9, (IOCON_FUNC3 | IOCON_MODE_INACT | IOCON_ADMODE_EN));
@@ -119,24 +125,25 @@ void Init_ADC(void)
 	/* Setup threshold 0 low and high values to about 25% and 75% of max */
 //	Chip_ADC_SetThrLowValue(LPC_ADC, 0, ((1 * 0xFFF) / 4));
 //	Chip_ADC_SetThrHighValue(LPC_ADC, 0, ((3 * 0xFFF) / 4));
-	Chip_ADC_SetThrLowValue(LPC_ADC, 0, ((0 * 0xFFF) / 4));
-	Chip_ADC_SetThrHighValue(LPC_ADC, 0, ((4 * 0xFFF) / 4));
+//	Chip_ADC_SetThrLowValue(LPC_ADC, 0, ((0 * 0xFFF) / 4));
+//	Chip_ADC_SetThrHighValue(LPC_ADC, 0, ((4 * 0xFFF) / 4));
 
 	/* Clear all pending interrupts */
 	Chip_ADC_ClearFlags(LPC_ADC, Chip_ADC_GetFlags(LPC_ADC));
 
 	/* Enable ADC overrun and sequence A completion interrupts */
-	Chip_ADC_EnableInt(LPC_ADC, (ADC_INTEN_SEQA_ENABLE | ADC_INTEN_OVRRUN_ENABLE));
+//	Chip_ADC_EnableInt(LPC_ADC, (ADC_INTEN_SEQA_ENABLE | ADC_INTEN_OVRRUN_ENABLE));
+	Chip_ADC_EnableInt(LPC_ADC, (ADC_INTEN_SEQA_ENABLE));
 
 	/* Use threshold 0 for ADC channel and enable threshold interrupt mode for
 	   channel as crossing */
-	Chip_ADC_SelectTH0Channels(LPC_ADC, ADC_THRSEL_CHAN_SEL_THR1(BOARD_ADC_CH));
-	Chip_ADC_SetThresholdInt(LPC_ADC, BOARD_ADC_CH, ADC_INTEN_THCMP_CROSSING);
+//	Chip_ADC_SelectTH0Channels(LPC_ADC, ADC_THRSEL_CHAN_SEL_THR1(BOARD_ADC_CH));
+//	Chip_ADC_SetThresholdInt(LPC_ADC, BOARD_ADC_CH, ADC_INTEN_THCMP_CROSSING);
 
 	/* Enable ADC NVIC interrupt */
 	NVIC_EnableIRQ(ADC_A_IRQn);
 
-	/* Enable sequencer */
+//	/* Enable sequencer */
 	Chip_ADC_EnableSequencer(LPC_ADC, ADC_SEQA_IDX);
 }
 
@@ -158,9 +165,9 @@ void Read_ADC(void)
 		uint32_t rawSample, temp_value;
 
 		/* Get raw sample data for channels 6 */
-		rawSample = Chip_ADC_GetDataReg(LPC_ADC, 6);
+		rawSample = Chip_ADC_GetDataReg(LPC_ADC, ADC_CH_VOLTAGE);
 		/* Show some ADC data */
-		if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
+		if ((rawSample & (ADC_SEQ_GDAT_DATAVALID)) != 0) {
 			ADC0_value = ADC_DR_RESULT(rawSample);
 			temp_value = ADC0_value;
 			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 1024 / ADC_VREFP_DIVIDER; // use 0.001V as unit == (adc/4096) * (343/100) * (4) * 1000
@@ -175,9 +182,9 @@ void Read_ADC(void)
 		}
 
 		/* Get raw sample data for channels 8 */
-		rawSample = Chip_ADC_GetDataReg(LPC_ADC, 8);
+		rawSample = Chip_ADC_GetDataReg(LPC_ADC, ADC_CH_CURRENT);
 		/* Show some ADC data */
-		if ((rawSample & (ADC_DR_OVERRUN | ADC_SEQ_GDAT_DATAVALID)) != 0) {
+		if ((rawSample & (ADC_SEQ_GDAT_DATAVALID)) != 0) {
 			ADC1_value = ADC_DR_RESULT(rawSample);
 			temp_value = ADC1_value;
 			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 4096 / ADC_VREFP_DIVIDER; // use 0.001A as unit == (adc/4096) * (343/100) * 1000
