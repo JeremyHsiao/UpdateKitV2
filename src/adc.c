@@ -109,7 +109,7 @@ void Init_ADC(void)
 	   Perform ADC conversion of ADC channels 6/8 */
 	Chip_ADC_DisableSequencer(LPC_ADC, ADC_SEQA_IDX);		// Make sure it is disabled before setting other bits
 	Chip_ADC_SetupSequencer(LPC_ADC, ADC_SEQA_IDX,(ADC_SEQ_CTRL_CHANSEL(ADC_CH_VOLTAGE) | ADC_SEQ_CTRL_CHANSEL(ADC_CH_CURRENT) |
-							ADC_SEQ_CTRL_MODE_EOS | ADC_SEQ_CTRL_HWTRIG_POLPOS));
+							ADC_SEQ_CTRL_MODE_EOS | ADC_SEQ_CTRL_HWTRIG_POLPOS | ADC_SEQ_CTRL_HWTRIG_ARM_TXEV));
 
 	/* ADC input 0 is on PIO1_9 mapped to FUNC3 */
 	//Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 9, (IOCON_FUNC3 | IOCON_MODE_INACT | IOCON_ADMODE_EN));
