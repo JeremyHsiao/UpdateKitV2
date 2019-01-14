@@ -148,7 +148,12 @@ void Chip_ADC_DeInit(LPC_ADC_T *pADC)
 /* Set ADC clock rate */
 void Chip_ADC_SetClockRate(LPC_ADC_T *pADC, uint32_t rate)
 {
-	Chip_ADC_SetDivider(pADC, ((Chip_Clock_GetSystemClockRate() + (rate>>2)) / rate) -1);
+	uint8_t	div;
+
+	div = (uint8_t) ( (Chip_Clock_GetSystemClockRate() + (rate>>2)) / rate);
+	if(div>0)
+		div--;
+	Chip_ADC_SetDivider(pADC, div);
 }
 
 /* Helper function for safely setting ADC sequencer register bits */
