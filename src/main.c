@@ -98,9 +98,9 @@ int main(void)
 	reset_string_detector();
 //	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer
 
+	sequenceComplete=false;
 	// Force to ADC again before entering main loop
 	Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
-	sequenceComplete=false;
 
 	// Endless loop at the moment
 	while (1)
@@ -115,6 +115,14 @@ int main(void)
 		}
 		else
 		{
+			/* Is an ADC conversion sequence complete? */
+			if (sequenceComplete)
+			{
+				Read_ADC();
+				sequenceComplete=false;
+				/* Manual start for ADC conversion sequence A */
+				Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
+			}
 			__WFI();
 		}
 
@@ -159,9 +167,9 @@ int main(void)
 		if (sequenceComplete)
 		{
 			Read_ADC();
+			sequenceComplete=false;
 			/* Manual start for ADC conversion sequence A */
 			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
-			sequenceComplete=false;
 		}
 
 		// Update displaying value of voltage/current (from adc read-back value)
