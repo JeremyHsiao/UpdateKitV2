@@ -265,11 +265,14 @@ static inline uint8_t CalculateStandyCurrent(void)
 	return (StandbyCurrentThresholdLUT[current_output_stage]);
 }
 
-void ResetAllCurrentDebounceTimer(void)
+void ResetAllCurrentDebounceTimerEvent(void)
 {
 	Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
 	Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS-1),TIMER_100MS);			// one-shot count down
-	Countdown_Once(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,(DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
+	Countdown_Once(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,(DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS-1),TIMER_100MS);	// one-shot count down
+	EVENT_filtered_current_TV_standby_debounced = false;
+	EVENT_filtered_current_above_fw_upgrade_threshold = false;
+	EVENT_filtered_current_unplugged_debounced = false;
 }
 
 void SetRawVoltage(uint16_t voltage_new)
@@ -829,7 +832,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			{
 				Save_User_Selection(current_output_stage);
 			}
-			ResetAllCurrentDebounceTimer();	// Force to init after first output
+			ResetAllCurrentDebounceTimerEvent();	// Force to init after first output
 			lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
 			break;

@@ -42,7 +42,7 @@ extern void init_filtered_input_current(void);
 extern uint16_t Filtered_Input_current(uint16_t latest_current);
 extern void init_filtered_input_voltage(void);
 extern uint16_t Filtered_Input_voltage(uint16_t latest_voltage);
-extern void ResetAllCurrentDebounceTimer(void);
+extern void ResetAllCurrentDebounceTimerEvent(void);
 extern bool UART_input_processor(uint8_t key);
 extern bool Event_Proc_State_Independent(void);
 extern UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state);
