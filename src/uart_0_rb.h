@@ -10,6 +10,7 @@
 
 extern void Init_UART0(void);
 extern void DeInit_UART0(void);
+extern bool UART_Check_InputBuffer_IsEmpty(void);
 extern int UART0_GetChar(void *return_ch);
 extern uint32_t UART0_PutChar(char ch);
 extern int OutputHexValue(uint32_t value);

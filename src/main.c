@@ -132,38 +132,41 @@ int main(void)
 		// Input data processing section
 		//
 
-		// Processing chars according to sys_tick -> faster tick means fewer char for each loop
-		temp = ((115200/8)/SYSTICK_PER_SECOND)+1;
-		do
+		if(UART_Check_InputBuffer_IsEmpty()==false)
 		{
-			uint8_t	key, bytes;
-			bool	processor_event_detected;
+			// Processing chars according to sys_tick -> faster tick means fewer char for each loop
+			temp = ((115200/8)/SYSTICK_PER_SECOND)+1;
+			do
+			{
+				uint8_t	key, bytes;
+				bool	processor_event_detected;
 
-			// Process RS-232 input character
-			bytes = UART0_GetChar(&key);
-			if (bytes > 0)
-			{
-#ifdef DEBUG_RX_LOG
-				*UART_Rx_ptr++ = key;
-				UART_TX_LOG_Index++;
-				if(UART_Rx_ptr>=(UART_Rx_log+UART_RX_LOG_LEN))
+				// Process RS-232 input character
+				bytes = UART0_GetChar(&key);
+				if (bytes > 0)
 				{
-					UART_Rx_ptr = UART_Rx_log;
-					UART_TX_LOG_Index=0;
+	#ifdef DEBUG_RX_LOG
+					*UART_Rx_ptr++ = key;
+					UART_TX_LOG_Index++;
+					if(UART_Rx_ptr>=(UART_Rx_log+UART_RX_LOG_LEN))
+					{
+						UART_Rx_ptr = UART_Rx_log;
+						UART_TX_LOG_Index=0;
+					}
+	#endif // #ifdef DEBUG_RX_LOG
+					processor_event_detected = UART_input_processor(key);
+					if(processor_event_detected!=false)
+					{
+						break;			// leave loop whenever event has been detected
+					}
 				}
-#endif // #ifdef DEBUG_RX_LOG
-				processor_event_detected = UART_input_processor(key);
-				if(processor_event_detected!=false)
+				else
 				{
-					break;			// leave loop whenever event has been detected
+					break;
 				}
 			}
-			else
-			{
-				break;
-			}
+			while(--temp>0);
 		}
-		while(--temp>0);
 
 		/* Is an ADC conversion sequence complete? */
 		if (sequenceComplete)

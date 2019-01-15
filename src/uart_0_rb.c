@@ -132,6 +132,11 @@ int UART0_GetChar(void *return_ch)
 	return Chip_UART0_ReadRB(LPC_USART0, &rxring, return_ch, 1);
 }
 
+bool UART_Check_InputBuffer_IsEmpty(void)
+{
+	return (RingBuffer_IsEmpty(&rxring)!=0)?true:false;
+}
+
 uint32_t UART0_PutChar(char ch)
 {
 	uint32_t return_value;
