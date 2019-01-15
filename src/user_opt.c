@@ -50,7 +50,7 @@
 ///* Pre-setup String */
 
 // User Selection
-#define	USER_SELECTION_POSITION		(0x20)
+#define	USER_SELECTION_POSITION		(0x80)
 #define USER_SELECTION_LENGTH		(4)
 uint8_t User_Select_Last_ReadWrite = POWER_OUTPUT_STEP_TOTAL_NO;
 
@@ -109,7 +109,7 @@ bool Load_User_Selection(uint8_t *pUserSelect)
 		return false;		// cannot validate
 	}
 
-	if((ptr[0]==ptr[3])&&(ptr[1]==ptr[2])&&(ptr[0]==(ptr[1]^0xff))&&(ptr[0]<POWER_OUTPUT_STEP_TOTAL_NO))
+	if((*ptr<POWER_OUTPUT_STEP_TOTAL_NO)&&(ptr[0]==ptr[3])&&(ptr[1]==ptr[2])&&(ptr[0]==(ptr[1]^0xff)))
 	{
 		*pUserSelect = User_Select_Last_ReadWrite = *ptr;
 		return true;
