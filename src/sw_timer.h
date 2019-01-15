@@ -9,8 +9,8 @@
 #define SW_TIMER_H_
 
 //#define 	SYSTICK_PER_SECOND			(10000)		// 10000 ticks per second == 100us each tick --> make sure deviation of delay is M 50us
-//#define 	SYSTICK_PER_SECOND			(4000)		// 4000 ticks per second == 250us each tick
-#define 	SYSTICK_PER_SECOND			(8000)		// 8000 ticks per second == 125us each tick
+#define 	SYSTICK_PER_SECOND			(2000)		// 4000 ticks per second == 250us each tick
+//#define 	SYSTICK_PER_SECOND			(8000)		// 8000 ticks per second == 125us each tick
 #define     SYSTICK_COUNT_VALUE_S(x)	((SYSTICK_PER_SECOND*x)-1)
 #define     SYSTICK_COUNT_VALUE_MS(x)	((SYSTICK_PER_SECOND*x/1000)-1)
 #define     SYSTICK_COUNT_VALUE_US(x)	((SYSTICK_PER_SECOND*x/1000000)-1)
