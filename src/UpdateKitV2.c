@@ -24,7 +24,7 @@
  * Private types/enumerations/variables
  ****************************************************************************/
 
-uint8_t		current_output_stage;
+uint8_t				current_output_stage;
 const uint8_t		pwm_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 100, 59,  51, 43, 35, 27, 20, 12, 4, 0};
 const char *pwm_voltage_table [POWER_OUTPUT_STEP_TOTAL_NO] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.7" };
 const uint8_t		default_no_current_threshold_lut[POWER_OUTPUT_STEP_TOTAL_NO] = { 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 };
@@ -78,6 +78,11 @@ void init_filtered_input_voltage(void)
 	RingBuffer_Flush(&voltage_history);
 }
 
+void Init_User_Selection_From_EEPROM(void)
+{
+	Load_User_Selection(&current_output_stage);
+}
+
 void Init_UpdateKitV2_variables(void)
 {
 	current_system_proc_state = US_SYSTEM_BOOTUP_STATE;
@@ -90,7 +95,7 @@ void Init_UpdateKitV2_variables(void)
 	total_current_value = 0;
 	init_filtered_input_current();
 	init_filtered_input_voltage();
-	current_output_stage = DEFAULT_POWER_OUTPUT_STEP;
+	//current_output_stage = DEFAULT_POWER_OUTPUT_STEP;
 }
 
 // Across several pages
@@ -803,7 +808,8 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 	{
 		case US_SYSTEM_BOOTUP_STATE:
 		case US_SYSTEM_WELCOME:
-			Load_User_Selection(&current_output_stage);
+// Relocate to the beginning of main()
+//			Load_User_Selection(&current_output_stage);
 			lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
 			lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
 			// Clear events if we want to check it at this state

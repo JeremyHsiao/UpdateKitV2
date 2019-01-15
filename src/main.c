@@ -52,6 +52,8 @@ uint16_t	UART_TX_LOG_Index = 0;
 int main(void)
 {
 	SystemCoreClockUpdate();
+	Init_User_Selection_From_EEPROM();
+
 	/* Enable and setup SysTick Timer at a periodic rate */
 	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
 
