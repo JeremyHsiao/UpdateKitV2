@@ -90,8 +90,6 @@ void SCT_IRQHandler(void)
 // Added/modified by Jeremy
 void Init_PWM(void)
 {
-	uint32_t	temp;
-
 	/* Chip specific SCT setup - clocks and peripheral reset
 	   There are a lot of registers in the SCT peripheral. Performing
 	   the reset allows the default states of the SCT to be loaded, so
@@ -101,6 +99,15 @@ void Init_PWM(void)
 	/* SCT0_OUT3 on PIO1_13 mapped to FUNC2 */
 	Chip_IOCON_PinMuxSet(LPC_IOCON, PWM0_GPIO_PORT, PWM0_GPIO_PIN, PWM0_PIN_MUX);  // P1.0-2, 4-8. 10-21, 23-28, 30-31
 
+	MySetupPWMFrequency(DEFUALT_PWMCYCLERATE,default_duty_cycle);
+
+	/* Unhalt the counter to start */
+	LPC_SCT0->CTRL_U &= ~(1 << 2);
+}
+
+void MySetupPWMFrequency(uint32_t freq, uint8_t duty)
+{
+	uint32_t value;
 
 	/* Configure the SCT as a 32bit counter using the bus clock */
 	LPC_SCT0->CONFIG = SCT_CONFIG_32BIT_COUNTER | SCT_CONFIG_CLKMODE_BUSCLK;
@@ -109,8 +116,7 @@ void Init_PWM(void)
 	LPC_SCT0->OUTPUT = (1 << 3);
 
 	/* The PWM will use a cycle time of (PWMCYCLERATE)Hz based off the bus clock */
-	temp = DEFUALT_PWMCYCLERATE;
-	cycleTicks = Chip_Clock_GetSystemClockRate() / temp;
+	cycleTicks = Chip_Clock_GetSystemClockRate() / freq;
 
 	/* Setup for match mode */
 	LPC_SCT0->REGMODE_L = 0;
@@ -126,29 +132,30 @@ void Init_PWM(void)
 	/* For CTOUT3, event 1 is used to clear the output */
 	LPC_SCT0->OUT[3].CLR = (1 << 0);
 
-	/* Setup PWM3(CTOUT3) to 50% dutycycle */
-	setPWMRate(3, default_duty_cycle);	/* On match 1 */
+	if (duty >= 100) {
+		value = 1;
+	}
+	else if (duty == 0) {
+		value = cycleTicks + 1;
+	}
+	else {
+		uint32_t newTicks;
 
-	/* Setup event 1 to trigger on match 1 and set CTOUT0 high */
+		newTicks = (cycleTicks * duty) / 100;
+
+		/* Approximate duty cycle rate */
+		value = cycleTicks - newTicks;
+	}
+
+	LPC_SCT0->MATCHREL[1].U = value;
+
+	/* Setup event 1 to trigger on match 1 and set CTOUT3 high */
 	LPC_SCT0->EVENT[1].CTRL = (1 << 0) | (1 << 12);
 	LPC_SCT0->EVENT[1].STATE = 1;
 	LPC_SCT0->OUT[3].SET = (1 << 1);
 
-	/* Setup event 2 trigger on match 2 and set CTOUT1 high */
-	//LPC_SCT1->EVENT[2].CTRL = (2 << 0) | (1 << 12);
-	//LPC_SCT1->EVENT[2].STATE = 1;
-	//LPC_SCT1->OUT[1].SET = (1 << 2);
-
-	/* Setup event 3 trigger on match 3 and set CTOUT2 high */
-	//LPC_SCT1->EVENT[3].CTRL = (3 << 0) | (1 << 12);
-	//LPC_SCT1->EVENT[3].STATE = 1;
-	//LPC_SCT1->OUT[2].SET = (1 << 3);
-
 	/* Don't use states */
 	LPC_SCT0->STATE_L = 0;
-
-	/* Unhalt the counter to start */
-	LPC_SCT0->CTRL_U &= ~(1 << 2);
 }
 
 void DeInit_PWM(void)
