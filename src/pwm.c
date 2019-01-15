@@ -81,11 +81,11 @@ void setPWMRate(int pwnNum, uint8_t percentage)
  * @brief	Handle interrupt from State Configurable Timer
  * @return	Nothing
  */
-void SCT_IRQHandler(void)
-{
-	/* Clear the Interrupt */
-	Chip_SCT_ClearEventFlag(LPC_SCT0, SCT_EVT_0);
-}
+//void SCT_IRQHandler(void)
+//{
+//	/* Clear the Interrupt */
+//	Chip_SCT_ClearEventFlag(LPC_SCT0, SCT_EVT_0);
+//}
 
 // Added/modified by Jeremy
 void Init_PWM(void)
@@ -119,15 +119,15 @@ void MySetupPWMFrequency(uint32_t freq, uint8_t duty)
 	cycleTicks = Chip_Clock_GetSystemClockRate() / freq;
 
 	/* Setup for match mode */
-	LPC_SCT0->REGMODE_L = 0;
+	LPC_SCT0->REGMODE_L = 0;						// only low is used because SCT_CONFIG_32BIT_COUNTER==1
 
 	/* Setup match counter 0 for the number of ticks in a PWM sweep, event 0
 	    will be used with the match 0 count to reset the counter.  */
 	LPC_SCT0->MATCH[0].U = cycleTicks;
 	LPC_SCT0->MATCHREL[0].U = cycleTicks;
 	LPC_SCT0->EVENT[0].CTRL = 0x00001000;
-	LPC_SCT0->EVENT[0].STATE = 0xFFFFFFFF;
-	LPC_SCT0->LIMIT_L = (1 << 0);
+	LPC_SCT0->EVENT[0].STATE = 1;
+	LPC_SCT0->LIMIT_L = (1 << 0);					// event 1 is used as the limit
 
 	/* For CTOUT3, event 1 is used to clear the output */
 	LPC_SCT0->OUT[3].CLR = (1 << 0);
@@ -155,7 +155,7 @@ void MySetupPWMFrequency(uint32_t freq, uint8_t duty)
 	LPC_SCT0->OUT[3].SET = (1 << 1);
 
 	/* Don't use states */
-	LPC_SCT0->STATE_L = 0;
+	LPC_SCT0->STATE_L = 0;			// only low is used because SCT_CONFIG_32BIT_COUNTER==1
 }
 
 void DeInit_PWM(void)
