@@ -90,14 +90,16 @@ void Init_ADC(void)
 	//	sequenceComplete = thresholdCrossed = false;
 	sequenceComplete = false;
 
-	/* Setup ADC for 12-bit mode and normal power */
+	/* Setup ADC for 12-bit mode and low power mode */
 	Chip_ADC_Init(LPC_ADC, ADC_CR_LPWRMODEBIT);
 
 	/* Need to do a calibration after initialization and trim */
 	Chip_ADC_StartCalibration(LPC_ADC);
 
 	/* Setup for maximum ADC clock rate using sycnchronous clocking */
-	Chip_ADC_SetClockRate(LPC_ADC, ADC_MAX_CLOCK_RATE);
+//	Chip_ADC_SetClockRate(LPC_ADC, ADC_MAX_CLOCK_RATE);
+	Chip_ADC_SetClockRate(LPC_ADC, Chip_Clock_GetSystemClockRate() / 250 );
+	// Slower ADC is sufficient because our current main-loop is not fast enough so that ADC is already sampled after each loop
 	
 	/* Optionally, you can setup the ADC to use asycnchronous clocking mode.
 	   To enable this, mode use 'LPC_ADC->CTRL |= ADC_CR_ASYNMODE;'.
