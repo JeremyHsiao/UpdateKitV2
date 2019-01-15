@@ -98,13 +98,13 @@ static uint32_t	temp_ISER0;
 static inline void DisableAllInterrupt(void)
 {
 	temp_ISER0 = NVIC->ISER[0];
-	NVIC->ICER[0] = 0xffffffff;
+	NVIC->ICER[0] = temp_ISER0;
 	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;                    /* Disable SysTick IRQ */
 }
 
 static inline void RestoreAllInterrupt(void)
 {
-	SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;                    /* Disable SysTick IRQ */
+	SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;                    /* Enable SysTick IRQ */
 	NVIC->ISER[0] = temp_ISER0;
 }
 
