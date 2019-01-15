@@ -93,6 +93,55 @@ uint8_t User_Select_Last_ReadWrite = POWER_OUTPUT_STEP_TOTAL_NO;
 //	}
 //}
 
+static uint32_t	temp_ISER0;
+
+static inline void DisableAllInterrupt(void)
+{
+	temp_ISER0 = NVIC->ISER[0];
+	NVIC->ICER[0] = 0xffffffff;
+	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;                    /* Disable SysTick IRQ */
+}
+
+static inline void RestoreAllInterrupt(void)
+{
+	SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;                    /* Disable SysTick IRQ */
+	NVIC->ISER[0] = temp_ISER0;
+}
+
+/* Write data to EEPROM */
+static inline uint8_t Chip_EEPROM_Write_v2(uint32_t dstAdd, uint8_t *ptr, uint32_t byteswrt)
+{
+	uint32_t command[5], result[4];
+
+	command[0] = IAP_EEPROM_WRITE;
+	command[1] = dstAdd;
+	command[2] = (uint32_t) ptr;
+	command[3] = byteswrt;
+	command[4] = SystemCoreClock / 1000;
+	DisableAllInterrupt();
+	iap_entry(command, result);
+	RestoreAllInterrupt();
+
+	return result[0];
+}
+
+/* Read data from EEPROM */
+static inline uint8_t Chip_EEPROM_Read_v2(uint32_t srcAdd, uint8_t *ptr, uint32_t bytesrd)
+{
+	uint32_t command[5], result[4];
+
+	command[0] = IAP_EEPROM_READ;
+	command[1] = srcAdd;
+	command[2] = (uint32_t) ptr;
+	command[3] = bytesrd;
+	command[4] = SystemCoreClock / 1000;
+	DisableAllInterrupt();
+	iap_entry(command, result);
+	RestoreAllInterrupt();
+
+	return result[0];
+}
+
 bool Load_User_Selection(uint8_t *pUserSelect)
 {
 	uint32_t user_selection_buffer[(USER_SELECTION_LENGTH / sizeof(uint32_t)) + 1];
@@ -100,7 +149,7 @@ bool Load_User_Selection(uint8_t *pUserSelect)
 	uint8_t ret_code;
 
 	/* Data to be read from EEPROM */
-	ret_code = Chip_EEPROM_Read(USER_SELECTION_POSITION, ptr, USER_SELECTION_LENGTH);
+	ret_code = Chip_EEPROM_Read_v2(USER_SELECTION_POSITION, ptr, USER_SELECTION_LENGTH);
 
 	/* Error checking */
 	if (ret_code != IAP_CMD_SUCCESS) {
@@ -140,7 +189,7 @@ bool Save_User_Selection(uint8_t UserSelect)
 	/* Data to be written to EEPROM */
 	ptr[0]=ptr[3]=UserSelect;
 	ptr[1]=ptr[2]=(UserSelect^0xff);
-	ret_code = Chip_EEPROM_Write(USER_SELECTION_POSITION, ptr, USER_SELECTION_LENGTH);
+	ret_code = Chip_EEPROM_Write_v2(USER_SELECTION_POSITION, ptr, USER_SELECTION_LENGTH);
 
 	/* Error checking */
 	if (ret_code == IAP_CMD_SUCCESS)
