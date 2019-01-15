@@ -117,14 +117,6 @@ int main(void)
 		}
 		else
 		{
-			/* Is an ADC conversion sequence complete? */
-			if (sequenceComplete)
-			{
-				Read_ADC();
-				sequenceComplete=false;
-				/* Manual start for ADC conversion sequence A */
-				Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
-			}
 			__WFI();
 		}
 
