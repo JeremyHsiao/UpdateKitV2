@@ -99,18 +99,18 @@ void Init_PWM(void)
 	/* SCT0_OUT3 on PIO1_13 mapped to FUNC2 */
 	Chip_IOCON_PinMuxSet(LPC_IOCON, PWM0_GPIO_PORT, PWM0_GPIO_PIN, PWM0_PIN_MUX);  // P1.0-2, 4-8. 10-21, 23-28, 30-31
 
-	MySetupPWMFrequency(DEFUALT_PWMCYCLERATE,default_duty_cycle);
+	/* Configure the SCT as a 32bit counter using the bus clock */
+	LPC_SCT0->CONFIG = SCT_CONFIG_32BIT_COUNTER | SCT_CONFIG_CLKMODE_BUSCLK;
 
-	/* Unhalt the counter to start */
-	LPC_SCT0->CTRL_U &= ~(1 << 2);
+	MySetupPWMFrequency(DEFUALT_PWMCYCLERATE,default_duty_cycle);
 }
 
 void MySetupPWMFrequency(uint32_t freq, uint8_t duty)
 {
 	uint32_t value;
 
-	/* Configure the SCT as a 32bit counter using the bus clock */
-	LPC_SCT0->CONFIG = SCT_CONFIG_32BIT_COUNTER | SCT_CONFIG_CLKMODE_BUSCLK;
+	/* halt & clear the counter to change match settings */
+	LPC_SCT0->CTRL_U |= (SCT_CTRL_HALT_L|SCT_CTRL_CLRCTR_L);
 
 	/* Initial CTOUT3 state is high */
 	LPC_SCT0->OUTPUT = (1 << 3);
@@ -125,11 +125,11 @@ void MySetupPWMFrequency(uint32_t freq, uint8_t duty)
 	    will be used with the match 0 count to reset the counter.  */
 	LPC_SCT0->MATCH[0].U = cycleTicks;
 	LPC_SCT0->MATCHREL[0].U = cycleTicks;
-	LPC_SCT0->EVENT[0].CTRL = 0x00001000;
+	LPC_SCT0->EVENT[0].CTRL = (1 << 12);
 	LPC_SCT0->EVENT[0].STATE = 1;
-	LPC_SCT0->LIMIT_L = (1 << 0);					// event 1 is used as the limit
+	LPC_SCT0->LIMIT_L = (1 << 0);					// event 0 is used as the limit
 
-	/* For CTOUT3, event 1 is used to clear the output */
+	/* For CTOUT3, event 0 is used to clear the output */
 	LPC_SCT0->OUT[3].CLR = (1 << 0);
 
 	if (duty >= 100) {
@@ -156,6 +156,9 @@ void MySetupPWMFrequency(uint32_t freq, uint8_t duty)
 
 	/* Don't use states */
 	LPC_SCT0->STATE_L = 0;			// only low is used because SCT_CONFIG_32BIT_COUNTER==1
+
+	/* Unhalt the counter to start */
+	LPC_SCT0->CTRL_U &= ~SCT_CTRL_HALT_L;
 }
 
 void DeInit_PWM(void)
