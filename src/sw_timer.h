@@ -19,7 +19,7 @@ typedef		uint16_t	TICK_UNIT;		// range is now between 8~8000 (minus 1)
 typedef	struct {
 	uint32_t	counts;
 	uint32_t	reload_value;
-	TICK_UNIT	ticks;
+//	TICK_UNIT	ticks;
 	unsigned	unit:2;				// 0: 1ms, 1: 10ms, 2: 100ms, 3: 1000ms
 	unsigned	count_up:1;
 	unsigned	oneshot:1;

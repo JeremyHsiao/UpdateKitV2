@@ -210,12 +210,38 @@ const TICK_UNIT sw_reload_ticks_by_unit[] = {
 		SYSTICK_COUNT_VALUE_MS(1000),
 };
 
+
+static inline uint32_t Covert_to_count(uint32_t timer_value, TIMER_UNIT_ID unit, bool upcount)
+{
+	if(upcount==false)
+	{
+		return ((timer_value+1)*(sw_reload_ticks_by_unit[unit])-1);
+	}
+	else
+	{
+		return ((timer_value)*(sw_reload_ticks_by_unit[unit]));
+	}
+}
+
+static inline uint32_t Covert_to_timer_value(uint32_t count, TIMER_UNIT_ID unit, bool upcount)
+{
+	if(upcount==false)
+	{
+		return ((count+1)/(sw_reload_ticks_by_unit[unit]));
+		// NOTE: When setting count-down, the input count is minus 1 but when reading back no-need to minus one
+	}
+	else
+	{
+		return ((count)/(sw_reload_ticks_by_unit[unit]));
+	}
+}
+
 bool Start_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_value, TIMER_UNIT_ID unit, bool upcount, bool oneshot)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
-	ptr->counts = default_count;
-	ptr->reload_value = upper_value;
-	ptr->ticks = sw_reload_ticks_by_unit[unit];
+	ptr->counts = Covert_to_count(default_count,unit,upcount);
+	ptr->reload_value = Covert_to_count(upper_value,unit,upcount);
+//	ptr->ticks = sw_reload_ticks_by_unit[unit];
 	ptr->unit = unit;
 	ptr->count_up = (upcount)?1:0;
 	ptr->oneshot = (oneshot)?1:0;
@@ -227,9 +253,9 @@ bool Start_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_va
 bool Init_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_value, TIMER_UNIT_ID unit, bool upcount, bool oneshot)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
-	ptr->counts = default_count;
-	ptr->reload_value = upper_value;
-	ptr->ticks = sw_reload_ticks_by_unit[unit];
+	ptr->counts = Covert_to_count(default_count,unit,upcount);
+	ptr->reload_value = Covert_to_count(upper_value,unit,upcount);
+//	ptr->ticks = sw_reload_ticks_by_unit[unit];
 	ptr->unit = unit;
 	ptr->count_up = (upcount)?1:0;
 	ptr->oneshot = (oneshot)?1:0;
@@ -241,7 +267,7 @@ bool Init_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_val
 bool Set_SW_Timer_Count(TIMER_ID timer_no, uint32_t new_count)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
-	ptr->counts = new_count;
+	ptr->counts = Covert_to_count(new_count,ptr->unit,ptr->count_up);
 	return true;			// always successful at the moment
 }
 
@@ -262,7 +288,7 @@ bool Play_SW_Timer(TIMER_ID timer_no)
 uint32_t Read_SW_TIMER_Value(TIMER_ID timer_no)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
-	return ptr->counts;
+	return Covert_to_timer_value(ptr->counts,ptr->unit,ptr->count_up);
 }
 
 bool Read_and_Clear_SW_TIMER_Reload_Flag(TIMER_ID timer_no)
@@ -303,18 +329,18 @@ void SysTick_Handler(void)
 	{
 		if(timer_ptr->running)
 		{
-			if(timer_ptr->ticks)
-			{
-				timer_ptr->ticks--;
-			}
-			else
-			{
+//			if(timer_ptr->ticks)
+//			{
+//				timer_ptr->ticks--;
+//			}
+//			else
+//			{
 				if(timer_ptr->count_up)
 				{
 					// Up-count
 					if(timer_ptr->counts < timer_ptr->reload_value)
 					{
-						timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
+	//					timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
 						timer_ptr->counts++;
 					}
 					else
@@ -324,7 +350,7 @@ void SysTick_Handler(void)
 							timer_ptr->running = 0;
 						else
 						{
-							timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
+	//						timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
 							timer_ptr->counts = 0;
 						}
 					}
@@ -334,7 +360,7 @@ void SysTick_Handler(void)
 					// Down-count
 					if(timer_ptr->counts)
 					{
-						timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
+	//					timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
 						timer_ptr->counts--;
 					}
 					else
@@ -344,12 +370,12 @@ void SysTick_Handler(void)
 							timer_ptr->running = 0;
 						else
 						{
-							timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
+//							timer_ptr->ticks = sw_reload_ticks_by_unit[timer_ptr->unit];
 							timer_ptr->counts = timer_ptr->reload_value;
 						}
 					}
 				}
-			}
+//			}
 		}
 	}
 	while(timer_ptr-->sw_timer);		// if 0 (before minus 1) then end of loops
