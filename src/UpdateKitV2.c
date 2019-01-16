@@ -574,6 +574,20 @@ bool Event_Proc_State_Independent(void)
 	return bRet;
 }
 
+static inline void Update_FW_Upgrading_Elapse_Time(void)
+{
+	itoa_10_fixed_position(	Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S),
+							(char*)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS],
+							ELAPSE_TIME_LEN);
+}
+
+static inline void Update_FW_OK_Upgrade_Time(void)
+{
+	itoa_10_fixed_position(	Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S),
+							(char*)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS],
+							ELAPSE_TIME_LEN);
+}
+
 UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 {
 	UPDATE_STATE return_next_state = current_state;
@@ -603,6 +617,9 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 			if (EVENT_filtered_current_TV_standby_debounced)
 			{
 				EVENT_filtered_current_TV_standby_debounced = false;
+				Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
+				Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
+				Update_FW_Upgrading_Elapse_Time();
 				return_next_state = US_TV_IN_STANDBY;
 			}
 			else if(EVENT_filtered_current_above_fw_upgrade_threshold)
@@ -615,6 +632,7 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 				EVENT_filtered_current_unplugged_debounced = false;
 				Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
 				Set_SW_Timer_Count(UPGRADE_ELAPSE_IN_S,0);
+				Update_FW_Upgrading_Elapse_Time();
 			}
 			break;
 		case US_WAIT_FW_UPGRADE_OK_STRING:
@@ -708,20 +726,6 @@ UPDATE_STATE Event_Proc_by_System_State(UPDATE_STATE current_state)
 	return return_next_state;
 }
 
-static inline void Update_FW_Upgrading_Elapse_Time(void)
-{
-	itoa_10_fixed_position(	Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S),
-							(char*)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS],
-							ELAPSE_TIME_LEN);
-}
-
-static inline void Update_FW_OK_Upgrade_Time(void)
-{
-	itoa_10_fixed_position(	Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S),
-							(char*)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS],
-							ELAPSE_TIME_LEN);
-}
-
 UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 {
 	UPDATE_STATE return_next_state = current_state;
@@ -746,7 +750,7 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 			break;
 		case US_START_OUTPUT:
 			// This is for better UX -- force to update upgrade timer value when current-detection is in the middle of debouncing stage of high-current)
-			if((DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS-Read_SW_TIMER_Value(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS))==10)
+			if((DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS-Read_SW_TIMER_Value(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS))>9)
 			{
 				Update_FW_Upgrading_Elapse_Time();
 			}
