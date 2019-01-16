@@ -9,7 +9,7 @@
 #include "board.h"
 #include "sw_timer.h"
 
-bool		SysTick_flag;
+//bool		SysTick_flag;
 SW_TIMER	sw_timer[SW_TIMER_MAX_NO];
 
 //#define TIMER_IMPLEMENTATION_V3
