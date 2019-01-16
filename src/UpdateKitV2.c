@@ -744,6 +744,13 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 				}
 			}
 			break;
+		case US_START_OUTPUT:
+			// This is for better UX -- force to update upgrade timer value when current-detection is in the middle of debouncing stage of high-current)
+			if((DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS-Read_SW_TIMER_Value(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS))==10)
+			{
+				Update_FW_Upgrading_Elapse_Time();
+			}
+			break;
 		case US_WAIT_FW_UPGRADE_OK_STRING:
 			Update_FW_Upgrading_Elapse_Time();
 			break;
