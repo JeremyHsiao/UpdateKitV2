@@ -353,7 +353,7 @@ void SysTick_Handler(void)
 		}
 	}
 	while(timer_ptr-->sw_timer);		// if 0 (before minus 1) then end of loops
-	SysTick_flag = true;
+//	SysTick_flag = true;
 }
 
 #endif // #ifdef TIMER_IMPLEMENTATION_V3

@@ -63,7 +63,7 @@ typedef enum
 } TIMER_UNIT_ID;
 
 extern SW_TIMER	sw_timer[];
-extern bool			SysTick_flag;
+//extern bool			SysTick_flag;
 
 //extern uint8_t time_elapse_str[];
 
