@@ -157,7 +157,7 @@ void DeInit_ADC(void)
 
 void Read_ADC(void)
 {
-	uint16_t	ADC0_value, ADC1_value;
+//	uint16_t	ADC0_value, ADC1_value;
 
 	// Is an ADC conversion overflow/underflow?
 	//if (thresholdCrossed) {
@@ -170,9 +170,10 @@ void Read_ADC(void)
 		rawSample = Chip_ADC_GetDataReg(LPC_ADC, ADC_CH_VOLTAGE);
 		/* Show some ADC data */
 		if ((rawSample & (ADC_SEQ_GDAT_DATAVALID)) != 0) {
-			ADC0_value = ADC_DR_RESULT(rawSample);
-			temp_value = ADC0_value;
-			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 1024 / ADC_VREFP_DIVIDER; // use 0.001V as unit == (adc/4096) * (343/100) * (4) * 1000
+//			ADC0_value = ADC_DR_RESULT(rawSample);
+//			temp_value = ADC0_value;
+//			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 1024 / ADC_VREFP_DIVIDER; // use 0.001V as unit == (adc/4096) * (343/100) * (4) * 1000
+			temp_value = ADC_DR_RESULT(rawSample) * (ADC_VREFP_VALUE*1000/ADC_VREFP_DIVIDER) / 1024;
 			SetRawVoltage(temp_value);
 //			temp_str_len = itoa_10(ADC0_value, temp_str);
 //			memset((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][5], ' ', (4-temp_str_len));
@@ -180,16 +181,17 @@ void Read_ADC(void)
 		}
 		else
 		{
-			ADC0_value = ADC_SAMPLE_ERROR_VALUE;
+//			ADC0_value = ADC_SAMPLE_ERROR_VALUE;
 		}
 
 		/* Get raw sample data for channels 8 */
 		rawSample = Chip_ADC_GetDataReg(LPC_ADC, ADC_CH_CURRENT);
 		/* Show some ADC data */
 		if ((rawSample & (ADC_SEQ_GDAT_DATAVALID)) != 0) {
-			ADC1_value = ADC_DR_RESULT(rawSample);
-			temp_value = ADC1_value;
-			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 4096 / ADC_VREFP_DIVIDER; // use 0.001A as unit == (adc/4096) * (343/100) * 1000
+//			ADC1_value = ADC_DR_RESULT(rawSample);
+//			temp_value = ADC1_value;
+//			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 4096 / ADC_VREFP_DIVIDER; // use 0.001A as unit == (adc/4096) * (343/100) * 1000
+			temp_value = ADC_DR_RESULT(rawSample) * (ADC_VREFP_VALUE*1000/ADC_VREFP_DIVIDER) / 4096 ;
 			SetRawCurrent(temp_value);
 //			temp_str_len = itoa_10(ADC1_value, temp_str);
 //			memset((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][12], ' ', (4-temp_str_len));
@@ -197,7 +199,7 @@ void Read_ADC(void)
 		}
 		else
 		{
-			ADC1_value = ADC_SAMPLE_ERROR_VALUE;
+//			ADC1_value = ADC_SAMPLE_ERROR_VALUE;
 		}
 
 		// Overtun example code
