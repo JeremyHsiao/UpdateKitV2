@@ -113,7 +113,14 @@ int main(void)
 		/* Sleep if no system tick within one loop; otherwise it means execution time is longer so no need to sleep for next tick */
 		if((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)==0)		// Returns 1 if the SysTick timer counted to 0 since the last read of this register
 		{
-			__WFI();
+			//__WFI();
+			if (sequenceComplete)
+			{
+				Read_ADC();
+				sequenceComplete=false;
+				/* Manual start for ADC conversion sequence A */
+				Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
+			}
 		}
 
 		//

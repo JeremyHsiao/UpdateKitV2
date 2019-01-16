@@ -98,7 +98,7 @@ void Init_ADC(void)
 
 	/* Setup for maximum ADC clock rate using sycnchronous clocking */
 //	Chip_ADC_SetClockRate(LPC_ADC, ADC_MAX_CLOCK_RATE);
-	Chip_ADC_SetClockRate(LPC_ADC, Chip_Clock_GetSystemClockRate() / 250 );
+	Chip_ADC_SetClockRate(LPC_ADC, Chip_Clock_GetSystemClockRate() / 10 );
 	// Slower ADC is sufficient because our current main-loop is not fast enough so that ADC is already sampled after each loop
 	
 	/* Optionally, you can setup the ADC to use asycnchronous clocking mode.
