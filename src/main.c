@@ -75,7 +75,7 @@ int main(void)
 	Init_LCD_Module_GPIO();
 
 	// This is used for (1) software delay within lcm_sw_init() (2) regular content update lcm_auto_display_refresh_task() in main loop
-	Repeat_DownCounter(LCD_MODULE_INTERNAL_DELAY_IN_MS,(LONGER_DELAY_US/1000),TIMER_MS);	// Take longer delay for more tolerance of all possible LCM usages.
+	Repeat_DownCounter(LCD_MODULE_INTERNAL_DELAY_IN_MS,(LONGER_DELAY_US/1000)+1,TIMER_MS);	// Take longer delay for more tolerance of all possible LCM usages.
 	lcm_sw_init();
 	lcm_auto_display_init();
 	lcm_content_init();

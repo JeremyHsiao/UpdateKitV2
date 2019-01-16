@@ -34,7 +34,7 @@ static void inline Add_LCM_Delay_Tick(uint32_t delay_us)
 //	SW_delay_sys_tick_cnt += ((delay_us*(SYSTICK_PER_SECOND/1000))/1000);
 //	SW_delay_timeout=false;
 	// count-down, one-shot timer
-	Set_SW_Timer_Count(LCD_MODULE_INTERNAL_DELAY_IN_MS,(delay_us/1000));		// one-shot count down
+	Set_SW_Timer_Count(LCD_MODULE_INTERNAL_DELAY_IN_MS,(delay_us/1000)+2);		// one-shot count down
 	Clear_SW_TIMER_Reload_Flag(LCD_MODULE_INTERNAL_DELAY_IN_MS);
 }
 static void inline Wait_until_No_More_Delay_Tick(void)
