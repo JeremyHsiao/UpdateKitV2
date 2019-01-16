@@ -492,7 +492,7 @@ void lcm_force_to_display_page(uint8_t page_no)
 	// First is checking whether this page is enabled
 	if(lcd_module_display_enable[page_no]!=0x0)
 	{
-		Set_SW_Timer_Count(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S,(lcm_page_change_duration_in_sec-1));
+		Set_SW_Timer_Count(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S,(lcm_page_change_duration_in_sec));
 		Clear_SW_TIMER_Reload_Flag(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S);
 		lcm_current_page=page_no;
 	}

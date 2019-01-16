@@ -215,7 +215,7 @@ static inline uint32_t Covert_to_count(uint32_t timer_value, TIMER_UNIT_ID unit,
 {
 	if(upcount==false)
 	{
-		return ((timer_value+1)*(sw_reload_ticks_by_unit[unit])-1);
+		return ((timer_value*sw_reload_ticks_by_unit[unit])-1);
 	}
 	else
 	{
@@ -228,7 +228,6 @@ static inline uint32_t Covert_to_timer_value(uint32_t count, TIMER_UNIT_ID unit,
 	if(upcount==false)
 	{
 		return ((count+1)/(sw_reload_ticks_by_unit[unit]));
-		// NOTE: When setting count-down, the input count is minus 1 but when reading back no-need to minus one
 	}
 	else
 	{
@@ -250,20 +249,20 @@ bool Start_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_va
 	return true;			// always successful at the moment
 }
 
-bool Init_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_value, TIMER_UNIT_ID unit, bool upcount, bool oneshot)
-{
-	SW_TIMER	*ptr = sw_timer + timer_no;
-	ptr->counts = Covert_to_count(default_count,unit,upcount);
-	ptr->reload_value = Covert_to_count(upper_value,unit,upcount);
-//	ptr->ticks = sw_reload_ticks_by_unit[unit];
-	ptr->unit = unit;
-	ptr->count_up = (upcount)?1:0;
-	ptr->oneshot = (oneshot)?1:0;
-	ptr->running = 0;
-	ptr->timeup_flag = 0;
-	return true;			// always successful at the moment
-}
-
+//bool Init_SW_Timer(TIMER_ID timer_no, uint32_t default_count, uint32_t upper_value, TIMER_UNIT_ID unit, bool upcount, bool oneshot)
+//{
+//	SW_TIMER	*ptr = sw_timer + timer_no;
+//	ptr->counts = Covert_to_count(default_count,unit,upcount);
+//	ptr->reload_value = Covert_to_count(upper_value,unit,upcount);
+////	ptr->ticks = sw_reload_ticks_by_unit[unit];
+//	ptr->unit = unit;
+//	ptr->count_up = (upcount)?1:0;
+//	ptr->oneshot = (oneshot)?1:0;
+//	ptr->running = 0;
+//	ptr->timeup_flag = 0;
+//	return true;			// always successful at the moment
+//}
+//
 bool Set_SW_Timer_Count(TIMER_ID timer_no, uint32_t new_count)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;

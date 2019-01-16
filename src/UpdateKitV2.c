@@ -271,9 +271,9 @@ static inline uint8_t CalculateStandyCurrent(void)
 
 void ResetAllCurrentDebounceTimerEvent(void)
 {
-	Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
-	Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS-1),TIMER_100MS);			// one-shot count down
-	Countdown_Once(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,(DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS-1),TIMER_100MS);	// one-shot count down
+	Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS),TIMER_100MS);		// one-shot count down
+	Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS),TIMER_100MS);			// one-shot count down
+	Countdown_Once(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,(DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS),TIMER_100MS);	// one-shot count down
 	EVENT_filtered_current_TV_standby_debounced = false;
 	EVENT_filtered_current_above_fw_upgrade_threshold = false;
 	EVENT_filtered_current_unplugged_debounced = false;
@@ -298,25 +298,25 @@ void SetRawCurrent(uint16_t current_new)
 			EVENT_filtered_current_above_fw_upgrade_threshold = true;
 		}
 		// reset standby / no-output debounce timer
-		Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
-		Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS-1),TIMER_100MS);			// one-shot count down
+		Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS),TIMER_100MS);		// one-shot count down
+		Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS),TIMER_100MS);			// one-shot count down
 	}
 	else
 	{
 		// reset output goes normal debounce timer
-		Countdown_Once(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,(DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// one-shot count down
+		Countdown_Once(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,(DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS),TIMER_100MS);		// one-shot count down
 
 		if(filtered_current<default_no_current_threshold_lut[current_output_stage])
 		{
 			// looks like no output
 			// reset standby debounce timer
-			Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// Clear Standby debounce timer because it is no_output now
+			Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS),TIMER_100MS);		// Clear Standby debounce timer because it is no_output now
 		}
 		else
 		{
 			// looks like standby
 			// reset no-output debounce timer
-			Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS-1),TIMER_100MS);		// Clear No-output debounce timer because it is standby now
+			Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS),TIMER_100MS);		// Clear No-output debounce timer because it is standby now
 		}
 
 		// Set event if timeout
@@ -813,7 +813,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			lcd_module_display_enable_only_one_page(LCM_WELCOME_PAGE);
 			// Clear events if we want to check it at this state
 			EVENT_Button_pressed_debounced = false;
-			Countdown_Once(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S-1),TIMER_S);
+			Countdown_Once(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S),TIMER_S);
 			break;
 		case US_CHECK_USER_SELECTION:
 			Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
@@ -853,7 +853,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			LED_Status_Clear_Auto_Toggle(LED_STATUS_ALL);
 			LED_Status_Set_Value(LED_STATUS_Y);		// only LED_Y
 			LED_Status_Set_Auto_Toggle(LED_STATUS_Y,LED_STATUS_TOGGLE_DURATION_IN_100MS,~1);
-			Countdown_Once(SYSTEM_STATE_PROC_TIMER,(max_upgrade_time_in_S-1),TIMER_S);		// one-shot count down
+			Countdown_Once(SYSTEM_STATE_PROC_TIMER,(max_upgrade_time_in_S),TIMER_S);		// one-shot count down
 			break;
 		case US_FW_UPGRADE_DONE:
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
