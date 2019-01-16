@@ -41,6 +41,8 @@ static uint32_t cycleTicks;
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
+uint32_t pwm_freq;
+uint8_t	pwm_duty;
 
 /*****************************************************************************
  * Private functions
@@ -102,7 +104,9 @@ void Init_PWM(void)
 	/* Configure the SCT as a 32bit counter using the bus clock */
 	LPC_SCT0->CONFIG = SCT_CONFIG_32BIT_COUNTER | SCT_CONFIG_CLKMODE_BUSCLK;
 
-	MySetupPWMFrequency(DEFUALT_PWMCYCLERATE,default_duty_cycle);
+	pwm_freq = DEFUALT_PWMCYCLERATE;
+	pwm_duty = default_duty_cycle;
+	MySetupPWMFrequency(pwm_freq,pwm_duty);
 }
 
 void MySetupPWMFrequency(uint32_t freq, uint8_t duty)
@@ -158,7 +162,7 @@ void MySetupPWMFrequency(uint32_t freq, uint8_t duty)
 	LPC_SCT0->STATE_L = 0;			// only low is used because SCT_CONFIG_32BIT_COUNTER==1
 
 	/* Unhalt the counter to start */
-	LPC_SCT0->CTRL_U &= ~SCT_CTRL_HALT_L;
+	LPC_SCT0->CTRL_U &= ~(SCT_CTRL_HALT_L|SCT_CTRL_CLRCTR_L);
 }
 
 void DeInit_PWM(void)

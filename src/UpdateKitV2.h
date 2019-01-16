@@ -79,9 +79,6 @@ extern UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state);
 #define CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(x)		(((x*3)+1)/2)
 #define CHANGE_FW_MAX_UPDATE_TIME_AFTER_TOO_LONG(x)	(((x*3)+1)/2)
 
-// Slower ADC sample clock
-#define ADC_SAMPLE_CLK_DIVIDER	(10)
-
 //#define POWERON_IS_DETECTING
 
 typedef enum

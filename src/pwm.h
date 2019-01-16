@@ -25,4 +25,7 @@ extern void DeInit_PWM(void);
 extern void setPWMRate(int pwnNum, uint8_t percentage);
 extern void MySetupPWMFrequency(uint32_t freq, uint8_t duty);
 
+extern uint32_t pwm_freq;
+extern uint8_t	pwm_duty;
+
 #endif /* PWM_H_ */
