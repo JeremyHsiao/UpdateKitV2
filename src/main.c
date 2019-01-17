@@ -150,8 +150,6 @@ int main(void)
 		{
 			Read_ADC();
 			sequenceComplete=false;
-			/* Manual start for ADC conversion sequence A */
-			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
 		}
 
 		//
@@ -161,6 +159,11 @@ int main(void)
 		if((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))		// Returns 1 if the SysTick timer counted to 0 since the last read of this register
 		{
 			// Entering here means SysTick handler has been processed so we could check timeout-event now.
+
+			if (sequenceComplete==false)
+			{
+				Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
+			}
 
 			// Button-pressed event
 			EVENT_Button_pressed_debounced = Debounce_Button();
