@@ -65,7 +65,7 @@ void init_filtered_input_current(void)
 	filtered_current = 0;
 
 	RingBuffer_Init(&current_history, current_history_data, sizeof(uint16_t), CURRENT_HISTORY_DATA_SIZE);
-	RingBuffer_Flush(&current_history);
+	while(RingBuffer_Insert(&current_history, &filtered_current));		// fill up so that no need to check whether it is full/non-full
 }
 
 void init_filtered_input_voltage(void)
@@ -74,7 +74,7 @@ void init_filtered_input_voltage(void)
 	filtered_voltage = 0;
 
 	RingBuffer_Init(&voltage_history, voltage_history_data, sizeof(uint16_t), VOLTAGE_HISTORY_DATA_SIZE);
-	RingBuffer_Flush(&voltage_history);
+	while(RingBuffer_Insert(&voltage_history, &filtered_voltage));		// fill up so that no need to check whether it is full/non-full
 }
 
 void Init_Value_From_EEPROM(void)
@@ -488,30 +488,38 @@ void PowerOutputSetting(uint8_t current_step)
 
 uint16_t Filtered_Input_current(uint16_t latest_current)
 {
-	uint16_t	temp;
+//	uint16_t	temp;
+//
+//	if(RingBuffer_IsFull(&current_history))
+//	{
+//		RingBuffer_Pop(&current_history, &temp);
+//		total_current_value -= temp;
+//	}
+//	total_current_value += latest_current;
+//	RingBuffer_Insert(&current_history, &latest_current);
 
-	if(RingBuffer_IsFull(&current_history))
-	{
-		RingBuffer_Pop(&current_history, &temp);
-		total_current_value -= temp;
-	}
 	total_current_value += latest_current;
-	RingBuffer_Insert(&current_history, &latest_current);
+	RingBuffer_Get_old_and_Insert_new(&current_history, &latest_current);
+	total_current_value -= latest_current;					// Minus pop-out value
 
 	return (total_current_value/CURRENT_HISTORY_DATA_SIZE);
 }
 
 uint16_t Filtered_Input_voltage(uint16_t latest_voltage)
 {
-	uint16_t	temp;
+//	uint16_t	temp;
+//
+//	if(RingBuffer_IsFull(&voltage_history))
+//	{
+//		RingBuffer_Pop(&voltage_history, &temp);
+//		total_voltage_value -= temp;
+//	}
+//	total_voltage_value += latest_voltage;
+//	RingBuffer_Insert(&voltage_history, &latest_voltage);
 
-	if(RingBuffer_IsFull(&voltage_history))
-	{
-		RingBuffer_Pop(&voltage_history, &temp);
-		total_voltage_value -= temp;
-	}
 	total_voltage_value += latest_voltage;
-	RingBuffer_Insert(&voltage_history, &latest_voltage);
+	RingBuffer_Get_old_and_Insert_new(&voltage_history, &latest_voltage);
+	total_voltage_value -= latest_voltage;					// Minus pop-out value
 
 	return (total_voltage_value/VOLTAGE_HISTORY_DATA_SIZE);
 }

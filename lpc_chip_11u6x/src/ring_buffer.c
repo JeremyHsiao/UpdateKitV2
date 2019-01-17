@@ -130,6 +130,29 @@ int RingBuffer_Pop(RINGBUFF_T *RingBuff, void *data)
 	return 1;
 }
 
+// Get old one and insert new one
+// Assumption: RingBuffer is non-empty
+int RingBuffer_Get_old_and_Insert_new(RINGBUFF_T *RingBuff, void *data)
+{
+	uint8_t *ptr, temp[RingBuff->itemSz];
+
+	// Make a copy of data to be inserted
+	memcpy((void *)temp, data, RingBuff->itemSz);
+
+	// pop
+	ptr = RingBuff->data + (RB_INDT(RingBuff) * RingBuff->itemSz);
+	memcpy(data, ptr, RingBuff->itemSz);
+	RingBuff->tail++;
+
+
+	// insert
+	ptr = RingBuff->data + (RB_INDH(RingBuff) * RingBuff->itemSz);
+	memcpy(ptr, (void *)temp, RingBuff->itemSz);
+	RingBuff->head++;
+
+	return 1;
+}
+
 /* Pop multiple items from Ring buffer */
 int RingBuffer_PopMult(RINGBUFF_T *RingBuff, void *data, int num)
 {

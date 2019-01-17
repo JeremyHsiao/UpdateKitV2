@@ -180,6 +180,7 @@ int RingBuffer_Pop(RINGBUFF_T *RingBuff, void *data);
  */
 int RingBuffer_PopMult(RINGBUFF_T *RingBuff, void *data, int num);
 
+int RingBuffer_Get_old_and_Insert_new(RINGBUFF_T *RingBuff, void *data);
 
 /**
  * @}
