@@ -110,23 +110,9 @@ int main(void)
 		uint8_t 		temp;
 		UPDATE_STATE	state_before;
 
-		/* Sleep if no system tick within one loop; otherwise it means execution time is longer so no need to sleep for next tick */
-		if((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)==0)		// Returns 1 if the SysTick timer counted to 0 since the last read of this register
-		{
-			//__WFI();
-			if (sequenceComplete)
-			{
-				Read_ADC();
-				sequenceComplete=false;
-				/* Manual start for ADC conversion sequence A */
-				Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
-			}
-		}
-
 		//
-		// Input data processing section
+		// UART/ADC Input data processing section
 		//
-
 		if(UART_Check_InputBuffer_IsEmpty()==false)
 		{
 			// Processing chars according to sys_tick -> faster tick means fewer char for each loop
@@ -172,21 +158,58 @@ int main(void)
 			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
 		}
 
-		// Update displaying value of voltage/current (from adc read-back value)
-		if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_100MS))
-		{
-			UpdateKitV2_UpdateDisplayValueForADC_Task();
-		}
-
-		// Button-pressed event
-		EVENT_Button_pressed_debounced = Debounce_Button();
-
 		//
 		// End of Input data processing section
 		//
 
+		if((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))		// Returns 1 if the SysTick timer counted to 0 since the last read of this register
+		{
+			// Entering here means SysTick handler has been processed so we could check timeout-event now.
+
+			// Button-pressed event
+			EVENT_Button_pressed_debounced = Debounce_Button();
+
+			//
+			// Output UI section
+			//
+
+			// Check whether it is time to flash LED GRY
+			LED_Status_Update_Process();
+
+			// Update displaying value of voltage/current (from adc read-back value)
+			if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_100MS))
+			{
+				UpdateKitV2_UpdateDisplayValueForADC_Task();
+			}
+
+			// Refresh each char of 7 Segment LED every 2ms
+			if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_REFRESH_EACH_DIGIT_TIMER_MS))
+			{
+				// Time to switch LED-7Segment content? ==> force to next visible page
+				if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC))
+				{
+					LED_7SEG_GoToNextVisiblePage();
+				}
+
+				refresh_LED_7SEG_periodic_task();
+			}
+
+			// Update LCD module display after each lcm command delay (currently about 3ms)
+			if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_INTERNAL_DELAY_IN_MS))
+			{
+				lcm_auto_display_refresh_task();
+
+				if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S))
+				{
+					lcd_module_display_find_next_enabled_page();
+				}
+			}
+			//
+			// End of Output UI section
+			//
+		}
 		//
-		// After processing external input & regular output, system process event & system transition
+		// After processing external input & regular output, start to process system event & system transition
 		//
 
 		// Processing events not relevant to system_state_processor -- if any
@@ -225,37 +248,6 @@ int main(void)
 		//
 		// End of system process event & system transition
 		//
-
-		//
-		// Output UI section
-		//
-
-		// Check whether it is time to flash LED GRY
-		LED_Status_Update_Process();
-
-		// Time to switch LED-7Segment content? ==> force to next visible page
-		if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC))
-		{
-			LED_7SEG_GoToNextVisiblePage();
-		}
-
-		// Refresh each char of 7 Segment LED every 1ms
-		if(Read_and_Clear_SW_TIMER_Reload_Flag(LED_REFRESH_EACH_DIGIT_TIMER_MS))
-		{
-			refresh_LED_7SEG_periodic_task();
-		}
-
-		// Update LCD module display after each lcm command delay
-		if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_INTERNAL_DELAY_IN_MS))
-		{
-//			lcd_module_wait_finish_timeout = false;
-			lcm_auto_display_refresh_task();
-			//lcd_module_wait_finish_in_tick = SYSTICK_COUNT_VALUE_US(250);
-		}
-		//
-		// End of Output UI section
-		//
-
 	}
 
 	/* DeInitialize peripherals before ending */

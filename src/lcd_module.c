@@ -577,12 +577,6 @@ void lcm_auto_display_refresh_task(void)
 	//wait_for_not_busy(3);
  	lcm_write_cmd_direct(0x80+0);		// Go back to 0,0 for next page
 	lcm_current_row = 0;
-
-	if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S))
-	{
-		lcd_module_display_find_next_enabled_page();
-	}
-
 }
 
 /*
