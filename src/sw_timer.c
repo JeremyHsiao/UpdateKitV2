@@ -280,6 +280,7 @@ bool Pause_SW_Timer(TIMER_ID timer_no)
 bool Play_SW_Timer(TIMER_ID timer_no)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
+	ptr->running = 1;
 	return true;			// always successful at the moment
 }
 
