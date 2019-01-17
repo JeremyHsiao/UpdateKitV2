@@ -269,7 +269,7 @@ static uint8_t inline lcm_read_4bit_wo_setting_gpio_input(bool rs_high)
 	return return_value;
 }
 
-uint8_t lcd_read_busy_and_address(void)
+static inline uint8_t lcd_read_busy_and_address_static(void)
 {
 	uint8_t		read_value, temp_nibble;
 
@@ -285,6 +285,11 @@ uint8_t lcd_read_busy_and_address(void)
 	return read_value;
 }
 
+uint8_t lcd_read_busy_and_address(void)
+{
+	return lcd_read_busy_and_address_static();
+}
+
 bool wait_for_not_busy(uint8_t retry)
 {
 	uint8_t	retry_cnt = retry;
@@ -293,7 +298,7 @@ bool wait_for_not_busy(uint8_t retry)
 	do
 	{
 		Wait_until_No_More_Delay_Tick();
-		if((lcd_read_busy_and_address()&0x80)==0x00)
+		if((lcd_read_busy_and_address_static()&0x80)==0x00)
 		{
 			b_ret = true;
 			break;
@@ -557,7 +562,7 @@ void lcm_auto_display_refresh_task(void)
 		return;	// not-found, simply return
 	}
 
-	if((lcd_read_busy_and_address()&0x80)!=0x00)
+	if((lcd_read_busy_and_address_static()&0x80)!=0x00)
 	{
 		return;		// If busy then simply return
 	}
@@ -648,7 +653,7 @@ void lcm_demo_old(void)
 	uint8_t		brand_string[] = "TPV Technology";
 	uint8_t		product_string[] = "UpdateKit V002";
 
-	readback_value = lcd_read_busy_and_address();
+	readback_value = lcd_read_busy_and_address_static();
 
 	lcm_goto(0,0);			// Go back to 0,0 for confirming (pos:0, Line:0)
 	lcm_puts(brand_string);
@@ -656,7 +661,7 @@ void lcm_demo_old(void)
     lcm_puts(product_string);
 
 	lcm_goto(0,0);			// Go back to 0,0 for confirming (pos:0, Line:0)
-	readback_value = lcd_read_busy_and_address();
+	readback_value = lcd_read_busy_and_address_static();
 	for (index=0; index<sizeof(brand_string-1); index++)
 	{
 		readback_value = lcd_read_data_from_RAM();
