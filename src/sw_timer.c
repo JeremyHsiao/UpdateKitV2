@@ -280,6 +280,13 @@ bool Pause_SW_Timer(TIMER_ID timer_no)
 bool Play_SW_Timer(TIMER_ID timer_no)
 {
 	SW_TIMER	*ptr = sw_timer + timer_no;
+	return true;			// always successful at the moment
+}
+
+bool Set_SW_TIMER_Count_and_Play(TIMER_ID timer_no, uint32_t new_count)
+{
+	SW_TIMER	*ptr = sw_timer + timer_no;
+	ptr->counts = Covert_to_count(new_count,ptr->unit,ptr->count_up);
 	ptr->running = 1;
 	return true;			// always successful at the moment
 }

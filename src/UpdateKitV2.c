@@ -299,25 +299,30 @@ void SetRawCurrent(uint16_t current_new)
 			EVENT_filtered_current_above_fw_upgrade_threshold = true;
 		}
 		// reset standby / no-output debounce timer
-		Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS),TIMER_100MS);		// one-shot count down
-		Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS),TIMER_100MS);			// one-shot count down
+		//Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS),TIMER_100MS);		// one-shot count down
+		//Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS),TIMER_100MS);			// one-shot count down
+		Set_SW_TIMER_Count_and_Play(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS);
+		Set_SW_TIMER_Count_and_Play(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS);
 	}
 	else
 	{
 		// reset output goes normal debounce timer
-		Countdown_Once(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,(DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS),TIMER_100MS);		// one-shot count down
+		//Countdown_Once(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,(DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS),TIMER_100MS);		// one-shot count down
+		Set_SW_TIMER_Count_and_Play(FILTER_CURRENT_GOES_NORMAL_DEBOUNCE_IN_100MS,DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS);
 
 		if(filtered_current<default_no_current_threshold_lut[current_output_stage])
 		{
 			// looks like no output
 			// reset standby debounce timer
-			Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS),TIMER_100MS);		// Clear Standby debounce timer because it is no_output now
+			//Countdown_Once(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,(DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS),TIMER_100MS);		// Clear Standby debounce timer because it is no_output now
+			Set_SW_TIMER_Count_and_Play(FILTER_CURRENT_TV_STANDBY_DEBOUNCE_IN_100MS,DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS);
 		}
 		else
 		{
 			// looks like standby
 			// reset no-output debounce timer
-			Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS),TIMER_100MS);		// Clear No-output debounce timer because it is standby now
+			//Countdown_Once(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,(DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS),TIMER_100MS);		// Clear No-output debounce timer because it is standby now
+			Set_SW_TIMER_Count_and_Play(FILTER_CURRENT_NO_OUTPUT_DEBOUNCE_IN_100MS,DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS);
 		}
 
 		// Set event if timeout

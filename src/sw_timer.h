@@ -77,6 +77,7 @@ extern bool Read_and_Clear_SW_TIMER_Reload_Flag(TIMER_ID timer_no);
 extern void Clear_SW_TIMER_Reload_Flag(TIMER_ID timer_no);
 extern void Raise_SW_TIMER_Reload_Flag(TIMER_ID timer_no);
 extern bool Set_SW_Timer_Count(TIMER_ID timer_no, uint32_t new_count);
+extern bool Set_SW_TIMER_Count_and_Play(TIMER_ID timer_no, uint32_t new_count);
 
 #define Countdown_Once(id,duration,unit)			Start_SW_Timer(id,duration,0,unit, false, true)
 #define Repeat_DownCounter(id,duration,unit)		Start_SW_Timer(id,duration,duration,unit, false, false)
