@@ -29,12 +29,12 @@ const char 			*pwm_voltage_table [POWER_OUTPUT_STEP_TOTAL_NO] = { "0.0", "6.0", 
 const uint8_t		default_no_current_threshold_lut[POWER_OUTPUT_STEP_TOTAL_NO] = { 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 };
 const uint16_t		target_voltage_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 0, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 9900 };
 
-#define	CURRENT_HISTORY_DATA_SIZE	64
+#define	CURRENT_HISTORY_DATA_SIZE	32
 RINGBUFF_T 	current_history;
 uint16_t 	current_history_data[CURRENT_HISTORY_DATA_SIZE];
 uint32_t	total_current_value = 0;
 
-#define	VOLTAGE_HISTORY_DATA_SIZE	64
+#define	VOLTAGE_HISTORY_DATA_SIZE	32
 RINGBUFF_T 	voltage_history;
 uint16_t 	voltage_history_data[VOLTAGE_HISTORY_DATA_SIZE];
 uint32_t	total_voltage_value;
