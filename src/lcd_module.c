@@ -111,6 +111,27 @@ void Init_LCD_Module_GPIO(void)
 	}
 }
 
+const uint32_t PACK_LCD_4BITS_Pin_LUT[] =
+{
+		0,
+		(1L<<DB4_PIN),
+		(1L<<DB5_PIN),
+		(1L<<DB5_PIN)|(1L<<DB4_PIN),
+		(1L<<DB6_PIN),
+		(1L<<DB6_PIN)|(1L<<DB4_PIN),
+		(1L<<DB6_PIN)|(1L<<DB5_PIN),
+		(1L<<DB6_PIN)|(1L<<DB5_PIN)|(1L<<DB4_PIN),
+		(1L<<DB7_PIN),
+		(1L<<DB7_PIN)|(1L<<DB4_PIN),
+		(1L<<DB7_PIN)|(1L<<DB5_PIN),
+		(1L<<DB7_PIN)|(1L<<DB5_PIN)|(1L<<DB4_PIN),
+		(1L<<DB7_PIN)|(1L<<DB6_PIN),
+		(1L<<DB7_PIN)|(1L<<DB6_PIN)|(1L<<DB4_PIN),
+		(1L<<DB7_PIN)|(1L<<DB6_PIN)|(1L<<DB5_PIN),
+		(1L<<DB7_PIN)|(1L<<DB6_PIN)|(1L<<DB5_PIN)|(1L<<DB4_PIN),
+};
+
+/*
 static uint32_t inline PACK_LCD_4BITS(uint8_t high_nibble)
 {
 	uint32_t	ret_value = 0;
@@ -140,11 +161,13 @@ static uint32_t inline PACK_LCD_4BITS(uint8_t high_nibble)
 
 	return ret_value;
 }
+*/
 
-static void inline lcm_write_4bit(uint8_t high_nibble, bool rs_high)
+// Must check boundary of mask 0x0f of low_nibble before using lcm_write_4bit
+static void inline lcm_write_4bit(uint8_t low_nibble, bool rs_high)
 {
 	Chip_GPIO_SetPortMask(LPC_GPIO, LCD_DB4_7_PORT, ~HIGH_NIBBLE_MASK);
-	Chip_GPIO_SetMaskedPortValue(LPC_GPIO, LCD_DB4_7_PORT, PACK_LCD_4BITS(high_nibble&0xf0));
+	Chip_GPIO_SetMaskedPortValue(LPC_GPIO, LCD_DB4_7_PORT, PACK_LCD_4BITS_Pin_LUT[low_nibble]);
 //DelayMS(1);
 
 	if(rs_high==false)
@@ -166,16 +189,22 @@ static void inline lcm_write_4bit(uint8_t high_nibble, bool rs_high)
 static void inline lcm_write_cmd_direct(uint8_t c)
 {
 #ifdef WRITE_4BITS
-	lcm_write_4bit((c&0xf0), false);			// RS is low
-	lcm_write_4bit(((c<<4)&0xf0), false);		// RS is low
+	uint8_t	temp_nibble;
+	temp_nibble = c>>4;
+	lcm_write_4bit(temp_nibble, false);		// RS is low
+	temp_nibble = (c&0x0f);
+	lcm_write_4bit(temp_nibble, false);		// RS is low
 #endif // #ifdef WRITE_4BITS
 }
 
 static void inline lcm_write_ram_data_no_delay(uint8_t c)
 {
 #ifdef WRITE_4BITS
-	lcm_write_4bit((c&0xf0), true);				// RS is high
-	lcm_write_4bit(((c<<4)&0xf0), true);		// RS is high
+	uint8_t	temp_nibble;
+	temp_nibble = c>>4;
+	lcm_write_4bit(temp_nibble, true);		// RS is high
+	temp_nibble = (c&0x0f);
+	lcm_write_4bit(temp_nibble, true);		// RS is high
 #endif // #ifdef WRITE_4BITS
 }
 
