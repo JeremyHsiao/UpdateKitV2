@@ -73,6 +73,9 @@ uint8_t const LCD_LCM_GPIO_IOFUNC_LUT[] =
 
 static void inline lcd_module_db_gpio_as_output(void)
 {
+//  We don't use Chip_GPIO_SetPortDIRInput() because it requires some delay before port is stable and we don't want to tune the delay at the moment
+//	Chip_GPIO_SetPortDIROutput(LPC_GPIO, LCD_DB4_7_PORT, ((1L<<DB4_PIN)||(1L<<DB5_PIN)||(1L<<DB6_PIN)||(1L<<DB7_PIN)));
+//	Because we are using the same port so that we could use Chip_GPIO_SetPortDIROutput for better performance
 	Chip_GPIO_SetPinDIROutput(LPC_GPIO, LCD_DB4_7_PORT, DB4_PIN);
 	Chip_GPIO_SetPinDIROutput(LPC_GPIO, LCD_DB4_7_PORT, DB5_PIN);
 	Chip_GPIO_SetPinDIROutput(LPC_GPIO, LCD_DB4_7_PORT, DB6_PIN);
@@ -81,6 +84,9 @@ static void inline lcd_module_db_gpio_as_output(void)
 
 static void inline lcd_module_db_gpio_as_input(void)
 {
+//  We don't use Chip_GPIO_SetPortDIRInput() because it requires some delay before port is stable and we don't want to tune the delay at the moment
+//	Chip_GPIO_SetPortDIRInput(LPC_GPIO, LCD_DB4_7_PORT, ((1L<<DB4_PIN)||(1L<<DB5_PIN)||(1L<<DB6_PIN)||(1L<<DB7_PIN)));
+//	Because we are using the same port so that we could use Chip_GPIO_SetPortDIROutput for better performance
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, LCD_DB4_7_PORT, DB4_PIN);
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, LCD_DB4_7_PORT, DB5_PIN);
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, LCD_DB4_7_PORT, DB6_PIN);
@@ -111,7 +117,9 @@ void Init_LCD_Module_GPIO(void)
 	}
 }
 
-const uint32_t PACK_LCD_4BITS_Pin_LUT[] =
+// Because DB7-4 is in sequence so that we could simply shift & mask to get the value
+/*
+uint32_t const PACK_LCD_4BITS_Pin_LUT[] =
 {
 		0,
 		(1L<<DB4_PIN),
@@ -128,8 +136,9 @@ const uint32_t PACK_LCD_4BITS_Pin_LUT[] =
 		(1L<<DB7_PIN)|(1L<<DB6_PIN),
 		(1L<<DB7_PIN)|(1L<<DB6_PIN)|(1L<<DB4_PIN),
 		(1L<<DB7_PIN)|(1L<<DB6_PIN)|(1L<<DB5_PIN),
-		(1L<<DB7_PIN)|(1L<<DB6_PIN)|(1L<<DB5_PIN)|(1L<<DB4_PIN),
+		HIGH_NIBBLE_MASK,
 };
+*/
 
 /*
 static uint32_t inline PACK_LCD_4BITS(uint8_t high_nibble)
@@ -167,7 +176,7 @@ static uint32_t inline PACK_LCD_4BITS(uint8_t high_nibble)
 static void inline lcm_write_4bit(uint8_t low_nibble, bool rs_high)
 {
 	Chip_GPIO_SetPortMask(LPC_GPIO, LCD_DB4_7_PORT, ~HIGH_NIBBLE_MASK);
-	Chip_GPIO_SetMaskedPortValue(LPC_GPIO, LCD_DB4_7_PORT, PACK_LCD_4BITS_Pin_LUT[low_nibble]);
+	Chip_GPIO_SetMaskedPortValue(LPC_GPIO, LCD_DB4_7_PORT, (((uint32_t)low_nibble)<<DB4_PIN));
 //DelayMS(1);
 
 	if(rs_high==false)
@@ -238,22 +247,24 @@ static uint8_t inline lcm_read_4bit_wo_setting_gpio_input(bool rs_high)
 	Delay125ns(); // DelayMS(1); // DelayMS(10);
 
 	// here is also delay
-	if(gpio_value&(1L<<DB7_PIN))
-	{
-		return_value |= 0x80;
-	}
-	if(gpio_value&(1L<<DB6_PIN))
-	{
-		return_value |= 0x40;
-	}
-	if(gpio_value&(1L<<DB5_PIN))
-	{
-		return_value |= 0x20;
-	}
-	if(gpio_value&(1L<<DB4_PIN))
-	{
-		return_value |= 0x10;
-	}
+	return_value = (uint8_t)((gpio_value&HIGH_NIBBLE_MASK)>>DB4_PIN);
+// Because DB7-4 is in sequence so that we could simply shift & mask to get the value
+//	if(gpio_value&(1L<<DB7_PIN))
+//	{
+//		return_value |= 0x80;
+//	}
+//	if(gpio_value&(1L<<DB6_PIN))
+//	{
+//		return_value |= 0x40;
+//	}
+//	if(gpio_value&(1L<<DB5_PIN))
+//	{
+//		return_value |= 0x20;
+//	}
+//	if(gpio_value&(1L<<DB4_PIN))
+//	{
+//		return_value |= 0x10;
+//	}
 
 	return return_value;
 }
@@ -301,9 +312,8 @@ uint8_t lcd_read_data_from_RAM(void)
 {
 	uint8_t		read_value, temp_nibble;
 
-	Wait_until_No_More_Delay_Tick();
-
 	lcd_module_db_gpio_as_input();
+	Wait_until_No_More_Delay_Tick();
 
 #ifdef WRITE_4BITS
     read_value = lcm_read_4bit_wo_setting_gpio_input(true);		// RS low
