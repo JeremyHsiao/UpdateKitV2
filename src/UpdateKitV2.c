@@ -77,15 +77,16 @@ void init_filtered_input_voltage(void)
 	RingBuffer_Flush(&voltage_history);
 }
 
-void Init_User_Selection_From_EEPROM(void)
+void Init_Value_From_EEPROM(void)
 {
 	Load_User_Selection(&current_output_stage);
+	Load_System_Timeout(&max_upgrade_time_in_S);
 }
 
 void Init_UpdateKitV2_variables(void)
 {
 	current_system_proc_state = US_SYSTEM_BOOTUP_STATE;
-	max_upgrade_time_in_S = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+	//max_upgrade_time_in_S = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
 	lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
 	raw_voltage = 0;			//  0.00v ~ 9.99v --> 0-999
 	raw_current = 0;			// .000A ~ .999A --> 0-999
@@ -870,6 +871,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
 			Update_FW_OK_Upgrade_Time();
 			max_upgrade_time_in_S = CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S));
+			Save_System_Timeout(max_upgrade_time_in_S);
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
 			lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
 			lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_OK;

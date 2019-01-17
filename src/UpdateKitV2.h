@@ -24,7 +24,7 @@ typedef enum
 	US_MAX_STATE_NO						// 11
 } UPDATE_STATE;
 
-extern void Init_User_Selection_From_EEPROM(void);
+extern void Init_Value_From_EEPROM(void);
 extern void Init_UpdateKitV2_variables(void);
 extern void lcm_reset_FW_VER_Content(void);
 extern void lcm_reset_Previous_FW_VER_Content(void);
@@ -54,6 +54,8 @@ extern UPDATE_STATE System_State_End_Proc(UPDATE_STATE current_state);
 #define	WELCOME_MESSAGE_DISPLAY_TIME_IN_S			(3)
 #define OUTPUT_REMINDER_DISPLAY_TIME_IN_S			(6)
 #define DEFAULT_MAX_FW_UPDATE_TIME_IN_S				(1800)
+#define MINIMAL_TIMEOUT_VALUE						(2)
+#define MAXIMAL_TIMEOUT_VALUE						(9999)
 #define LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST	(1)			// 500ms
 #define LED_STATUS_TOGGLE_DURATION_IN_100MS			(5)			// 500ms
 

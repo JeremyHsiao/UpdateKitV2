@@ -50,9 +50,13 @@
 ///* Pre-setup String */
 
 // User Selection
-#define	USER_SELECTION_POSITION		(0x80)
-#define USER_SELECTION_LENGTH		(4)
+#define	USER_SELECTION_POSITION			(0x80)
+#define USER_SELECTION_LENGTH			(4)
 uint8_t User_Select_Last_ReadWrite = POWER_OUTPUT_STEP_TOTAL_NO;
+// Timeout according to previous update
+#define	SYSTEM_TIMEOUT_VALUE_POSITION	(USER_SELECTION_POSITION+USER_SELECTION_LENGTH)
+#define SYSTEM_TIMEOUT_VALUE_LENGTH		(4)
+uint16_t System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -195,6 +199,70 @@ bool Save_User_Selection(uint8_t UserSelect)
 	if (ret_code == IAP_CMD_SUCCESS)
 	{
 		User_Select_Last_ReadWrite = UserSelect;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool Load_System_Timeout(uint16_t *pSystemTimeout)
+{
+	uint32_t system_timeout_buffer[(SYSTEM_TIMEOUT_VALUE_LENGTH / sizeof(uint32_t)) + 1];
+	uint16_t *ptr = (uint16_t *) system_timeout_buffer;
+	uint8_t ret_code;
+
+	/* Data to be read from EEPROM */
+	ret_code = Chip_EEPROM_Read_v2(SYSTEM_TIMEOUT_VALUE_POSITION, (uint8_t *)ptr, SYSTEM_TIMEOUT_VALUE_LENGTH);
+
+	/* Error checking */
+	if (ret_code != IAP_CMD_SUCCESS) {
+		//DEBUGOUT("Command failed to execute, return code is: %x\r\n", ret_code);
+		*pSystemTimeout = System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+		return false;		// cannot validate
+	}
+
+	if((*ptr>MINIMAL_TIMEOUT_VALUE)&&(ptr[0]==(ptr[1]^0xffff)))
+	{
+//		To check max. value
+//		if(*ptr>MAXIMAL_TIMEOUT_VALUE)
+//			*ptr = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+		*pSystemTimeout = System_Timeout_Last_ReadWrite = *ptr;
+		return true;
+	}
+	else
+	{
+		*pSystemTimeout = System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+		return false;
+	}
+}
+
+bool Check_if_different_from_last_System_Timeout(uint16_t timeout)
+{
+	return (timeout!=System_Timeout_Last_ReadWrite)?true:false;
+}
+
+bool Save_System_Timeout(uint16_t SystemTimeout)
+{
+	uint32_t system_timeout_buffer[(SYSTEM_TIMEOUT_VALUE_LENGTH / sizeof(uint32_t)) + 1];
+	uint16_t *ptr = (uint16_t *) system_timeout_buffer;
+	uint8_t ret_code;
+
+	// return false if out of range
+	if(SystemTimeout<=MINIMAL_TIMEOUT_VALUE){
+		return false;
+	}
+
+	/* Data to be written to EEPROM */
+	ptr[0]=SystemTimeout;
+	ptr[1]=(SystemTimeout^0xffff);
+	ret_code = Chip_EEPROM_Write_v2(SYSTEM_TIMEOUT_VALUE_POSITION, (uint8_t *)ptr, SYSTEM_TIMEOUT_VALUE_LENGTH);
+
+	/* Error checking */
+	if (ret_code == IAP_CMD_SUCCESS)
+	{
+		System_Timeout_Last_ReadWrite = SystemTimeout;
 		return true;
 	}
 	else
