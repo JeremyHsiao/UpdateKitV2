@@ -19,6 +19,7 @@
 #include "build_defs.h"
 #include "event.h"
 #include "user_opt.h"
+#include "fw_version.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -171,9 +172,9 @@ void lcm_content_init(void)
 {
 	char const		*welcome_message_line1 =  "TPV UpdateKit V2";
 	const uint8_t	welcome_message_line2[] =
-	{   'F', 'W', ':',
-	    BUILD_YEAR_CH2, BUILD_YEAR_CH3, BUILD_MONTH_CH0, BUILD_MONTH_CH1, BUILD_DAY_CH0, BUILD_DAY_CH1, '-',
-		BUILD_HOUR_CH0, BUILD_HOUR_CH1, BUILD_MIN_CH0, BUILD_MIN_CH1, BUILD_SEC_CH0, BUILD_SEC_CH1, '\0'};
+	{   'F', 'W', ':', 'V', FW_MAJOR, FW_MIDDLE, FW_MINOR, '_', // "FW:Vx.x-" - total 8 chars
+	   BUILD_MONTH_CH0, BUILD_MONTH_CH1, BUILD_DAY_CH0, BUILD_DAY_CH1, BUILD_HOUR_CH0, BUILD_HOUR_CH1,  BUILD_MIN_CH0, BUILD_MIN_CH1, // 8 chars
+		'\0'};
 
 	// Prepare firmware version for welcome page
 
