@@ -591,10 +591,35 @@ bool Event_Proc_State_Independent(void)
 
 static inline void Update_FW_Upgrading_Elapse_Time(void)
 {
-	itoa_10_fixed_position(	Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S),
+	uint8_t	elapse_time = Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S);
+	if(elapse_time<=9999)
+	{
+		itoa_10_fixed_position(	elapse_time,
 							(char*)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS],
 							ELAPSE_TIME_LEN);
+	}
 }
+
+static inline void Update_FW_Timeout_Elapse_Time(void)
+{
+	uint8_t	elapse_time = Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S);
+	if(elapse_time<=9999)
+	{
+		itoa_10_fixed_position(	elapse_time,
+							(char*)&lcd_module_display_content[LCM_FW_UPGRADE_TOO_LONG_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS],
+							ELAPSE_TIME_LEN);
+	}
+}
+
+
+//// FW Upgrading page						  					          1234567890123456
+//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL);
+//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][0], "OUT: 0.00V 0.00A", LCM_DISPLAY_COL);
+//
+//// FW Upgrade too long page						  					             0123456789012345
+//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADE_TOO_LONG_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL);
+//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADE_TOO_LONG_PAGE][1][0], " ** Timeout **  ", LCM_DISPLAY_COL);
+
 
 static inline void Update_FW_OK_Upgrade_Time(void)
 {
@@ -774,14 +799,7 @@ UPDATE_STATE System_State_Running_Proc(UPDATE_STATE current_state)
 			Update_FW_Upgrading_Elapse_Time();
 			break;
 		case US_UPGRADE_TOO_LONG:
-			// Update Upgrade-elapse-time
-			{
-				uint8_t	elapse_time = Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S);
-				if(elapse_time<=9999)
-				{
-					Update_FW_Upgrading_Elapse_Time();
-				}
-			}
+			Update_FW_Timeout_Elapse_Time();
 			break;
 		default:
 			break;
