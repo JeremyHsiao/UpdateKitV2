@@ -45,6 +45,8 @@ uint16_t			raw_current;			// .000A ~ .999A --> 0-999
 uint16_t			filtered_voltage;		//  0.00v ~ 9.99v --> 0-999
 uint16_t			filtered_current;		// .000A ~ .999A --> 0-999
 
+#define ELAPSE_TIME_MAX_DISPLAY_VALUE		(9999)
+
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
@@ -591,8 +593,8 @@ bool Event_Proc_State_Independent(void)
 
 static inline void Update_FW_Upgrading_Elapse_Time(void)
 {
-	uint8_t	elapse_time = Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S);
-	if(elapse_time<=9999)
+	uint32_t elapse_time = Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S);
+	if(elapse_time<=ELAPSE_TIME_MAX_DISPLAY_VALUE)
 	{
 		itoa_10_fixed_position(	elapse_time,
 							(char*)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS],
@@ -602,8 +604,8 @@ static inline void Update_FW_Upgrading_Elapse_Time(void)
 
 static inline void Update_FW_Timeout_Elapse_Time(void)
 {
-	uint8_t	elapse_time = Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S);
-	if(elapse_time<=9999)
+	uint32_t elapse_time = Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S);
+	if(elapse_time<=ELAPSE_TIME_MAX_DISPLAY_VALUE)
 	{
 		itoa_10_fixed_position(	elapse_time,
 							(char*)&lcd_module_display_content[LCM_FW_UPGRADE_TOO_LONG_PAGE][ELAPSE_TIME_ROW][ELAPSE_TIME_POS],
@@ -611,19 +613,18 @@ static inline void Update_FW_Timeout_Elapse_Time(void)
 	}
 }
 
-
-//// FW Upgrading page						  					          1234567890123456
-//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL);
-//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][0], "OUT: 0.00V 0.00A", LCM_DISPLAY_COL);
 //
-//// FW Upgrade too long page						  					             0123456789012345
-//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADE_TOO_LONG_PAGE][0][0], "Upgrade:   0 Sec", LCM_DISPLAY_COL);
-//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADE_TOO_LONG_PAGE][1][0], " ** Timeout **  ", LCM_DISPLAY_COL);
-
-
+// Unlike previous 2 elapse-time update function which are constantly executed during specific state, the following update function
+// are only executed once when entering FW_OK state. So it must be executed once no matter elapse_time is >9999 or not.
+//
 static inline void Update_FW_OK_Upgrade_Time(void)
 {
-	itoa_10_fixed_position(	Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S),
+	uint32_t elapse_time = Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S);
+	if(elapse_time>ELAPSE_TIME_MAX_DISPLAY_VALUE)
+	{
+		elapse_time = ELAPSE_TIME_MAX_DISPLAY_VALUE;
+	}
+	itoa_10_fixed_position(	elapse_time,
 							(char*)&lcd_module_display_content[LCM_FW_OK_VER_PAGE][OK_TIME_ROW][OK_TIME_POS],
 							ELAPSE_TIME_LEN);
 }
