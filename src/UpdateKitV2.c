@@ -25,10 +25,10 @@
  * Private types/enumerations/variables
  ****************************************************************************/
 uint8_t				current_output_stage;
-const uint8_t		pwm_table[POWER_OUTPUT_STEP_TOTAL_NO] = 		  {   100,   58,     50,    42,    35,    27,    19,    11,     4,    0  };
-const char 			*pwm_voltage_table [POWER_OUTPUT_STEP_TOTAL_NO] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.7" };
+const uint8_t		pwm_table[POWER_OUTPUT_STEP_TOTAL_NO] = 		  {   100,   62,     52,    44,    37,    29,    21,    15,     4,    0  };
+const char 			*pwm_voltage_table [POWER_OUTPUT_STEP_TOTAL_NO] = { "0.0", "6.0", "6.5", "7.0", "7.5", "8.0", "8.5", "9.0", "9.5", "9.8" };
 const uint8_t		default_no_current_threshold_lut[POWER_OUTPUT_STEP_TOTAL_NO] = { 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 };
-const uint16_t		target_voltage_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 0, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 9700 };
+const uint16_t		target_voltage_table[POWER_OUTPUT_STEP_TOTAL_NO] = { 0, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 9800 };
 
 #define	CURRENT_HISTORY_DATA_SIZE	32
 RINGBUFF_T 	current_history;
@@ -477,15 +477,17 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 
 void PowerOutputSetting(uint8_t current_step)
 {
-	pwm_duty = pwm_table[current_step];
-	setPWMRate(0, pwm_duty);
 	if(current_step==0)
 	{
 		Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+		pwm_duty = 0;
+		setPWMRate(0, pwm_duty);
 	}
 	else
 	{
+		pwm_duty = pwm_table[current_step];
 		Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+		setPWMRate(0, pwm_duty);
 	}
 }
 
