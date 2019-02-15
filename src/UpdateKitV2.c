@@ -83,7 +83,7 @@ void init_filtered_input_voltage(void)
 void Init_Value_From_EEPROM(void)
 {
 	Load_User_Selection(&current_output_stage);
-	Load_System_Timeout(&max_upgrade_time_in_S);
+	Load_System_Timeout_v2(current_output_stage,&max_upgrade_time_in_S);
 }
 
 void Init_UpdateKitV2_variables(void)
@@ -884,6 +884,8 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			{
 				Save_User_Selection(current_output_stage);
 			}
+			// load from EEPROM here because current_output_stage could be changed before 5 second countdown
+			Load_System_Timeout_v2(current_output_stage,&max_upgrade_time_in_S);
 			ResetAllCurrentDebounceTimerEvent();	// Force to init after first output
 			lcd_module_display_enable_only_one_page(LCM_FW_UPGRADING_PAGE);
 			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
@@ -906,7 +908,7 @@ UPDATE_STATE System_State_Begin_Proc(UPDATE_STATE current_state)
 			Pause_SW_Timer(UPGRADE_ELAPSE_IN_S);
 			Update_FW_OK_Upgrade_Time();
 			max_upgrade_time_in_S = CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(Read_SW_TIMER_Value(UPGRADE_ELAPSE_IN_S));
-			Save_System_Timeout(max_upgrade_time_in_S);
+			Save_System_Timeout_v2(current_output_stage,max_upgrade_time_in_S);
 			lcd_module_display_enable_only_one_page(LCM_FW_OK_VER_PAGE);
 			lcd_module_display_enable_page(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO);
 			lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_OK;

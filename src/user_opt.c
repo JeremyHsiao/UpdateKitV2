@@ -50,13 +50,18 @@
 ///* Pre-setup String */
 
 // User Selection
-#define	USER_SELECTION_POSITION			(0x80)
+#define EEPROM_RESERVE_AREA				(0x60)
+#define	USER_SELECTION_POSITION			(0x80)			// must be larger than EEPROM_RESERVE_AREA
 #define USER_SELECTION_LENGTH			(4)
 uint8_t User_Select_Last_ReadWrite = POWER_OUTPUT_STEP_TOTAL_NO;
 // Timeout according to previous update
 #define	SYSTEM_TIMEOUT_VALUE_POSITION	(USER_SELECTION_POSITION+USER_SELECTION_LENGTH)
 #define SYSTEM_TIMEOUT_VALUE_LENGTH		(4)
 uint16_t System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+uint8_t For_TIMEOUT_EEPROM_User_Select_Last_ReadWrite = 0;
+
+// This is starting position for future EEPROM user data
+#define NEXT_FUTURE_EEPROM_DATA_START	(SYSTEM_TIMEOUT_VALUE_POSITION+(SYSTEM_TIMEOUT_VALUE_POSITION*POWER_OUTPUT_STEP_TOTAL_NO))
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -207,14 +212,21 @@ bool Save_User_Selection(uint8_t UserSelect)
 	}
 }
 
-bool Load_System_Timeout(uint16_t *pSystemTimeout)
+bool Load_System_Timeout_v2(uint8_t user_selection, uint16_t *pSystemTimeout)
 {
 	uint32_t system_timeout_buffer[(SYSTEM_TIMEOUT_VALUE_LENGTH / sizeof(uint32_t)) + 1];
 	uint16_t *ptr = (uint16_t *) system_timeout_buffer;
 	uint8_t ret_code;
 
+	// return default value if user_selection is 0 -- in fact this value is not used for pc-mode
+	if(user_selection==0)
+	{
+		*pSystemTimeout = System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+		return true;
+	}
+
 	/* Data to be read from EEPROM */
-	ret_code = Chip_EEPROM_Read_v2(SYSTEM_TIMEOUT_VALUE_POSITION, (uint8_t *)ptr, SYSTEM_TIMEOUT_VALUE_LENGTH);
+	ret_code = Chip_EEPROM_Read_v2(SYSTEM_TIMEOUT_VALUE_POSITION+(user_selection*SYSTEM_TIMEOUT_VALUE_LENGTH), (uint8_t *)ptr, SYSTEM_TIMEOUT_VALUE_LENGTH);
 
 	/* Error checking */
 	if (ret_code != IAP_CMD_SUCCESS) {
@@ -229,6 +241,7 @@ bool Load_System_Timeout(uint16_t *pSystemTimeout)
 //		if(*ptr>MAXIMAL_TIMEOUT_VALUE)
 //			*ptr = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
 		*pSystemTimeout = System_Timeout_Last_ReadWrite = *ptr;
+		For_TIMEOUT_EEPROM_User_Select_Last_ReadWrite = user_selection;
 		return true;
 	}
 	else
@@ -238,16 +251,23 @@ bool Load_System_Timeout(uint16_t *pSystemTimeout)
 	}
 }
 
-bool Check_if_different_from_last_System_Timeout(uint16_t timeout)
+bool Check_if_different_from_last_System_Timeout_v2(uint8_t user_selection, uint16_t timeout)
 {
-	return (timeout!=System_Timeout_Last_ReadWrite)?true:false;
+	return ((timeout!=System_Timeout_Last_ReadWrite)||(user_selection!=For_TIMEOUT_EEPROM_User_Select_Last_ReadWrite))?true:false;
 }
 
-bool Save_System_Timeout(uint16_t SystemTimeout)
+bool Save_System_Timeout_v2(uint8_t user_selection, uint16_t SystemTimeout)
 {
 	uint32_t system_timeout_buffer[(SYSTEM_TIMEOUT_VALUE_LENGTH / sizeof(uint32_t)) + 1];
 	uint16_t *ptr = (uint16_t *) system_timeout_buffer;
 	uint8_t ret_code;
+
+	// return true if user_selection is 0 -- no need to save timeout value for pc-mode
+	if(user_selection==0)
+	{
+		System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+		return true;
+	}
 
 	// return false if out of range
 	if(SystemTimeout<=MINIMAL_TIMEOUT_VALUE){
@@ -257,7 +277,7 @@ bool Save_System_Timeout(uint16_t SystemTimeout)
 	/* Data to be written to EEPROM */
 	ptr[0]=SystemTimeout;
 	ptr[1]=(SystemTimeout^0xffff);
-	ret_code = Chip_EEPROM_Write_v2(SYSTEM_TIMEOUT_VALUE_POSITION, (uint8_t *)ptr, SYSTEM_TIMEOUT_VALUE_LENGTH);
+	ret_code = Chip_EEPROM_Write_v2(SYSTEM_TIMEOUT_VALUE_POSITION+(user_selection*SYSTEM_TIMEOUT_VALUE_LENGTH), (uint8_t *)ptr, SYSTEM_TIMEOUT_VALUE_LENGTH);
 
 	/* Error checking */
 	if (ret_code == IAP_CMD_SUCCESS)
