@@ -46,7 +46,11 @@ uint16_t			filtered_voltage;		//  0.00v ~ 9.99v --> 0-999
 uint16_t			filtered_current;		// .000A ~ .999A --> 0-999
 
 #define ELAPSE_TIME_MAX_DISPLAY_VALUE		(9999)
-
+/*
+#define			ROW_FOR_VER		((MAX_VER_NO_LEN%LCM_DISPLAY_COL)!=0)?((MAX_VER_NO_LEN/LCM_DISPLAY_COL)+1):(MAX_VER_NO_LEN/LCM_DISPLAY_COL)
+uint8_t			lcd_ok_full_info[(ROW_FOR_VER*2+2)*LCM_DISPLAY_COL];
+uint32_t		lcd_ok_full_info_str_current_pos;
+*/
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
@@ -132,7 +136,13 @@ void Init_UpdateKitV2_variables(void)
 #define COUNTDOWN_TIME_LEN 	(1)
 #define COUNTDOWN_TIME_POS	(10)
 #define COUNTDOWN_TIME_ROW	(1)
-
+/*
+static inline uint32_t full_page_string_copy(uint32_t starting_pos, const void * restrict __s2, size_t len)
+{
+	memcpy((void *)&lcd_ok_full_info[starting_pos],__s2, len);
+	return starting_pos+len;
+}
+*/
 static inline bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, const void * restrict __s2, size_t len)
 {
 	// If row/col is out-of-range, skip
@@ -169,7 +179,19 @@ void lcm_reset_Previous_FW_VER_Content(void)
 	lcm_text_buffer_cpy(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO,PREVIOUS_TIME_ROW,0,"LastUPG:   0 Sec",LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_FW_OK_VER_PAGE_PREVIOUS_UPDATE_INFO,PREVIOUS_FW_ROW,  0,"FW:             ",LCM_DISPLAY_COL);
 }
+/*
+void lcm_reset_FW_OK_FULL_INFO_Content(void)
+{
+	// pre-write some fixed content.
+	lcd_ok_full_info_str_current_pos = 0;
+	lcd_ok_full_info_str_current_pos = full_page_string_copy(lcd_ok_full_info_str_current_pos,"Upgrade:   0 Sec", LCM_DISPLAY_COL);
+	lcd_ok_full_info_str_current_pos = full_page_string_copy(lcd_ok_full_info_str_current_pos,"LastUPG:   0 Sec", LCM_DISPLAY_COL);
+	lcd_ok_full_info_str_current_pos = full_page_string_copy(lcd_ok_full_info_str_current_pos,"VER:", 4);
 
+	lcm_text_buffer_cpy(lCM_FULL_INFO_FW_OK_PAGE,0,0,&lcd_ok_full_info[0*LCM_DISPLAY_COL],LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(lCM_FULL_INFO_FW_OK_PAGE,1,0,&lcd_ok_full_info[1*LCM_DISPLAY_COL],LCM_DISPLAY_COL);
+}
+*/
 void lcm_content_init(void)
 {
 	char const		*welcome_message_line1 =  "TPV UpdateKit V2";
@@ -215,6 +237,10 @@ void lcm_content_init(void)
 	// TV is entering ISP mode page		     							   1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_ENTER_ISP_PAGE][0][0], "Enter ISP mode  ", LCM_DISPLAY_COL);
 	memcpy((void *)&lcd_module_display_content[LCM_ENTER_ISP_PAGE][1][0], "Off-On after ISP", LCM_DISPLAY_COL);
+/*
+	// lCM_FULL_INFO_FW_OK_PAGE
+	lcm_reset_FW_OK_FULL_INFO_Content();
+*/
 	// enable/disable some page/
 	memset((void *)lcd_module_display_enable, 0x00, LCM_MAX_PAGE_NO);	// Initial only - later sw determine which page is to be displayed
 
