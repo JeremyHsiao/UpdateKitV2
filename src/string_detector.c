@@ -34,6 +34,9 @@ uint8_t ver_string_index;
 uint8_t VER_NO_str[MAX_VER_NO_LEN];
 uint8_t Previous_VER_NO_str[MAX_VER_NO_LEN];
 
+char serial_gets_return_string[MAX_SERIAL_GETS_LEN+1];	// Extra one is for '\0'
+char *ptr_str;
+
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
@@ -56,6 +59,8 @@ void reset_string_detector(void)
 	VER_string_end_of_line = false;
 	VER_NO_str[0]='\0';
 	ver_string_index = 0;
+
+	ptr_str = serial_gets_return_string;
 }
 
 void Clear_OK_pattern_state(void)
@@ -442,32 +447,46 @@ void IdentifyCommand(char input_ch)
 			break;
 	}
 }
-
-#define MAX_SERIAL_GETS_LEN
-static char serial_gets_return_string[32];
-static char *ptr_str = serial_gets_return_string;
+*/
 
 char *serial_gets(char input_ch)
 {
-	if ((input_ch=='\r')||(input_ch=='\n'))
+	char *ret_ptr;
+
+	switch (input_ch)
 	{
-		if (ptr_str == serial_gets_return_string)
-		{
-			return '\0';
-		}
-		else
-		{
-			ptr_str = '\0';
+		case '\r':
+		case '\n':
+			// Append a '\0' to the end of return string'; then reset ptr_str for next line of command.
+			*ptr_str = '\0';
 			ptr_str = serial_gets_return_string;
-			return serial_gets_return_string;
-		}
-	}
-	else
-	{
-		if(ptr_str)
-		*ptr_str++ = input_ch;
-		return '\0';
+			ret_ptr = serial_gets_return_string;
+			break;
+		case '\b':
+			// remove previous char (if any)
+			if(ptr_str>(serial_gets_return_string))
+			{
+				ptr_str--;
+			}
+			ret_ptr = (char *)(NULL);
+			break;
+		case 3:		//ctrl-c
+		case 4:		//ctrl-d
+		case 26:		//ctrl-z
+			// reset ptr_str for next line of command.
+			ptr_str = serial_gets_return_string;
+			ret_ptr = (char *)(NULL);
+			break;
+		default:
+			// Fill input string buffer until last 1 slot left (for storing end-of-string '\0')
+			if(ptr_str<(serial_gets_return_string+MAX_SERIAL_GETS_LEN))
+			{
+				*ptr_str++ = input_ch;
+			}
+			ret_ptr = (char *)(NULL);
+			break;
 	}
 
+	return ret_ptr;
 }
-*/
+

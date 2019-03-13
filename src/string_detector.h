@@ -24,4 +24,7 @@ extern void Clear_VER_string(void);
 extern uint8_t *Get_VER_string(void);
 #define	MAX_VER_NO_LEN	(96)
 
+#define MAX_SERIAL_GETS_LEN			(32)
+extern char *serial_gets(char input_ch);
+
 #endif /* STRING_DETECTOR_H_ */
