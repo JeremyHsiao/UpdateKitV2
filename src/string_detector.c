@@ -258,3 +258,216 @@ int Remove_NonLCMASCII_ESCCode(char *str)
 	}
 	return str_len;
 }
+/*
+typedef enum {
+	ISS_1ST_CHAR = 0,				// Check if 1st char meets some command
+	ISS_IDENTIFYING,				// Checking among several command
+	ISS_CMD_ONE_LEFT,				//
+	ISS_GETTING_PARAMETER,
+	ISS_CRLF_FOUND,
+	ISS_NONE_MATCH,
+	ISS_MAX_STATE_NO
+} IDENTIFY_STRING_STATE;
+
+typedef enum {
+    ID_OFF = 0			,
+    ID_ON				,
+    ID_GETPWMDUTY		,
+    ID_GETPWMDUTYRANGE	,
+    ID_GETPWMFREQ		,
+    ID_GETPWMFREQRANGE	,
+    ID_GETVER			,
+    ID_PWMOFF			,
+    ID_PWMON			,
+    ID_PWMUPDATEKIT		,
+    ID_PWMUSER			,
+    ID_SETPWMDUTY		,
+    ID_SETPWMFREQ		,
+    ID_ENTER_CMD_MODE 	,
+    ID_MAX
+} CMDIndex;
+
+const char *command_list[] =
+{
+	"cmd.off",
+	"cmd.on",
+	"get.pwmduty",
+	"get.pwmdutyrange",
+	"get.pwmfreq",
+	"get.pwmfreqrange",
+	"get.ver",
+	"pwm.off",
+	"pwm.on",
+	"pwm.updatekit",
+	"pwm.user",
+	"set.pwmduty.$$$$",
+	"set.pwmfreq.$$$",
+	"x&Vht&GD",
+};
+
+typedef enum {
+    CMD_NONE 			= 0,		//  None
+    CMD_OFF				= (1L<<ID_OFF),	//	cmd.off
+    CMD_ON				= (1L<<ID_ON),	//	cmd.on
+    CMD_GETPWMDUTY		= (1L<<ID_GETPWMDUTY),	//	get.pwmduty
+    CMD_GETPWMDUTYRANGE	= (1L<<ID_GETPWMDUTYRANGE),	//	get.pwmdutyrange
+    CMD_GETPWMFREQ		= (1L<<ID_GETPWMFREQ),	//	get.pwmfreq
+    CMD_GETPWMFREQRANGE	= (1L<<ID_GETPWMFREQRANGE),	//	get.pwmfreqrange
+    CMD_GETVER			= (1L<<ID_GETVER),	//	get.ver
+    CMD_PWMOFF			= (1L<<ID_PWMOFF),	//	pwm.off
+    CMD_PWMON			= (1L<<ID_PWMON),	//	pwm.on
+    CMD_PWMUPDATEKIT	= (1L<<ID_PWMUPDATEKIT),	//	pwm.updatekit
+    CMD_PWMUSER			= (1L<<ID_PWMUSER),	//	pwm.user
+    CMD_SETPWMDUTY		= (1L<<ID_SETPWMDUTY),	//	set.pwmduty. (xxxx)
+    CMD_SETPWMFREQ		= (1L<<ID_SETPWMFREQ),	//	set.pwmfreq. (xxxxxx)
+    CMD_ENTER_CMD_MODE 	= (1L<<ID_ENTER_CMD_MODE),	//	x&Vht&GD
+    CMD_MAX				= ~0
+} FoundCMD;
+
+// For quick response time of state ISS_1ST_CHAR:
+
+const char first_cmd_char_list[] = "cgpsx";
+const uint32_t first_cmd_bit_list[] = {
+	( CMD_OFF | CMD_ON ),
+    ( CMD_GETPWMDUTY | CMD_GETPWMDUTYRANGE| CMD_GETPWMFREQ | CMD_GETPWMFREQRANGE | CMD_GETVER ),
+	( CMD_PWMOFF | CMD_PWMON | CMD_PWMUPDATEKIT | CMD_PWMUSER ),
+	( CMD_SETPWMDUTY | CMD_SETPWMFREQ ),
+	( CMD_ENTER_CMD_MODE ),
+	CMD_NONE
+};
+
+const uint8_t first_cmd_range_list[][2] = {
+	{ID_OFF, ID_ON},
+	{ID_GETPWMDUTY, ID_GETVER},
+	{ID_PWMOFF, ID_PWMUSER},
+	{ID_SETPWMDUTY, CMD_SETPWMFREQ},
+	{ID_ENTER_CMD_MODE}
+};
+
+// for all state
+
+static uint8_t 	cmd_id_low, cmd_id_high;
+static uint32_t cmd_bit;
+static IDENTIFY_STRING_STATE iss_state = ISS_1ST_CHAR;
+static uint8_t	input_char_index;
+void IdentifyCommand(char input_ch)
+{
+	uint8_t	temp;
+	char	temp_ch;
+
+	switch (iss_state)
+	{
+		// Use LUT to identify 1st char
+		case ISS_1ST_CHAR:
+			temp = sizeof(first_cmd_char_list)-1;
+			cmd_bit = CMD_NONE;
+			iss_state = ISS_NONE_MATCH;
+			do
+			{
+				if(input_ch==first_cmd_char_list[temp])
+				{
+					cmd_id_low = first_cmd_range_list[temp][0];
+					cmd_id_high = first_cmd_range_list[temp][1];
+					cmd_bit = first_cmd_bit_list[temp];
+					input_char_index = 1;
+					iss_state = ISS_IDENTIFYING;
+					break;
+				}
+			}
+			while (temp-->0);
+			break;
+
+		case ISS_IDENTIFYING:
+			temp = cmd_id_low;
+			do
+			{
+				if(input_ch!=*(command_list[temp]+input_char_index))
+				{
+					cmd_bit &= ~(1L<<temp);
+					cmd_id_low = temp+1;
+				}
+			}
+			while(++temp>cmd_id_high);
+			if(cmd_bit==0)
+			{
+				iss_state = ISS_NONE_MATCH;
+			}
+			else
+			{
+				input_char_index++;
+				cmd_id_high = 31 - __builtin_clz (cmd_bit);
+				cmd_id_low  = __builtin_ctz (cmd_bit);
+				if(cmd_id_high == cmd_id_low)
+				{
+					iss_state = ISS_CMD_ONE_LEFT;
+				}
+			}
+			break;
+
+		case ISS_CMD_ONE_LEFT:
+			temp_ch = *(command_list[cmd_id_low]+input_char_index);
+			// still not end-of-command
+			if(temp_ch!='\0')
+			{
+				if(input_ch!=*(command_list[cmd_id_low]+input_char_index))
+				{
+					iss_state = ISS_NONE_MATCH;
+				}
+				input_char_index++;
+			}
+			else
+			{
+				iss_state = ISS_CMD_ONE_LEFT; // Jump to
+			}
+			break;
+
+		case ISS_GETTING_PARAMETER:
+
+			break;
+
+		case ISS_CRLF_FOUND:
+			// Start to process command
+			break;
+
+		case ISS_NONE_MATCH:
+			// Stay at this state until CR or LF is encountered.
+			if ((input_ch=='\r')||(input_ch=='\n'))
+			{
+				iss_state = ISS_1ST_CHAR;
+			}
+			break;
+
+		default:
+			iss_state = ISS_NONE_MATCH;
+			break;
+	}
+}
+
+#define MAX_SERIAL_GETS_LEN
+static char serial_gets_return_string[32];
+static char *ptr_str = serial_gets_return_string;
+
+char *serial_gets(char input_ch)
+{
+	if ((input_ch=='\r')||(input_ch=='\n'))
+	{
+		if (ptr_str == serial_gets_return_string)
+		{
+			return '\0';
+		}
+		else
+		{
+			ptr_str = '\0';
+			ptr_str = serial_gets_return_string;
+			return serial_gets_return_string;
+		}
+	}
+	else
+	{
+		if(ptr_str)
+		*ptr_str++ = input_ch;
+		return '\0';
+	}
+
+}
+*/
