@@ -131,6 +131,17 @@ int main(void)
 						UART_TX_LOG_Index=0;
 					}
 	#endif // #ifdef DEBUG_RX_LOG
+
+					// for testing serial_gets()
+					/*
+					{
+						char *return_str = serial_gets(key);
+						if (return_str!=(char*)NULL)
+						{
+							OutputString(return_str);
+						}
+					}
+					*/
 					processor_event_detected = UART_input_processor(key);
 					if(processor_event_detected!=false)
 					{

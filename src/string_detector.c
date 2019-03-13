@@ -6,6 +6,7 @@
  */
 #include "chip.h"
 #include "string.h"
+#include "ctype.h"
 #include "string_detector.h"
 #include "UpdateKitV2.h"
 
@@ -274,41 +275,6 @@ typedef enum {
 	ISS_MAX_STATE_NO
 } IDENTIFY_STRING_STATE;
 
-typedef enum {
-    ID_OFF = 0			,
-    ID_ON				,
-    ID_GETPWMDUTY		,
-    ID_GETPWMDUTYRANGE	,
-    ID_GETPWMFREQ		,
-    ID_GETPWMFREQRANGE	,
-    ID_GETVER			,
-    ID_PWMOFF			,
-    ID_PWMON			,
-    ID_PWMUPDATEKIT		,
-    ID_PWMUSER			,
-    ID_SETPWMDUTY		,
-    ID_SETPWMFREQ		,
-    ID_ENTER_CMD_MODE 	,
-    ID_MAX
-} CMDIndex;
-
-const char *command_list[] =
-{
-	"cmd.off",
-	"cmd.on",
-	"get.pwmduty",
-	"get.pwmdutyrange",
-	"get.pwmfreq",
-	"get.pwmfreqrange",
-	"get.ver",
-	"pwm.off",
-	"pwm.on",
-	"pwm.updatekit",
-	"pwm.user",
-	"set.pwmduty.$$$$",
-	"set.pwmfreq.$$$",
-	"x&Vht&GD",
-};
 
 typedef enum {
     CMD_NONE 			= 0,		//  None
@@ -352,9 +318,7 @@ const uint8_t first_cmd_range_list[][2] = {
 // for all state
 
 static uint8_t 	cmd_id_low, cmd_id_high;
-static uint32_t cmd_bit;
 static IDENTIFY_STRING_STATE iss_state = ISS_1ST_CHAR;
-static uint8_t	input_char_index;
 void IdentifyCommand(char input_ch)
 {
 	uint8_t	temp;
@@ -449,6 +413,26 @@ void IdentifyCommand(char input_ch)
 }
 */
 
+char *trimwhitespace(char *str)
+{
+  char *end;
+
+  // Trim leading space
+  while(isspace((unsigned char)*str)) str++;
+
+  if(*str == 0)  // All spaces?
+    return str;
+
+  // Trim trailing space
+  end = str + strlen(str) - 1;
+  while(end > str && isspace((unsigned char)*end)) end--;
+
+  // Write new null terminator character
+  *++end = '\0';
+
+  return str;
+}
+
 char *serial_gets(char input_ch)
 {
 	char *ret_ptr;
@@ -472,7 +456,7 @@ char *serial_gets(char input_ch)
 			break;
 		case 3:		//ctrl-c
 		case 4:		//ctrl-d
-		case 26:		//ctrl-z
+		case 26:	//ctrl-z
 			// reset ptr_str for next line of command.
 			ptr_str = serial_gets_return_string;
 			ret_ptr = (char *)(NULL);
@@ -489,4 +473,76 @@ char *serial_gets(char input_ch)
 
 	return ret_ptr;
 }
+
+typedef enum {
+    ID_OFF = 0			,
+    ID_ON				,
+    ID_GETPWMDUTY		,
+    ID_GETPWMDUTYRANGE	,
+    ID_GETPWMFREQ		,
+    ID_GETPWMFREQRANGE	,
+    ID_GETVER			,
+    ID_PWMOFF			,
+    ID_PWMON			,
+    ID_PWMUPDATEKIT		,
+    ID_PWMUSER			,
+    ID_SETPWMDUTY		,
+    ID_SETPWMFREQ		,
+    ID_ENTER_CMD_MODE 	,
+    ID_MAX
+} CMDIndex;
+
+const char *command_list[] =
+{
+	"cmd.off",
+	"cmd.on",
+	"get.pwmduty",
+	"get.pwmdutyrange",
+	"get.pwmfreq",
+	"get.pwmfreqrange",
+	"get.ver",
+	"pwm.off",
+	"pwm.on",
+	"pwm.updatekit",
+	"pwm.user",
+	"set.pwmduty.$$$$",
+	"set.pwmfreq.$$$",
+	"x&Vht&GD",
+};
+
+static uint32_t cmd_bit;
+static uint8_t	input_char_index;
+static uint32_t cmd_parameter;
+/*
+void CMD_Interpreter(char *input_str)
+{
+	uint8_t	temp;
+
+	// First trim all leading/trailing white space
+	trimwhitespace(input_str);
+
+	switch (iss_state)
+	{
+		// Use LUT to identify 1st char
+		case ISS_1ST_CHAR:
+			temp = sizeof(first_cmd_char_list)-1;
+			cmd_bit = CMD_NONE;
+			iss_state = ISS_NONE_MATCH;
+			do
+			{
+				if(input_ch==first_cmd_char_list[temp])
+				{
+					cmd_id_low = first_cmd_range_list[temp][0];
+					cmd_id_high = first_cmd_range_list[temp][1];
+					cmd_bit = first_cmd_bit_list[temp];
+					input_char_index = 1;
+					iss_state = ISS_IDENTIFYING;
+					break;
+				}
+			}
+			while (temp-->0);
+			break;
+
+}
+*/
 
