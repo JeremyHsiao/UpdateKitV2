@@ -173,7 +173,7 @@ void Read_ADC(void)
 //			ADC0_value = ADC_DR_RESULT(rawSample);
 //			temp_value = ADC0_value;
 //			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 1024 / ADC_VREFP_DIVIDER; // use 0.001V as unit == (adc/4096) * (343/100) * (4) * 1000
-			temp_value = ADC_DR_RESULT(rawSample) * (ADC_VREFP_VALUE*1000/ADC_VREFP_DIVIDER) / 1024;
+			temp_value = ADC_DR_RESULT(rawSample) * (ADC_VREFP_VALUE*3000/ADC_VREFP_DIVIDER) / 2048;
 			SetRawVoltage(temp_value);
 //			temp_str_len = itoa_10(ADC0_value, temp_str);
 //			memset((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][5], ' ', (4-temp_str_len));
