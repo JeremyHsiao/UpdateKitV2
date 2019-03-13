@@ -20,6 +20,7 @@
 #include "event.h"
 #include "user_opt.h"
 #include "fw_version.h"
+#include "uart_0_rb.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -533,6 +534,21 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 		Update_LED_7SEG_Message_Buffer(LED_CURRENT_PAGE,(uint8_t*)final_current_str,dp_point);
 	}
 }
+
+void OutputVoltageCurrentViaUART_Task(void)
+{
+    uint8_t temp = 16;
+    uint8_t *ptr = lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1];
+
+    do
+    {
+    	UART0_PutChar(*ptr++);
+    }
+    while(--temp>0);
+    UART0_PutChar('\n');
+    UART0_PutChar('\r');
+}
+
 
 void PowerOutputSetting(uint8_t current_step)
 {

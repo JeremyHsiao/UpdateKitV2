@@ -37,6 +37,7 @@ extern uint16_t GetFilteredCurrent(void);
 extern void UpdateKitV2_LED_7_ToggleDisplayVoltageCurrent(void);
 extern void UpdateKitV2_LED_7_StartDisplayVoltage(void);
 extern void UpdateKitV2_UpdateDisplayValueForADC_Task(void);
+extern void OutputVoltageCurrentViaUART_Task(void);
 extern void PowerOutputSetting(uint8_t current_step);
 extern void SimpleOutputVoltageCalibration(void);
 extern void init_filtered_input_current(void);
