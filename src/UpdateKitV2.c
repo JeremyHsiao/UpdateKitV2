@@ -380,7 +380,8 @@ uint16_t GetFilteredCurrent(void)
 
 void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 {
-	char 	 temp_voltage_str[5+1], temp_current_str[5+1], final_voltage_str[5+1], final_current_str[5+1];		// For storing 0x0 at the end of string by +1
+	char 	 temp_voltage_str[6+1], temp_current_str[5+1], final_voltage_str[5+1], final_current_str[5+1];		// For storing 0x0 at the end of string by +1
+	char 	*temp_ch_ptr = final_voltage_str;
 	int 	 temp_voltage_str_len, temp_current_str_len;
 	//uint16_t temp_value;
 	uint8_t	 dp_point;
@@ -409,43 +410,60 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	// Update LCD module display
 	//
 	// filtered_voltage
-	final_voltage_str[4] = 'V';
 	switch(temp_voltage_str_len)
 	{
 		case 1:
-			final_voltage_str[0] = '0';
-			final_voltage_str[1] = '.';
-			final_voltage_str[2] = '0';
-			final_voltage_str[3] = '0';
+			*temp_ch_ptr++ = ' ';	// final_voltage_str[0]
+			*temp_ch_ptr++ = '0';	// final_voltage_str[1]
+			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
+			*temp_ch_ptr++ = '0';	// final_voltage_str[3]
+			*temp_ch_ptr++ = '0';	// final_voltage_str[4]
+			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
 			break;
 		case 2:
-			final_voltage_str[0] = '0';
-			final_voltage_str[1] = '.';
-			final_voltage_str[2] = '0';
-			final_voltage_str[3] = temp_voltage_str[0];
+			*temp_ch_ptr++ = ' ';	// final_voltage_str[0]
+			*temp_ch_ptr++ = '0';	// final_voltage_str[1]
+			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
+			*temp_ch_ptr++ = '0';	// final_voltage_str[3]
+			*temp_ch_ptr++ = temp_voltage_str[0]; // final_voltage_str[4]
+			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
 			break;
 		case 3:
-			final_voltage_str[0] = '0';
-			final_voltage_str[1] = '.';
-			final_voltage_str[2] = temp_voltage_str[0];
-			final_voltage_str[3] = temp_voltage_str[1];
+			*temp_ch_ptr++ = ' ';	// final_voltage_str[0]
+			*temp_ch_ptr++ = '0';	// final_voltage_str[1]
+			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
+			*temp_ch_ptr++ = temp_voltage_str[0];	// final_voltage_str[3]
+			*temp_ch_ptr++ = temp_voltage_str[1];	// final_voltage_str[4]
+			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
 			break;
 		case 4:
-			final_voltage_str[0] = temp_voltage_str[0];
-			final_voltage_str[1] = '.';
-			final_voltage_str[2] = temp_voltage_str[1];
-			final_voltage_str[3] = temp_voltage_str[2];
+			*temp_ch_ptr++ = ' ';	// final_voltage_str[0]
+			*temp_ch_ptr++ = temp_voltage_str[0];	// final_voltage_str[1]
+			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
+			*temp_ch_ptr++ = temp_voltage_str[1];	// final_voltage_str[3]
+			*temp_ch_ptr++ = temp_voltage_str[2];	// final_voltage_str[4]
+			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
+			break;
+		case 5:
+			*temp_ch_ptr++ = temp_voltage_str[0];;	// final_voltage_str[0]
+			*temp_ch_ptr++ = temp_voltage_str[1];	// final_voltage_str[1]
+			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
+			*temp_ch_ptr++ = temp_voltage_str[2];	// final_voltage_str[3]
+			*temp_ch_ptr++ = temp_voltage_str[3];	// final_voltage_str[4]
+			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
 			break;
 		default:
-			final_voltage_str[0] = '9';
-			final_voltage_str[1] = '.';
-			final_voltage_str[2] = '9';
-			final_voltage_str[3] = '9';
+			*temp_ch_ptr++ = '9';	// final_voltage_str[0]
+			*temp_ch_ptr++ = '9';	// final_voltage_str[1]
+			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
+			*temp_ch_ptr++ = '9';	// final_voltage_str[3]
+			*temp_ch_ptr++ = '9';	// final_voltage_str[4]
+			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
 			break;
 	}
 //	memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][5], final_voltage_str, 5);
 	//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][5], final_voltage_str, 5);
-	lcm_text_buffer_cpy(LCM_FW_UPGRADING_PAGE,1,5, final_voltage_str, 5);
+	lcm_text_buffer_cpy(LCM_FW_UPGRADING_PAGE,1,4, final_voltage_str, 5);
 
 	// filtered_current
 	final_current_str[1] = '.';
@@ -488,10 +506,25 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 	//
 //	if(LED_7_SEG_showing_current==false)		// showing voltage // 0.00v ~ 9.99v
 	{
-		memcpy((void *)&final_voltage_str[1], final_voltage_str+2, 2);	// overwrite '.'
-		final_voltage_str[3] = 'U';										// Change 'V' to 'U'
-		dp_point = 1;
-		Update_LED_7SEG_Message_Buffer(LED_VOLTAGE_PAGE,(uint8_t*)final_voltage_str,dp_point);
+		*temp_ch_ptr++ = '9';	// final_voltage_str[0]
+		*temp_ch_ptr++ = '9';	// final_voltage_str[1]
+		*temp_ch_ptr++ = '.';	// final_voltage_str[2]
+		*temp_ch_ptr++ = '9';	// final_voltage_str[3]
+		*temp_ch_ptr++ = '9';	// final_voltage_str[4]
+		*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
+		memcpy((void *)&final_voltage_str[2], final_voltage_str+3, 2);	// overwrite '.'
+		if(filtered_voltage>9999)	// 9.999V
+		{
+			final_voltage_str[3] = 'U';										// Change 'V' to 'U'
+			dp_point = 2;
+			Update_LED_7SEG_Message_Buffer(LED_VOLTAGE_PAGE,(uint8_t*)final_voltage_str,dp_point);
+		}
+		else
+		{
+			final_voltage_str[4] = 'U';										// Change 'V' to 'U'
+			dp_point = 1;
+			Update_LED_7SEG_Message_Buffer(LED_VOLTAGE_PAGE,(uint8_t*)final_voltage_str+1,dp_point);
+		}
 	}
 //	else
 	{
