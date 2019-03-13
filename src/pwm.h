@@ -12,7 +12,7 @@
 //#define TICKRATE_HZ (33)	/* 33% rate of change per second */
 
 /* PWM cycle time - time of a single PWM sweep */
-#define DEFUALT_PWMCYCLERATE (240000UL)
+#define DEFUALT_PWMCYCLERATE (60000UL)
 #define default_duty_cycle	(100)
 
 // PWM PIO
