@@ -21,6 +21,13 @@ typedef enum
 	US_UPGRADE_TOO_LONG,
 	US_READY_FOR_NEXT_UPDATE,
 	US_TV_IN_STANDBY,
+	// For voltage output branch
+	US_PWM_WELCOME,
+	US_PWM_CHECK_SEL,
+	US_PWM_OUT_ON,
+	US_PWM_OUT_OFF,
+	US_PWM_USER_CTRL,
+	// For voltage output branch	-- END
 	US_MAX_STATE_NO						// 11
 } UPDATE_STATE;
 
@@ -100,6 +107,12 @@ typedef enum
 //	LCM_DEV_MEASURE_PAGE,
 //	LCM_DEV_UPGRADE_VER_PAGE,
 //	LCM_DEV_OK_DETECT_PAGE,
+	// For voltage output branch
+	LCM_PWM_WELCOME,
+	LCM_PWM_OUT_ON,
+	LCM_PWM_OUT_OFF,
+	LCM_PWM_USER_CTRL,
+	// For voltage output branch	-- END
 	LCM_MAX_PAGE_NO
 } LCM_PAGE_ID;
 

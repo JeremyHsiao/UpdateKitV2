@@ -17,6 +17,7 @@
 #include "string.h"
 #include "UpdateKitV2.h"
 #include "event.h"
+#include "voltage_output.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
