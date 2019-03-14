@@ -20,7 +20,7 @@
 #include "event.h"
 #include "user_opt.h"
 #include "fw_version.h"
-#include "voltage_output.h"
+#include "voltage_output.h"	// For voltage output branch
 
 /*****************************************************************************
  * Private types/enumerations/variables

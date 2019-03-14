@@ -85,6 +85,7 @@ int main(void)
 
 	lcm_auto_display_init();
 	lcm_content_init();
+	lcm_content_init_for_voltage_output(); // // For voltage output branch
 
 	Repeat_DownCounter(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S,lcm_page_change_duration_in_sec,TIMER_S);
 
@@ -191,7 +192,7 @@ int main(void)
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_100MS))
 			{
 				UpdateKitV2_UpdateDisplayValueForADC_Task();
-				OutputVoltageCurrentViaUART_Task();
+				OutputVoltageCurrentViaUART_Task();				// For voltage output branch
 			}
 
 			// Refresh each char of 7 Segment LED every 2ms
