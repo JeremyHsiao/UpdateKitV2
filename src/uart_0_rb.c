@@ -193,7 +193,7 @@ int itoa_10_fixed_position(uint32_t value, char* result, uint8_t total_number_le
 		str_len++;
 	} while ( value );
 
-	while(result < ptr1)
+	while(result <= ptr1)
 	{
 		*ptr1-- = ' ';
 	}
