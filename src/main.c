@@ -60,6 +60,7 @@ int main(void)
 
 //	Start_SW_Timer(SYSTEM_TIME_ELAPSE_IN_SEC,0,~1,TIMER_S, true, false);		// System elapse timer: starting from 0 / no-reload-upper-value / 1000ms each count / upcount / not-oneshot
 	Init_UpdateKitV2_variables();
+	Init_OutputVoltageCurrent_variables(); // // For voltage output branch
 	Board_Init();
 	Init_UART0();
 
@@ -226,14 +227,16 @@ int main(void)
 		//
 
 		// Processing events not relevant to system_state_processor -- if any
-		Event_Proc_State_Independent();
+//		Event_Proc_State_Independent();
+		Event_Proc_State_Independent_for_voltage_output();			// For voltage output branch
 
 		// temporarily store state for comparison later
 		state_before = current_system_proc_state;
 		// First processing event according to current state
 		if(EVENTS_IN_USE_OR_FLAG()==true)
 		{
-			current_system_proc_state = Event_Proc_by_System_State(current_system_proc_state);
+//			current_system_proc_state = Event_Proc_by_System_State(current_system_proc_state);
+			current_system_proc_state = Event_Proc_by_System_State_for_voltage_output(current_system_proc_state);		// For voltage output branch
 		}
 
 		// If state unchanged by event (unchanged in most cases), go on with either end-check or regular-task
@@ -242,12 +245,14 @@ int main(void)
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER)==false)
 			{
 				// Regular task (unrelated to events) before state time's up
-				current_system_proc_state = System_State_Running_Proc(current_system_proc_state);
+//				current_system_proc_state = System_State_Running_Proc(current_system_proc_state);
+				current_system_proc_state = System_State_Running_Proc_for_voltage_output(current_system_proc_state);		// For voltage output branch
 			}
 			else
 			{
 				// Time's up and go to do State's End-Check
-				current_system_proc_state = System_State_End_Proc(current_system_proc_state);
+//				current_system_proc_state = System_State_End_Proc(current_system_proc_state);
+				current_system_proc_state = System_State_End_Proc_for_voltage_output(current_system_proc_state);		// For voltage output branch
 			}
 		}
 
@@ -255,7 +260,8 @@ int main(void)
 		if(state_before!=current_system_proc_state)
 		{
 			Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);
-			System_State_Begin_Proc(current_system_proc_state);
+//			System_State_Begin_Proc(current_system_proc_state);
+			System_State_Begin_Proc_for_voltage_output(current_system_proc_state);		// For voltage output branch
 		}
 
 		//

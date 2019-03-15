@@ -8,6 +8,8 @@
 #include "chip.h"
 #include "board.h"
 #include "string.h"
+#include "event.h"
+#include "sw_timer.h"
 #include "lcd_module.h"
 #include "uart_0_rb.h"
 #include "build_defs.h"
@@ -15,13 +17,37 @@
 #include "UpdateKitV2.h"
 #include "voltage_output.h" // For voltage output branch
 
-//	// For voltage output branch
-//	US_PWM_WELCOME,
-//	US_PWM_CHECK_SEL,
-//	US_PWM_OUT_ON,
-//	US_PWM_OUT_OFF,
-//	US_PWM_USER_CTRL,
-//	// For voltage output branch	-- END
+/*****************************************************************************
+ * Private types/enumerations/variables
+ ****************************************************************************/
+#define				PWM_WELCOME_MESSAGE_IN_MS			(1000)
+
+#define				MAX_DUTY_SELECTION_VALUE		(100)
+#define				DUTY_SELECTION_OFFSET_VALUE		(1)
+#define				PWM_OFF_DUTY_SELECTION_VALUE	(0)
+uint8_t				current_duty_cycle_selection; // 0 is pwm-off; 1-101 is duty-cycle 0-100
+
+/*****************************************************************************
+ * Public types/enumerations/variables
+ ****************************************************************************/
+
+/*****************************************************************************
+ * Private functions
+ ****************************************************************************/
+
+/*****************************************************************************
+ * Public functions
+ ****************************************************************************/
+
+void Init_OutputVoltageCurrent_variables(void)
+{
+	current_duty_cycle_selection = PWM_OFF_DUTY_SELECTION_VALUE;
+}
+
+void Init_Value_From_EEPROM_for_voltage_output(void)
+{
+//	Load_PWM_Selection(&current_duty_cycle_selection);
+}
 
 void OutputVoltageCurrentViaUART_Task(void)
 {
@@ -42,8 +68,6 @@ void OutputVoltageCurrentViaUART_Task(void)
 //	LCM_PWM_OUT_OFF,
 //	LCM_PWM_USER_CTRL,
 //	LCM_MAX_PAGE_NO
-
-
 void lcm_content_init_for_voltage_output(void)
 {
 	const uint8_t	welcome_message_line2[] =
@@ -68,5 +92,142 @@ void lcm_content_init_for_voltage_output(void)
 	// PWM user control mdoe page										  0123456789012345
 	memcpy((void *)&lcd_module_display_content[LCM_PWM_USER_CTRL][0][0], "TV Output:  0.0V", LCM_DISPLAY_COL);
 	memcpy((void *)&lcd_module_display_content[LCM_PWM_USER_CTRL][1][0], "Starts in 5 Sec.", LCM_DISPLAY_COL);
+}
+
+// To-be-checked
+bool Event_Proc_State_Independent_for_voltage_output(void)
+{
+	bool	bRet = false;
+	return bRet;
+}
+
+//	// For voltage output branch
+//	US_PWM_WELCOME,
+//	US_PWM_CHECK_SEL,
+//	US_PWM_OUT_ON,
+//	US_PWM_OUT_OFF,
+//	US_PWM_USER_CTRL,
+//	// For voltage output branch	-- END
+UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_state)
+{
+	UPDATE_STATE return_next_state = current_state;
+
+	// Apply to specific state
+	switch(current_state)
+	{
+		case US_PWM_CHECK_SEL:
+		case US_PWM_USER_CTRL:
+			if(EVENT_Button_pressed_debounced)
+			{
+				EVENT_Button_pressed_debounced = false;
+			}
+			break;
+		case US_PWM_WELCOME:
+			if(EVENT_Button_pressed_debounced)
+			{
+				EVENT_Button_pressed_debounced = false;
+				return_next_state = US_PWM_CHECK_SEL;
+			}
+			break;
+		case US_PWM_OUT_ON:
+		case US_PWM_OUT_OFF:
+			if(EVENT_Button_pressed_debounced)
+			{
+				EVENT_Button_pressed_debounced = false;
+				if(++current_duty_cycle_selection>(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE))
+				{
+					current_duty_cycle_selection=PWM_OFF_DUTY_SELECTION_VALUE;
+				}
+				return_next_state = US_PWM_CHECK_SEL;
+			}
+			break;
+		default:
+			break;
+	}
+	return return_next_state;
+}
+
+UPDATE_STATE System_State_Running_Proc_for_voltage_output(UPDATE_STATE current_state)
+{
+	UPDATE_STATE return_next_state = current_state;
+	switch(current_state)
+	{
+		case US_SYSTEM_BOOTUP_STATE:
+			return_next_state = US_PWM_WELCOME;
+			break;
+		case US_PWM_WELCOME:
+		case US_PWM_CHECK_SEL:
+		case US_PWM_OUT_ON:
+		case US_PWM_OUT_OFF:
+		case US_PWM_USER_CTRL:
+			break;
+		default:
+			break;
+	}
+	return return_next_state;
+}
+
+UPDATE_STATE System_State_End_Proc_for_voltage_output(UPDATE_STATE current_state)
+{
+	UPDATE_STATE return_next_state = current_state;
+	switch(current_state)
+	{
+		case US_SYSTEM_BOOTUP_STATE:
+			return_next_state = US_PWM_WELCOME;
+			break;
+		case US_PWM_WELCOME:
+			return_next_state = US_PWM_CHECK_SEL;
+			break;
+		case US_PWM_OUT_ON:
+		case US_PWM_OUT_OFF:
+			break;
+		case US_PWM_CHECK_SEL:
+			if(current_duty_cycle_selection==PWM_OFF_DUTY_SELECTION_VALUE)
+				return_next_state = US_PWM_OUT_OFF;
+			else
+				return_next_state = US_PWM_OUT_ON;
+			break;
+		default:
+			break;
+	}
+	return return_next_state;
+}
+
+UPDATE_STATE System_State_Begin_Proc_for_voltage_output(UPDATE_STATE current_state)
+{
+	UPDATE_STATE return_next_state = current_state;
+	uint32_t	pwm_duty = 	current_duty_cycle_selection-DUTY_SELECTION_OFFSET_VALUE;
+
+	switch(current_state)
+	{
+		case US_SYSTEM_BOOTUP_STATE:
+			break;
+		case US_PWM_WELCOME:
+			Countdown_Once(SYSTEM_STATE_PROC_TIMER,(PWM_WELCOME_MESSAGE_IN_MS),TIMER_MS);
+			lcd_module_display_enable_only_one_page(LCM_PWM_WELCOME);
+			EVENT_Button_pressed_debounced = false;
+			break;
+		case US_PWM_CHECK_SEL:
+			Raise_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);		// enter next state without timer down to 0
+			break;
+		case US_PWM_OUT_ON:
+			itoa_10_fixed_position(pwm_duty, (char*)&lcd_module_display_content[LCM_PWM_OUT_ON][0][12], 3);
+			lcd_module_display_enable_only_one_page(LCM_PWM_OUT_ON);
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
+			break;
+		case US_PWM_OUT_OFF:
+			lcd_module_display_enable_only_one_page(LCM_PWM_OUT_OFF);
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
+			break;
+		case US_PWM_USER_CTRL:
+			lcd_module_display_enable_only_one_page(LCM_PWM_USER_CTRL);
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
+			break;
+		default:
+			// fall-back code
+			break;
+	}
+
+	return return_next_state;
 }
 
