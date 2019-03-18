@@ -465,6 +465,8 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 //	memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][5], final_voltage_str, 5);
 	//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][5], final_voltage_str, 5);
 	lcm_text_buffer_cpy(LCM_FW_UPGRADING_PAGE,1,4, final_voltage_str, 5);
+	lcm_text_buffer_cpy(LCM_PWM_OUT_ON,1,4, final_voltage_str, 5); // For voltage output branch
+	lcm_text_buffer_cpy(LCM_PWM_OUT_OFF,1,4, final_voltage_str, 5);// For voltage output branch
 
 	// filtered_current
 	final_current_str[1] = '.';
@@ -501,6 +503,8 @@ void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
 //	memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][11], final_current_str, 5);
 	//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][11], final_current_str, 5);
 	lcm_text_buffer_cpy(LCM_FW_UPGRADING_PAGE,1,11, final_current_str, 5);
+	lcm_text_buffer_cpy(LCM_PWM_OUT_ON,1,11, final_current_str, 5);  // For voltage output branch
+	lcm_text_buffer_cpy(LCM_PWM_OUT_OFF,1,11, final_current_str, 5); // For voltage output branch
 
 	//
 	// Update LED 7-segment

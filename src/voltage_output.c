@@ -12,6 +12,8 @@
 #include "sw_timer.h"
 #include "lcd_module.h"
 #include "uart_0_rb.h"
+#include "pwm.h"
+#include "gpio.h"
 #include "build_defs.h"
 #include "fw_version.h"
 #include "UpdateKitV2.h"
@@ -21,12 +23,13 @@
  * Private types/enumerations/variables
  ****************************************************************************/
 #define				PWM_WELCOME_MESSAGE_IN_MS			(1000)
+#define				USER_PWM_EEPROM_STORE_DELAY			(5)				// save value to EEPROM after 5 seconds without latest changes.
 
 #define				MAX_DUTY_SELECTION_VALUE		(100)
 #define				DUTY_SELECTION_OFFSET_VALUE		(1)
 #define				PWM_OFF_DUTY_SELECTION_VALUE	(0)
 uint8_t				current_duty_cycle_selection; // 0 is pwm-off; 1-101 is duty-cycle 0-100
-
+uint8_t				PWM_Select_Last_ReadWrite;
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
@@ -42,11 +45,13 @@ uint8_t				current_duty_cycle_selection; // 0 is pwm-off; 1-101 is duty-cycle 0-
 void Init_OutputVoltageCurrent_variables(void)
 {
 	current_duty_cycle_selection = PWM_OFF_DUTY_SELECTION_VALUE;
+	PWM_Select_Last_ReadWrite = current_duty_cycle_selection;
 }
 
 void Init_Value_From_EEPROM_for_voltage_output(void)
 {
 //	Load_PWM_Selection(&current_duty_cycle_selection);
+	PWM_Select_Last_ReadWrite = current_duty_cycle_selection;
 }
 
 void OutputVoltageCurrentViaUART_Task(void)
@@ -101,6 +106,39 @@ bool Event_Proc_State_Independent_for_voltage_output(void)
 	return bRet;
 }
 
+static inline void Change_PWM_Selection(void)
+{
+	if(++current_duty_cycle_selection>(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE))
+	{
+		current_duty_cycle_selection=PWM_OFF_DUTY_SELECTION_VALUE;
+	}
+}
+
+static bool Check_if_different_from_last_PWM_ReadWrite(uint8_t UserSelect)
+{
+	return (UserSelect!=PWM_Select_Last_ReadWrite)?true:false;
+}
+
+static void PWMOutputSetting(uint8_t current_pwm_sel)
+{
+	if(current_pwm_sel==PWM_OFF_DUTY_SELECTION_VALUE)
+	{
+		pwm_duty = MAX_DUTY_SELECTION_VALUE;
+		Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+		setPWMRate(0, pwm_duty);
+	}
+	else
+	{
+		pwm_duty = current_pwm_sel - DUTY_SELECTION_OFFSET_VALUE;
+		if(pwm_duty>MAX_DUTY_SELECTION_VALUE)
+		{
+			pwm_duty = MAX_DUTY_SELECTION_VALUE;
+		}
+		Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+		setPWMRate(0, pwm_duty);
+	}
+}
+
 //	// For voltage output branch
 //	US_PWM_WELCOME,
 //	US_PWM_CHECK_SEL,
@@ -134,10 +172,7 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 			if(EVENT_Button_pressed_debounced)
 			{
 				EVENT_Button_pressed_debounced = false;
-				if(++current_duty_cycle_selection>(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE))
-				{
-					current_duty_cycle_selection=PWM_OFF_DUTY_SELECTION_VALUE;
-				}
+				Change_PWM_Selection();
 				return_next_state = US_PWM_CHECK_SEL;
 			}
 			break;
@@ -157,9 +192,18 @@ UPDATE_STATE System_State_Running_Proc_for_voltage_output(UPDATE_STATE current_s
 			break;
 		case US_PWM_WELCOME:
 		case US_PWM_CHECK_SEL:
+		case US_PWM_USER_CTRL:
+			break;
 		case US_PWM_OUT_ON:
 		case US_PWM_OUT_OFF:
-		case US_PWM_USER_CTRL:
+			// Save User Selection after 5 seconds
+			if(Check_if_different_from_last_PWM_ReadWrite(current_duty_cycle_selection))
+			{
+				if(Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER)>=USER_PWM_EEPROM_STORE_DELAY)
+				{
+					// Save_PWM_Selection(current_duty_cycle_selection);
+				}
+			}
 			break;
 		default:
 			break;
@@ -213,11 +257,13 @@ UPDATE_STATE System_State_Begin_Proc_for_voltage_output(UPDATE_STATE current_sta
 		case US_PWM_OUT_ON:
 			itoa_10_fixed_position(pwm_duty, (char*)&lcd_module_display_content[LCM_PWM_OUT_ON][0][12], 3);
 			lcd_module_display_enable_only_one_page(LCM_PWM_OUT_ON);
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
+			PWMOutputSetting(current_duty_cycle_selection);
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,~1,TIMER_S, true, false);		// endless timer 0->max repeating countdown from max
 			break;
 		case US_PWM_OUT_OFF:
 			lcd_module_display_enable_only_one_page(LCM_PWM_OUT_OFF);
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
+			PWMOutputSetting(current_duty_cycle_selection);
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,~1,TIMER_S, true, false);		// endless timer 0->max repeating countdown from max
 			break;
 		case US_PWM_USER_CTRL:
 			lcd_module_display_enable_only_one_page(LCM_PWM_USER_CTRL);
