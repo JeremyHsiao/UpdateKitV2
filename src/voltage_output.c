@@ -17,6 +17,7 @@
 #include "build_defs.h"
 #include "fw_version.h"
 #include "UpdateKitV2.h"
+#include "user_opt.h"
 #include "voltage_output.h" // For voltage output branch
 
 /*****************************************************************************
@@ -25,11 +26,7 @@
 #define				PWM_WELCOME_MESSAGE_IN_MS			(1000)
 #define				USER_PWM_EEPROM_STORE_DELAY			(5)				// save value to EEPROM after 5 seconds without latest changes.
 
-#define				MAX_DUTY_SELECTION_VALUE		(100)
-#define				DUTY_SELECTION_OFFSET_VALUE		(1)
-#define				PWM_OFF_DUTY_SELECTION_VALUE	(0)
 uint8_t				current_duty_cycle_selection; // 0 is pwm-off; 1-101 is duty-cycle 0-100
-uint8_t				PWM_Select_Last_ReadWrite;
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
@@ -41,17 +38,9 @@ uint8_t				PWM_Select_Last_ReadWrite;
 /*****************************************************************************
  * Public functions
  ****************************************************************************/
-
-void Init_OutputVoltageCurrent_variables(void)
-{
-	current_duty_cycle_selection = PWM_OFF_DUTY_SELECTION_VALUE;
-	PWM_Select_Last_ReadWrite = current_duty_cycle_selection;
-}
-
 void Init_Value_From_EEPROM_for_voltage_output(void)
 {
-//	Load_PWM_Selection(&current_duty_cycle_selection);
-	PWM_Select_Last_ReadWrite = current_duty_cycle_selection;
+ 	Load_PWM_Selection(&current_duty_cycle_selection);
 }
 
 void OutputVoltageCurrentViaUART_Task(void)
@@ -112,11 +101,6 @@ static inline void Change_PWM_Selection(void)
 	{
 		current_duty_cycle_selection=PWM_OFF_DUTY_SELECTION_VALUE;
 	}
-}
-
-static bool Check_if_different_from_last_PWM_ReadWrite(uint8_t UserSelect)
-{
-	return (UserSelect!=PWM_Select_Last_ReadWrite)?true:false;
 }
 
 static void PWMOutputSetting(uint8_t current_pwm_sel)
@@ -201,7 +185,7 @@ UPDATE_STATE System_State_Running_Proc_for_voltage_output(UPDATE_STATE current_s
 			{
 				if(Read_SW_TIMER_Value(SYSTEM_STATE_PROC_TIMER)>=USER_PWM_EEPROM_STORE_DELAY)
 				{
-					// Save_PWM_Selection(current_duty_cycle_selection);
+					Save_PWM_Selection(current_duty_cycle_selection);
 				}
 			}
 			break;

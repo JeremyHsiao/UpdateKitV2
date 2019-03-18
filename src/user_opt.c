@@ -34,6 +34,7 @@
 #include "eeprom.h"
 #include "user_opt.h"
 #include "UpdateKitV2.h"
+#include "voltage_output.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -59,9 +60,13 @@ uint8_t User_Select_Last_ReadWrite = POWER_OUTPUT_STEP_TOTAL_NO;
 #define SYSTEM_TIMEOUT_VALUE_LENGTH		(4)
 uint16_t System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
 uint8_t For_TIMEOUT_EEPROM_User_Select_Last_ReadWrite = 0;
-
 // This is starting position for future EEPROM user data
 #define NEXT_FUTURE_EEPROM_DATA_START	(SYSTEM_TIMEOUT_VALUE_POSITION+(SYSTEM_TIMEOUT_VALUE_POSITION*POWER_OUTPUT_STEP_TOTAL_NO))
+// For voltage output branch
+#define	PWM_SELECTION_POSITION			(NEXT_FUTURE_EEPROM_DATA_START)
+#define PWM_SELECTION_LENGTH			(4)
+uint8_t PWM_Select_Last_ReadWrite = 0;
+// END - For voltage output branch
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -290,3 +295,69 @@ bool Save_System_Timeout_v2(uint8_t user_selection, uint16_t SystemTimeout)
 		return false;
 	}
 }
+
+// For voltage output branch
+//#define	PWM_SELECTION_POSITION			(NEXT_FUTURE_EEPROM_DATA_START)
+//#define PWM_SELECTION_LENGTH			(4)
+
+bool Load_PWM_Selection(uint8_t *pUserSelect)
+{
+	uint32_t user_selection_buffer[(PWM_SELECTION_LENGTH / sizeof(uint32_t)) + 1];
+	uint8_t *ptr = (uint8_t *) user_selection_buffer;
+	uint8_t ret_code;
+
+	/* Data to be read from EEPROM */
+	ret_code = Chip_EEPROM_Read_v2(PWM_SELECTION_POSITION, ptr, PWM_SELECTION_LENGTH);
+
+	/* Error checking */
+	if (ret_code != IAP_CMD_SUCCESS) {
+		//DEBUGOUT("Command failed to execute, return code is: %x\r\n", ret_code);
+		*pUserSelect = PWM_Select_Last_ReadWrite = 0;
+		return false;		// cannot validate
+	}
+
+	if((*ptr<(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE))&&(ptr[0]==ptr[3])&&(ptr[1]==ptr[2])&&(ptr[0]==(ptr[1]^0xff)))
+	{
+		*pUserSelect = PWM_Select_Last_ReadWrite = *ptr;
+		return true;
+	}
+	else
+	{
+		*pUserSelect = PWM_Select_Last_ReadWrite = PWM_OFF_DUTY_SELECTION_VALUE;
+		return false;
+	}
+}
+
+bool Check_if_different_from_last_PWM_ReadWrite(uint8_t UserSelect)
+{
+	return (UserSelect!=PWM_Select_Last_ReadWrite)?true:false;
+}
+
+bool Save_PWM_Selection(uint8_t UserSelect)
+{
+	uint32_t user_selection_buffer[(PWM_SELECTION_LENGTH / sizeof(uint32_t)) + 1];
+	uint8_t *ptr = (uint8_t *) user_selection_buffer;
+	uint8_t ret_code;
+
+	// return false if out of range
+	if(UserSelect>=(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE)){
+		return false;
+	}
+
+	/* Data to be written to EEPROM */
+	ptr[0]=ptr[3]=UserSelect;
+	ptr[1]=ptr[2]=(UserSelect^0xff);
+	ret_code = Chip_EEPROM_Write_v2(PWM_SELECTION_POSITION, ptr, PWM_SELECTION_LENGTH);
+
+	/* Error checking */
+	if (ret_code == IAP_CMD_SUCCESS)
+	{
+		PWM_Select_Last_ReadWrite = UserSelect;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+

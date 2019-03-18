@@ -15,4 +15,8 @@ extern bool Load_System_Timeout_v2(uint8_t user_selection, uint16_t *pSystemTime
 extern bool Check_if_different_from_last_System_Timeout_v2(uint8_t user_selection, uint16_t timeout);
 extern bool Save_System_Timeout_v2(uint8_t user_selection, uint16_t SystemTimeout);
 
+extern bool Load_PWM_Selection(uint8_t *pUserSelect);
+extern bool Check_if_different_from_last_PWM_ReadWrite(uint8_t UserSelect);
+extern bool Save_PWM_Selection(uint8_t UserSelect);
+
 #endif /* USER_OPT_H_ */

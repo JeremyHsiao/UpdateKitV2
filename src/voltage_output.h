@@ -8,7 +8,7 @@
 #ifndef VOLTAGE_OUTPUT_H_
 #define VOLTAGE_OUTPUT_H_
 
-extern void Init_OutputVoltageCurrent_variables(void);
+extern void Init_Value_From_EEPROM_for_voltage_output(void);
 extern void OutputVoltageCurrentViaUART_Task(void);
 extern void lcm_content_init_for_voltage_output(void);
 extern bool Event_Proc_State_Independent_for_voltage_output(void);
@@ -17,5 +17,8 @@ extern UPDATE_STATE System_State_Begin_Proc_for_voltage_output(UPDATE_STATE curr
 extern UPDATE_STATE System_State_Running_Proc_for_voltage_output(UPDATE_STATE current_state);
 extern UPDATE_STATE System_State_End_Proc_for_voltage_output(UPDATE_STATE current_state);
 
+#define				MAX_DUTY_SELECTION_VALUE		(100)
+#define				DUTY_SELECTION_OFFSET_VALUE		(1)
+#define				PWM_OFF_DUTY_SELECTION_VALUE	(0)
 
 #endif /* VOLTAGE_OUTPUT_H_ */
