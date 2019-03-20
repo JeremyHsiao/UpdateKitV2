@@ -316,7 +316,7 @@ bool Load_PWM_Selection(uint8_t *pUserSelect)
 		return false;		// cannot validate
 	}
 
-	if((*ptr<(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE))&&(ptr[0]==ptr[3])&&(ptr[1]==ptr[2])&&(ptr[0]==(ptr[1]^0xff)))
+	if((*ptr<=(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE))&&(ptr[0]==ptr[3])&&(ptr[1]==ptr[2])&&(ptr[0]==(ptr[1]^0xff)))
 	{
 		*pUserSelect = PWM_Select_Last_ReadWrite = *ptr;
 		return true;
@@ -340,7 +340,7 @@ bool Save_PWM_Selection(uint8_t UserSelect)
 	uint8_t ret_code;
 
 	// return false if out of range
-	if(UserSelect>=(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE)){
+	if(UserSelect>(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE)){
 		return false;
 	}
 
