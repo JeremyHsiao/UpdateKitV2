@@ -95,11 +95,21 @@ bool Event_Proc_State_Independent_for_voltage_output(void)
 	return bRet;
 }
 
-static inline void Change_PWM_Selection(void)
+static inline void Change_PWM_Selection(bool decrease_dir)
 {
-	if(++current_duty_cycle_selection>(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE))
+	if(!decrease_dir)
 	{
-		current_duty_cycle_selection=PWM_OFF_DUTY_SELECTION_VALUE;
+		if(++current_duty_cycle_selection>(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE))
+		{
+			current_duty_cycle_selection=PWM_OFF_DUTY_SELECTION_VALUE;
+		}
+	}
+	else
+	{
+		if(current_duty_cycle_selection--==PWM_OFF_DUTY_SELECTION_VALUE)
+		{
+			current_duty_cycle_selection=(MAX_DUTY_SELECTION_VALUE+DUTY_SELECTION_OFFSET_VALUE);
+		}
 	}
 }
 
@@ -156,7 +166,7 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 			if(EVENT_Button_pressed_debounced)
 			{
 				EVENT_Button_pressed_debounced = false;
-				Change_PWM_Selection();
+				Change_PWM_Selection(EVENT_2nd_key_pressed_debounced);		// 2nd key is for decrease -- so the input parameter (decrease_dir) is the 2nd key event
 				return_next_state = US_PWM_CHECK_SEL;
 			}
 			break;

@@ -22,6 +22,7 @@ extern bool		EVENT_filtered_current_above_fw_upgrade_threshold;
 extern bool		EVENT_OK_string_confirmed;
 extern bool		EVENT_Version_string_confirmed;
 extern bool		EVENT_Button_pressed_debounced;
+extern bool		EVENT_2nd_key_pressed_debounced;	// For voltage output branch
 
 #ifdef POWERON_IS_DETECTING
 extern bool		EVENT_POWERON_string_confirmed;

@@ -180,9 +180,20 @@ int main(void)
 			}
 
 			// Button-pressed event
-//			EVENT_Button_pressed_debounced = Debounce_Button();
-//			EVENT_2nd_key_pressed_debounced = Debounce_2nd_Key();		// For voltage output branch
-			EVENT_Button_pressed_debounced = Debounce_2nd_Key();		// For voltage output branch -- intermediate step - for testing 2nd key
+			EVENT_Button_pressed_debounced = Debounce_Button();
+			EVENT_2nd_key_pressed_debounced = Debounce_2nd_Key();		// For voltage output branch
+			if(EVENT_2nd_key_pressed_debounced)							// For voltage output branch
+			{
+				if(EVENT_Button_pressed_debounced)						// If both key are pressed -- no effect so clear all events
+				{
+					EVENT_Button_pressed_debounced = EVENT_2nd_key_pressed_debounced = false;
+				}
+				else
+				{
+					EVENT_Button_pressed_debounced = true;				// If only 2nd key are pressed, set both event true (note: if only original event is true then 1st key are pressed.
+				}
+			}
+			// For voltage output branch
 
 			//
 			// Output UI section
