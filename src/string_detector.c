@@ -510,39 +510,25 @@ const char *command_list[] =
 	"x&Vht&GD",
 };
 
-static uint32_t cmd_bit;
-static uint8_t	input_char_index;
-static uint32_t cmd_parameter;
-/*
-void CMD_Interpreter(char *input_str)
+bool CheckIfUserCtrlModeCommand(char *input_str)
 {
-	uint8_t	temp;
-
-	// First trim all leading/trailing white space
-	trimwhitespace(input_str);
-
-	switch (iss_state)
-	{
-		// Use LUT to identify 1st char
-		case ISS_1ST_CHAR:
-			temp = sizeof(first_cmd_char_list)-1;
-			cmd_bit = CMD_NONE;
-			iss_state = ISS_NONE_MATCH;
-			do
-			{
-				if(input_ch==first_cmd_char_list[temp])
-				{
-					cmd_id_low = first_cmd_range_list[temp][0];
-					cmd_id_high = first_cmd_range_list[temp][1];
-					cmd_bit = first_cmd_bit_list[temp];
-					input_char_index = 1;
-					iss_state = ISS_IDENTIFYING;
-					break;
-				}
-			}
-			while (temp-->0);
-			break;
-
+	char* token = strtok(input_str, " ");
+	if (strcmp(token,command_list[ID_ENTER_CMD_MODE])==0)
+		return true;
+	else
+		return false;
 }
-*/
+
+
+//	// Returns 2nd token and check
+//	{
+//		char* token = strtok(NULL, " ");
+//		OutputString_with_newline(token);
+//	}
+//
+//	// Returns 3rd token and check
+//	{
+//		char* token = strtok(NULL, " ");
+//		OutputString_with_newline(token);
+//	}
 

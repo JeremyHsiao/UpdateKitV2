@@ -135,16 +135,16 @@ int main(void)
 					}
 	#endif // #ifdef DEBUG_RX_LOG
 
-					// for testing serial_gets()
-					/*
 					{
 						char *return_str = serial_gets(key);
 						if (return_str!=(char*)NULL)
 						{
-							OutputString(return_str);
+							trimwhitespace(return_str);
+							if(CheckIfUserCtrlModeCommand(return_str))
+								EVENT_Enter_User_Ctrl_Mode = true;			// For voltage output branch
 						}
 					}
-					*/
+
 					processor_event_detected = UART_input_processor(key);
 					if(processor_event_detected!=false)
 					{

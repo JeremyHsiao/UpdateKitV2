@@ -145,6 +145,16 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 	switch(current_state)
 	{
 		case US_PWM_CHECK_SEL:
+			if(EVENT_Enter_User_Ctrl_Mode)
+			{
+				EVENT_Enter_User_Ctrl_Mode = false;
+				return_next_state = US_PWM_USER_CTRL;
+			}
+			else if(EVENT_Button_pressed_debounced)
+			{
+				EVENT_Button_pressed_debounced = false;
+			}
+			break;
 		case US_PWM_USER_CTRL:
 			if(EVENT_Button_pressed_debounced)
 			{
@@ -160,7 +170,12 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 			break;
 		case US_PWM_OUT_ON:
 		case US_PWM_OUT_OFF:
-			if(EVENT_Button_pressed_debounced)
+			if(EVENT_Enter_User_Ctrl_Mode)
+			{
+				EVENT_Enter_User_Ctrl_Mode = false;
+				return_next_state = US_PWM_USER_CTRL;
+			}
+			else if(EVENT_Button_pressed_debounced)
 			{
 				EVENT_Button_pressed_debounced = false;
 				Change_PWM_Selection(EVENT_2nd_key_pressed_debounced);		// 2nd key is for decrease -- so the input parameter (decrease_dir) is the 2nd key event

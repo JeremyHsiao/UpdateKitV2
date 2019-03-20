@@ -30,6 +30,7 @@ bool		EVENT_OK_string_confirmed = false;
 bool		EVENT_Version_string_confirmed = false;
 bool		EVENT_Button_pressed_debounced = false;
 bool		EVENT_2nd_key_pressed_debounced = false;		// For voltage output branch
+bool		EVENT_Enter_User_Ctrl_Mode = false;				// For voltage output branch
 
 #ifdef POWERON_IS_DETECTING
 bool		EVENT_POWERON_string_confirmed = false;
