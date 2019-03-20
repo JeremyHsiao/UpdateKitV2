@@ -23,9 +23,6 @@
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
-#define				PWM_WELCOME_MESSAGE_IN_MS			(1000)
-#define				USER_PWM_EEPROM_STORE_DELAY			(5)				// save value to EEPROM after 5 seconds without latest changes.
-
 uint8_t				current_duty_cycle_selection; // 0 is pwm-off; 1-101 is duty-cycle 0-100
 /*****************************************************************************
  * Public types/enumerations/variables
