@@ -180,7 +180,9 @@ int main(void)
 			}
 
 			// Button-pressed event
-			EVENT_Button_pressed_debounced = Debounce_Button();
+//			EVENT_Button_pressed_debounced = Debounce_Button();
+//			EVENT_2nd_key_pressed_debounced = Debounce_2nd_Key();		// For voltage output branch
+			EVENT_Button_pressed_debounced = Debounce_2nd_Key();		// For voltage output branch -- intermediate step - for testing 2nd key
 
 			//
 			// Output UI section

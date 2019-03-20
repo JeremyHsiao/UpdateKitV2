@@ -10,10 +10,10 @@
 
 #ifdef _REAL_UPDATEKIT_V2_BOARD_
 
-//// PIO1_24 Button
-//#define SWITCH_KEY_GPIO_PORT	(1)
-//#define SWITCH_KEY_GPIO_PIN		(24)
-//#define SWITCH_KEY_PIN_MUX		(IOCON_FUNC0 | IOCON_MODE_PULLUP | IOCON_HYS_EN | (1L<<7))					// P1.0-2, 4-8. 10-21, 23-28, 30-31
+// PIO1_24 Button -- for voltage output selection branch
+#define SECOND_KEY_GPIO_PORT	(1)
+#define SECOND_KEY_GPIO_PIN		(24)
+#define SECOND_KEY_PIN_MUX		(IOCON_FUNC0 | IOCON_MODE_PULLUP | IOCON_HYS_EN | (1L<<7))					// P1.0-2, 4-8. 10-21, 23-28, 30-31
 
 // PIO0_1 Button
 #define SWITCH_KEY_GPIO_PORT	(0)
@@ -64,8 +64,8 @@ extern bool GPIOGoup0_Int;
 
 extern void Init_GPIO(void);
 extern void DeInit_GPIO(void);
-extern bool Get_GPIO_Switch_Key(void);
 extern bool Debounce_Button(void);
+extern bool Debounce_2nd_Key(void);
 #define DEBOUNCE_COUNT	SYSTICK_COUNT_VALUE_MS(20)		// It should be in fact less but not so much less
 
 extern void LED_Status_Set_Value(uint32_t LED_status_value);

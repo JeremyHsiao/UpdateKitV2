@@ -52,6 +52,10 @@ void Init_GPIO(void)
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, SWITCH_KEY_GPIO_PORT, SWITCH_KEY_GPIO_PIN);
 	//Chip_GPIO_SetPinDIRInput(LPC_GPIO, ISP_KEY_GPIO_PORT, ISP_KEY_GPIO_PIN);
 
+	// 2nd button - for voltage output selection branch
+	Chip_IOCON_PinMuxSet(LPC_IOCON, SECOND_KEY_GPIO_PORT, SECOND_KEY_GPIO_PIN, SECOND_KEY_PIN_MUX);
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO, SECOND_KEY_GPIO_PORT, SECOND_KEY_GPIO_PIN);
+
 	Chip_Clock_EnablePeriphClock(SYSCTL_CLOCK_GROUP0INT);
 	Chip_GPIOGP_SelectLowLevel(LPC_GPIOGROUP, 0, SWITCH_KEY_GPIO_PORT, (1 << SWITCH_KEY_GPIO_PIN) );
 	// Chip_GPIOGP_SelectLowLevel(LPC_GPIOGROUP, 0, UP_SWITCH_PORT, 1 << UP_SWITCH_BIT); // Use this if different port is used in the same group
@@ -158,6 +162,64 @@ bool Debounce_Button(void)
 
 	return bRet;
 }
+
+// For voltage output selection branch
+
+bool Get_GPIO_2nd_Key(void)
+{
+	return (Chip_GPIO_GetPinState(LPC_GPIO, SECOND_KEY_GPIO_PORT, SECOND_KEY_GPIO_PIN));
+}
+
+bool		negFlag_2nd_key = false;
+bool    	posFlag_2nd_key = false;
+uint32_t	count_2nd_key;
+bool		event_already_raised_2nd_key = false;
+
+bool Debounce_2nd_Key(void)
+{
+	bool bRet = false;
+
+	count_2nd_key++;
+
+	//check switch
+	if(!(Get_GPIO_2nd_Key()) && !negFlag_2nd_key && !posFlag_2nd_key)
+	{
+		count_2nd_key = 0;         		//first debounce count start.
+	    negFlag_2nd_key = true;     	//fall edge debounce - stage 2
+	    event_already_raised_2nd_key=false;
+	}
+	//after debounce time-out, check if button is still pressed - stage 2
+	else if(negFlag_2nd_key && !posFlag_2nd_key && (count_2nd_key > DEBOUNCE_COUNT))
+	{
+	    if(!Get_GPIO_2nd_Key())
+	    {
+	    	// If still button-pressed & if event not-yet raised for this button-pressed (after debounce)
+	    	if(event_already_raised_2nd_key==false)
+	    	{
+	    		event_already_raised_2nd_key = true;
+	    		bRet = true;
+	    	}
+	    	posFlag_2nd_key = true;      //  wait for button-release & debounce (stage 3)
+	    }
+	    else
+	    	negFlag_2nd_key = false;     // already back-to-high after debounce-time --> treat it as glitch of GPIO and back to stage 1
+	}
+	// if button released then wait debounce - stage 3
+	else if(Get_GPIO_2nd_Key() && negFlag_2nd_key && posFlag_2nd_key)
+	{
+		count_2nd_key = 0;          //rise edge debounce count start.
+	    negFlag_2nd_key = false;
+	}
+	// after debounce of button released (stage 4), always back to stage 1
+	else if(!negFlag_2nd_key && posFlag_2nd_key && (count_2nd_key > DEBOUNCE_COUNT) )
+	{
+		posFlag_2nd_key = false; //finish rising-edge Debounce cycle.
+	}
+
+	return bRet;
+}
+
+// For voltage output selection branch
 
 void LED_Status_Set_Value(uint32_t LED_status_value)
 {
