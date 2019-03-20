@@ -83,9 +83,9 @@ void lcm_content_init_for_voltage_output(void)
 	memcpy((void *)&lcd_module_display_content[LCM_PWM_OUT_OFF][0][0], "PWM is disabled ", LCM_DISPLAY_COL);
 	memcpy((void *)&lcd_module_display_content[LCM_PWM_OUT_OFF][1][0], "OUT: 0.00V 0.00A", LCM_DISPLAY_COL);
 
-	// PWM user control mdoe page										  0123456789012345
-	memcpy((void *)&lcd_module_display_content[LCM_PWM_USER_CTRL][0][0], "TV Output:  0.0V", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_PWM_USER_CTRL][1][0], "Starts in 5 Sec.", LCM_DISPLAY_COL);
+	// PWM user control mdoe page										  1234567890123456
+	memcpy((void *)&lcd_module_display_content[LCM_PWM_USER_CTRL][0][0], " User Ctrl Mode ", LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_PWM_USER_CTRL][1][0], "OUT: 0.00V 0.00A", LCM_DISPLAY_COL);
 }
 
 // To-be-checked
@@ -261,7 +261,7 @@ UPDATE_STATE System_State_Begin_Proc_for_voltage_output(UPDATE_STATE current_sta
 			break;
 		case US_PWM_USER_CTRL:
 			lcd_module_display_enable_only_one_page(LCM_PWM_USER_CTRL);
-			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,~1,~1,TIMER_S, false, false);		// endless timer max->0 repeating countdown from max
+			Start_SW_Timer(SYSTEM_STATE_PROC_TIMER,0,~1,TIMER_S, true, false);		// endless timer 0->max repeating countdown from max
 			break;
 		default:
 			// fall-back code
