@@ -18,6 +18,7 @@
 #include "UpdateKitV2.h"
 #include "event.h"
 #include "voltage_output.h"
+#include "cmd_interpreter.h" // For voltage output branch
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -95,6 +96,7 @@ int main(void)
 	LED_Status_Set_Value(0);						// all off
 
 	reset_string_detector();
+	init_cmd_interpreter(); // For voltage output branch
 //	OutputString_with_newline((char*)inst3);	// Relocate here can use fewer send buffer
 
 	sequenceComplete=false;
