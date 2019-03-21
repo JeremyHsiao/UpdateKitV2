@@ -16,6 +16,7 @@
  ****************************************************************************/
 char serial_gets_return_string[MAX_SERIAL_GETS_LEN+1];	// Extra one is for '\0'
 char *ptr_str;
+bool EchoEnabled;
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -31,7 +32,9 @@ char *ptr_str;
 
 void init_cmd_interpreter(void)
 {
+	*serial_gets_return_string = '\0';
 	ptr_str = serial_gets_return_string;
+	EchoEnabled = false;
 }
 
 /*
@@ -289,22 +292,21 @@ bool CheckIfUserCtrlModeCommand(char *input_str)
 		return false;
 }
 
-bool CommandProcessor(char *input_str)
+bool CommandInterpreter(char *input_str)
 {
 	return false;
 }
 
-static bool	EchoEnabled = false;
 int EchoInputString(char *input_str)
 {
-	int ret = 0;
-
 	if (EchoEnabled)
 	{
-		ret = OutputString_with_newline(input_str);
+		return OutputString_with_newline(input_str);
 	}
-
-	return ret;
+	else
+	{
+		return 0;
+	}
 }
 
 void EchoEnable(bool enabled)

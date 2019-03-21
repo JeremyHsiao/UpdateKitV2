@@ -136,11 +136,12 @@ int main(void)
 						UART_TX_LOG_Index=0;
 					}
 	#endif // #ifdef DEBUG_RX_LOG
-
+					// For voltage output branch
 					{
 						char *return_str = serial_gets(key);
 						if (return_str!=(char*)NULL)
 						{
+							EchoInputString(return_str);					// Echo incoming command (if echo_enabled)
 							trimwhitespace(return_str);
 							if(CheckIfUserCtrlModeCommand(return_str))
 								EVENT_Enter_User_Ctrl_Mode = true;			// For voltage output branch

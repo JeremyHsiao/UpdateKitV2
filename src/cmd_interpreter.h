@@ -14,7 +14,7 @@ extern void init_cmd_interpreter(void);
 extern char *serial_gets(char input_ch);
 extern bool CheckIfUserCtrlModeCommand(char *input_str);
 extern char *trimwhitespace(char *str);
-extern bool CommandProcessor(char *input_str);
+extern bool CommandInterpreter(char *input_str);
 extern int EchoInputString(char *input_str);
 extern 	void EchoEnable(bool enabled);
 
