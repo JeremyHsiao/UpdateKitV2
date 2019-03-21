@@ -8,7 +8,8 @@
 #include "string.h"
 #include "ctype.h"
 #include "UpdateKitV2.h"
-#include "uart_0_rb.h"
+//#include "uart_0_rb.h"
+#include "event.h"
 #include "cmd_interpreter.h"
 
 /*****************************************************************************
@@ -18,9 +19,84 @@ char serial_gets_return_string[MAX_SERIAL_GETS_LEN+1];	// Extra one is for '\0'
 char *ptr_str;
 bool EchoEnabled;
 
+// internal structure for execution: 24-bit value + 6-bit object + 2-bit cmd
+// get obj
+// set obj value
+// reserved_1
+// reserved_2
+
+#define		CmdCodeBitPos		(0)
+#define     CmdCodeBitLen		(2)
+#define		CmdObjBitPos		(CmdCodeBitPos+CmdCodeBitLen)
+#define		CmdOjbBitLen		(6)
+#define		CmdValueBitPos		(CmdObjBitPos+CmdOjbBitLen)
+#define		CmdValueBitLen		(CmdPacketLen-CmdOjbBitLen-CmdCodeBitLen)
+#define		CmdCodeBitMask		( ( ( ((CmdExecutionPacket)1UL) << (CmdCodeBitLen+1) )  - 1)  << CmdCodeBitPos )
+#define     CmdOjbBitMask		( ( ( ((CmdExecutionPacket)1UL) << (CmdOjbBitLen+1) )   - 1)  << CmdObjBitPos )
+#define		CmdValueBitMask		( ( ( ((CmdExecutionPacket)1UL) << (CmdValueBitLen+1) ) - 1 ) << CmdValueBitPos )
+
+enum
+{
+	CMD_CODE_GET = 0,
+	CMD_CODE_SET,
+	CMD_CODE_RESERVED_2,
+	CMD_CODE_RESERVED_3
+};
+
+enum
+{
+	CMD_OBJECT_USERMODE = 0,
+	CMD_OBJECT_PWM_DUTY_VALUE,
+	CMD_OBJECT_PWM_DUTY_RANGE,
+	CMD_OBJECT_PWM_FREQ_VALUE,
+	CMD_OBJECT_PWM_FREQ_RANGE,
+	CMD_OBJECT_PWM_OUTPUT,
+	CMD_OBJECT_PWM_USE_TABLE,
+	CMD_OBJECT_FW_VER,
+	CMD_OBJECT_MAX,
+};
+
+#define CMD_DEFINE_GET						(((CmdExecutionPacket)CMD_CODE_GET) << CmdCodeBitPos )
+#define CMD_DEFINE_SET						(((CmdExecutionPacket)CMD_CODE_SET) << CmdCodeBitPos )
+#define CMD_DEFINE_OBJ(OBJECT)				(((CmdExecutionPacket)OBJECT) << CmdObjBitPos)
+
+#define CMD_GET_OBJECT(OBJECT)				( CMD_DEFINE_GET | CMD_DEFINE_OBJ(OBJECT) )
+#define CMD_SET_OBJECT(OBJECT)				( CMD_DEFINE_SET | CMD_DEFINE_OBJ(OBJECT) )
+#define CMD_CODE_WITH_OBJECT(PACKET)		(PACKET&(~CmdValueBitMask))
+#define CMD_GET_PARAMETER(PACKET)			((PACKET&CmdValueBitMask)>>CmdValueBitPos)
+#define CMD_DEFINE_PARAMETER(PARAM)			((PARAM<<CmdValueBitPos)&CmdValueBitMask)
+
+#define CMD_NONE_DEFAULT					((((CmdExecutionPacket)CMD_CODE_RESERVED_3) << CmdCodeBitPos ) | CMD_DEFINE_OBJ(CMD_OBJECT_MAX) )
+
+typedef enum {
+	//  No GET
+	SET_USER_MODE 		= CMD_SET_OBJECT(CMD_OBJECT_USERMODE),				// Enter/Leave user control mode
+	GET_PWM_DUTY 		= CMD_GET_OBJECT(CMD_OBJECT_PWM_DUTY_VALUE),		// get duty cycle value
+	SET_PWM_DUTY 		= CMD_SET_OBJECT(CMD_OBJECT_PWM_DUTY_VALUE),		// set duty cycle value
+	GET_PWM_DUTY_RANGE	= CMD_GET_OBJECT(CMD_OBJECT_PWM_DUTY_RANGE),		// get duty cycle range
+	//  No SET
+	GET_PWM_FREQ 		= CMD_GET_OBJECT(CMD_OBJECT_PWM_FREQ_VALUE),		// get duty cycle value
+	SET_PWM_FREQ 		= CMD_SET_OBJECT(CMD_OBJECT_PWM_FREQ_VALUE),		// set duty cycle value
+	GET_PWM_FREQ_RANGE	= CMD_GET_OBJECT(CMD_OBJECT_PWM_FREQ_RANGE),		// get frequency range
+	//  No SET
+	GET_PWM_OUTPUT 		= CMD_GET_OBJECT(CMD_OBJECT_PWM_OUTPUT),			// get if pwm output is enabled
+	SET_PWM_OUTPUT 		= CMD_SET_OBJECT(CMD_OBJECT_PWM_OUTPUT),			// set pwm output enable
+	//  No GET
+	SET_PWM_USE_TABLE	= CMD_SET_OBJECT(CMD_OBJECT_PWM_USE_TABLE),			// use table value in code as output value
+	GET_FW_VERSION		= CMD_GET_OBJECT(CMD_OBJECT_FW_VER),				// get FW version
+	//  No SET
+	DEFAULT_NON_CMD		= CMD_NONE_DEFAULT
+} CMD_LIST;
+
+char *error_parameter  = "Parameter error.";
+char *error_command    = "Command error.";
+char *error_developing = "Under development";
+char *message_ok       = "OK";
+
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
+CmdExecutionPacket		received_cmd_packet;
 
 /*****************************************************************************
  * Private functions
@@ -292,26 +368,91 @@ bool CheckIfUserCtrlModeCommand(char *input_str)
 		return false;
 }
 
-bool CommandInterpreter(char *input_str)
+bool CommandInterpreter(char *input_str, CmdExecutionPacket* cmd_packet)
 {
-	return false;
-}
+	bool ret = false;
 
-int EchoInputString(char *input_str)
-{
-	if (EchoEnabled)
+	if(CheckIfUserCtrlModeCommand(input_str))
 	{
-		return OutputString_with_newline(input_str);
+		*cmd_packet = SET_USER_MODE | CMD_DEFINE_PARAMETER(1);
+		ret = true;
 	}
 	else
 	{
-		return 0;
+		*cmd_packet = DEFAULT_NON_CMD;
+		ret = false;
 	}
+
+	return ret;
+}
+
+bool CommandExecution(CmdExecutionPacket cmd_packet, char *return_string)
+{
+	uint32_t	param = CMD_GET_PARAMETER(cmd_packet);
+	bool		ret_value = false;
+
+	switch(CMD_CODE_WITH_OBJECT(cmd_packet))
+	{
+		case SET_USER_MODE:
+			if(param!=0)
+				EVENT_Enter_User_Ctrl_Mode = true;
+			else
+				return_string = error_developing;	// To be implemented -- an event to leave User Ctrl Mode
+			break;
+		case GET_PWM_DUTY:
+			return_string = error_developing;	// To be implemented -- return current duty value
+			break;
+		case SET_PWM_DUTY:
+			return_string = error_developing;
+			break;
+		case GET_PWM_DUTY_RANGE:
+			return_string = error_developing;	// To be implemented -- return current duty range
+			break;
+		case GET_PWM_FREQ:
+			return_string = error_developing;	// To be implemented -- return current frequency
+			break;
+		case SET_PWM_FREQ:
+			return_string = error_developing;
+			break;
+		case GET_PWM_FREQ_RANGE:
+			return_string = error_developing;	// To be implemented -- return current frequency range
+			break;
+		case GET_PWM_OUTPUT:
+			return_string = error_developing;	// To be implemented -- return pwm output enable setting
+			break;
+		case SET_PWM_OUTPUT:
+			return_string = error_developing;
+			break;
+		case SET_PWM_USE_TABLE:
+			if(param<POWER_OUTPUT_STEP_TOTAL_NO)
+			{
+				PowerOutputSetting(param);
+				return_string = message_ok;
+				ret_value = true;
+			}
+			else
+				return_string = error_parameter;
+			break;
+		case GET_FW_VERSION:
+			return_string = error_developing;	// To be implemented -- return fw version
+			break;
+		default:
+			// command error
+			return_string = error_command;
+			break;
+	}
+
+	return ret_value;
 }
 
 void EchoEnable(bool enabled)
 {
 	EchoEnabled = enabled;
+}
+
+bool CheckEchoEnableStatus(void)
+{
+	return EchoEnabled;
 }
 
 //	// Returns 2nd token and check

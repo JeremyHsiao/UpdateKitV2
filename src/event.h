@@ -24,15 +24,16 @@ extern bool		EVENT_Version_string_confirmed;
 extern bool		EVENT_Button_pressed_debounced;
 extern bool		EVENT_2nd_key_pressed_debounced;	// For voltage output branch
 extern bool		EVENT_Enter_User_Ctrl_Mode;			// For voltage output branch
+extern bool		EVENT_UART_CMD_Received;			// For voltage output branch
 
 #ifdef POWERON_IS_DETECTING
 extern bool		EVENT_POWERON_string_confirmed;
 #endif // #ifdef POWERON_IS_DETECTING
 
 #define EVENTS_IN_USE_AND_FLAG()	(EVENT_filtered_current_above_fw_upgrade_threshold && EVENT_filtered_current_unplugged_debounced && EVENT_filtered_current_TV_standby_debounced && 				\
-							 	 	 EVENT_OK_string_confirmed && EVENT_Version_string_confirmed && EVENT_Button_pressed_debounced && EVENT_Enter_User_Ctrl_Mode)
+							 	 	 EVENT_OK_string_confirmed && EVENT_Version_string_confirmed && EVENT_Button_pressed_debounced && EVENT_Enter_User_Ctrl_Mode && EVENT_UART_CMD_Received )
 
 #define EVENTS_IN_USE_OR_FLAG()		(EVENT_filtered_current_above_fw_upgrade_threshold || EVENT_filtered_current_unplugged_debounced || EVENT_filtered_current_TV_standby_debounced ||				\
-							 	 	 EVENT_OK_string_confirmed || EVENT_Version_string_confirmed || EVENT_Button_pressed_debounced || EVENT_Enter_User_Ctrl_Mode)
+							 	 	 EVENT_OK_string_confirmed || EVENT_Version_string_confirmed || EVENT_Button_pressed_debounced || EVENT_Enter_User_Ctrl_Mode || EVENT_UART_CMD_Received )
 
 #endif /* EVENT_H_ */

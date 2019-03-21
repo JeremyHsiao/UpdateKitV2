@@ -19,6 +19,7 @@
 #include "UpdateKitV2.h"
 #include "user_opt.h"
 #include "voltage_output.h" // For voltage output branch
+#include "cmd_interpreter.h" // For voltage output branch
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -85,13 +86,6 @@ void lcm_content_init_for_voltage_output(void)
 	memcpy((void *)&lcd_module_display_content[LCM_PWM_USER_CTRL][1][0], "OUT: 0.00V 0.00A", LCM_DISPLAY_COL);
 }
 
-// To-be-checked
-bool Event_Proc_State_Independent_for_voltage_output(void)
-{
-	bool	bRet = false;
-	return bRet;
-}
-
 static inline void Change_PWM_Selection(bool decrease_dir)
 {
 	if(!decrease_dir)
@@ -128,6 +122,24 @@ static void PWMOutputSetting(uint8_t current_pwm_sel)
 		Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
 		setPWMRate(0, pwm_duty);
 	}
+}
+
+// To-be-checked
+bool Event_Proc_State_Independent_for_voltage_output(void)
+{
+	bool	bRet = false;
+	char 	ret_str[MAX_RETURN_STR_LEN];
+
+	if(EVENT_UART_CMD_Received)
+	{
+		EVENT_UART_CMD_Received = false;
+		CommandExecution(received_cmd_packet,ret_str);
+		if(CheckEchoEnableStatus())
+			OutputString_with_newline(ret_str);					// Echo incoming command (if echo_enabled)
+
+	}
+
+	return bRet;
 }
 
 //	// For voltage output branch

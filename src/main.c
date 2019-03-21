@@ -108,8 +108,8 @@ int main(void)
 	// Endless loop at the moment
 	while (1)
 	{
-		uint8_t 		temp;
-		UPDATE_STATE	state_before;
+		uint8_t 				temp;
+		UPDATE_STATE			state_before;
 
 		//
 		// UART/ADC Input data processing section
@@ -141,12 +141,16 @@ int main(void)
 						char *return_str = serial_gets(key);
 						if (return_str!=(char*)NULL)
 						{
-							EchoInputString(return_str);					// Echo incoming command (if echo_enabled)
+							if(CheckEchoEnableStatus())
+								OutputString_with_newline(return_str);					// Echo incoming command (if echo_enabled)
+
 							trimwhitespace(return_str);
-							if(CheckIfUserCtrlModeCommand(return_str))
-								EVENT_Enter_User_Ctrl_Mode = true;			// For voltage output branch
+
+							if(CommandInterpreter(return_str,&received_cmd_packet))
+								EVENT_UART_CMD_Received = true;
 						}
 					}
+					// For voltage output branch
 
 					processor_event_detected = UART_input_processor(key);
 					if(processor_event_detected!=false)
