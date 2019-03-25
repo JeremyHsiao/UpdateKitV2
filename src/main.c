@@ -147,7 +147,10 @@ int main(void)
 							trimwhitespace(return_str);
 
 							if(CommandInterpreter(return_str,&received_cmd_packet))
+							{
 								EVENT_UART_CMD_Received = true;
+								break;
+							}
 						}
 					}
 					// For voltage output branch
@@ -213,7 +216,7 @@ int main(void)
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_100MS))
 			{
 				UpdateKitV2_UpdateDisplayValueForADC_Task();
-				OutputVoltageCurrentViaUART_Task();				// For voltage output branch
+				//OutputVoltageCurrentViaUART_Task();				// For voltage output branch
 			}
 
 			// Refresh each char of 7 Segment LED every 2ms

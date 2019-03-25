@@ -6,18 +6,22 @@
  */
 #include "chip.h"
 #include "string.h"
+#include "stdlib.h"
 #include "ctype.h"
 #include "UpdateKitV2.h"
-//#include "uart_0_rb.h"
+#include "gpio.h"
+#include "uart_0_rb.h"
 #include "event.h"
+#include "voltage_output.h"
 #include "cmd_interpreter.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
-char serial_gets_return_string[MAX_SERIAL_GETS_LEN+1];	// Extra one is for '\0'
-char *ptr_str;
-bool EchoEnabled;
+char 	serial_gets_return_string[MAX_SERIAL_GETS_LEN+1];	// Extra one is for '\0'
+char 	*ptr_str;
+bool 	EchoEnabled;
+static	bool In_User_Ctrl_Mode;
 
 // internal structure for execution: 24-bit value + 6-bit object + 2-bit cmd
 // get obj
@@ -47,6 +51,7 @@ enum
 {
 	CMD_OBJECT_USERMODE = 0,
 	CMD_OBJECT_PWM_DUTY_VALUE,
+	CMD_OBJECT_PWM_DUTY_PERCENTAGE,
 	CMD_OBJECT_PWM_DUTY_RANGE,
 	CMD_OBJECT_PWM_FREQ_VALUE,
 	CMD_OBJECT_PWM_FREQ_RANGE,
@@ -58,40 +63,45 @@ enum
 
 #define CMD_DEFINE_GET						(((CmdExecutionPacket)CMD_CODE_GET) << CmdCodeBitPos )
 #define CMD_DEFINE_SET						(((CmdExecutionPacket)CMD_CODE_SET) << CmdCodeBitPos )
-#define CMD_DEFINE_OBJ(OBJECT)				(((CmdExecutionPacket)OBJECT) << CmdObjBitPos)
+#define CMD_DEFINE_RESERVED3     			(((CmdExecutionPacket)CMD_CODE_RESERVED_3) << CmdCodeBitPos )
+#define CMD_DEFINE_OBJ(OBJECT)				(((CmdExecutionPacket)(OBJECT)) << CmdObjBitPos)
 
-#define CMD_GET_OBJECT(OBJECT)				( CMD_DEFINE_GET | CMD_DEFINE_OBJ(OBJECT) )
-#define CMD_SET_OBJECT(OBJECT)				( CMD_DEFINE_SET | CMD_DEFINE_OBJ(OBJECT) )
+#define CMD_GET_OBJECT_VALUE(OBJECT)		( CMD_DEFINE_GET | CMD_DEFINE_OBJ(OBJECT) )
+#define CMD_SET_OBJECT_VALUE(OBJECT)	    ( CMD_DEFINE_SET | CMD_DEFINE_OBJ(OBJECT) )
 #define CMD_CODE_WITH_OBJECT(PACKET)		(PACKET&(~CmdValueBitMask))
 #define CMD_GET_PARAMETER(PACKET)			((PACKET&CmdValueBitMask)>>CmdValueBitPos)
-#define CMD_DEFINE_PARAMETER(PARAM)			((PARAM<<CmdValueBitPos)&CmdValueBitMask)
+#define CMD_DEFINE_PARAMETER(PARAM)			((((CmdExecutionPacket)PARAM)<<(CmdValueBitPos))&CmdValueBitMask)
 
 #define CMD_NONE_DEFAULT					((((CmdExecutionPacket)CMD_CODE_RESERVED_3) << CmdCodeBitPos ) | CMD_DEFINE_OBJ(CMD_OBJECT_MAX) )
 
 typedef enum {
 	//  No GET
-	SET_USER_MODE 		= CMD_SET_OBJECT(CMD_OBJECT_USERMODE),				// Enter/Leave user control mode
-	GET_PWM_DUTY 		= CMD_GET_OBJECT(CMD_OBJECT_PWM_DUTY_VALUE),		// get duty cycle value
-	SET_PWM_DUTY 		= CMD_SET_OBJECT(CMD_OBJECT_PWM_DUTY_VALUE),		// set duty cycle value
-	GET_PWM_DUTY_RANGE	= CMD_GET_OBJECT(CMD_OBJECT_PWM_DUTY_RANGE),		// get duty cycle range
+	SET_USER_MODE 			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_USERMODE),				// Enter/Leave user control mode
+	GET_PWM_DUTY_VALUE		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_VALUE),		// get duty cycle value
+	SET_PWM_DUTY_VALUE		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_VALUE),		// set duty cycle value
+	GET_PWM_DUTY_PERCENTAGE	= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_PERCENTAGE),		// get duty cycle value
+	SET_PWM_DUTY_PERCENTAGE	= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_PERCENTAGE),		// set duty cycle value
+	GET_PWM_DUTY_RANGE		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_RANGE),		// get duty cycle range
 	//  No SET
-	GET_PWM_FREQ 		= CMD_GET_OBJECT(CMD_OBJECT_PWM_FREQ_VALUE),		// get duty cycle value
-	SET_PWM_FREQ 		= CMD_SET_OBJECT(CMD_OBJECT_PWM_FREQ_VALUE),		// set duty cycle value
-	GET_PWM_FREQ_RANGE	= CMD_GET_OBJECT(CMD_OBJECT_PWM_FREQ_RANGE),		// get frequency range
+	GET_PWM_FREQ 			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_FREQ_VALUE),		// get duty cycle value
+	SET_PWM_FREQ 			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_FREQ_VALUE),		// set duty cycle value
+	GET_PWM_FREQ_RANGE		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_FREQ_RANGE),		// get frequency range
 	//  No SET
-	GET_PWM_OUTPUT 		= CMD_GET_OBJECT(CMD_OBJECT_PWM_OUTPUT),			// get if pwm output is enabled
-	SET_PWM_OUTPUT 		= CMD_SET_OBJECT(CMD_OBJECT_PWM_OUTPUT),			// set pwm output enable
+	GET_PWM_OUTPUT 			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_OUTPUT),			// get if pwm output is enabled
+	SET_PWM_OUTPUT 			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_OUTPUT),			// set pwm output enable
 	//  No GET
-	SET_PWM_USE_TABLE	= CMD_SET_OBJECT(CMD_OBJECT_PWM_USE_TABLE),			// use table value in code as output value
-	GET_FW_VERSION		= CMD_GET_OBJECT(CMD_OBJECT_FW_VER),				// get FW version
+	SET_PWM_USE_TABLE		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_USE_TABLE),			// use table value in code as output value
+	GET_FW_VERSION			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_FW_VER),				// get FW version
 	//  No SET
-	DEFAULT_NON_CMD		= CMD_NONE_DEFAULT
+	DEFAULT_NON_CMD			= CMD_NONE_DEFAULT
 } CMD_LIST;
 
 char *error_parameter  = "Parameter error.";
 char *error_command    = "Command error.";
 char *error_developing = "Under development";
 char *message_ok       = "OK";
+char *pwm_output_On    = "PWM_ON";
+char *pwm_output_Off   = "PWM_OFF";
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -110,7 +120,8 @@ void init_cmd_interpreter(void)
 {
 	*serial_gets_return_string = '\0';
 	ptr_str = serial_gets_return_string;
-	EchoEnabled = false;
+	EchoEnabled = true; //
+	In_User_Ctrl_Mode = false;
 }
 
 /*
@@ -368,25 +379,107 @@ bool CheckIfUserCtrlModeCommand(char *input_str)
 		return false;
 }
 
-bool CommandInterpreter(char *input_str, CmdExecutionPacket* cmd_packet)
+bool ProcessUserCommand(char *input_str, CmdExecutionPacket *ptr_packet)
 {
-	bool ret = false;
+	char 				*token = strtok(input_str, " ");
+	bool				ret = true;
 
-	if(CheckIfUserCtrlModeCommand(input_str))
+	// 1st command
+	if(token!=NULL)
 	{
-		*cmd_packet = SET_USER_MODE | CMD_DEFINE_PARAMETER(1);
-		ret = true;
+		OutputString_with_newline(token);
+		if (strcmp(token,"get")==0)
+		{
+			*ptr_packet = CMD_DEFINE_GET;
+		}
+		else if (strcmp(token,"set")==0)
+		{
+			*ptr_packet = CMD_DEFINE_SET;
+		}
+		else
+		{
+			*ptr_packet = CMD_CODE_RESERVED_3;
+		}
 	}
 	else
 	{
-		*cmd_packet = DEFAULT_NON_CMD;
+		// return false if none token at all
 		ret = false;
 	}
+
+	// 2nd object
+	token = strtok(NULL, " ");
+	if(token!=NULL)
+	{
+		if (strcmp(token,"pwm_percent")==0)
+		{
+			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_PWM_DUTY_PERCENTAGE);
+			OutputString_with_newline(token);
+		}
+		else if (strcmp(token,"user_mode")==0)
+		{
+			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_USERMODE);
+		}
+		else if (strcmp(token,"pwm_output")==0)
+		{
+			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_PWM_OUTPUT);
+		}
+		else if (strcmp(token,"pwm_use_table")==0)
+		{
+			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_PWM_USE_TABLE);
+			OutputString_with_newline(token);
+		}
+		else
+		{
+			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_MAX);
+		}
+	}
+	else
+	{
+		*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_MAX);
+	}
+
+	// 3rd parameter
+	token = strtok(NULL, " ");
+	if(token!=NULL)
+	{
+		int val;
+		OutputString_with_newline(token);
+		val = atoi(token);
+		*ptr_packet |= CMD_DEFINE_PARAMETER(val);
+	}
+	OutputHexValue_with_newline(*ptr_packet);
 
 	return ret;
 }
 
-bool CommandExecution(CmdExecutionPacket cmd_packet, char *return_string)
+void SetUserCtrlModeFlag(bool flag)
+{
+	In_User_Ctrl_Mode = flag;
+}
+
+bool CommandInterpreter(char *input_str, CmdExecutionPacket* ptr_packet)
+{
+	bool ret = false;
+
+	if(In_User_Ctrl_Mode)
+	{
+		ret = ProcessUserCommand(input_str, ptr_packet);
+	}
+	else
+	{
+		if(CheckIfUserCtrlModeCommand(input_str))
+		{
+			//*ptr_packet = SET_USER_MODE | CMD_DEFINE_PARAMETER(1);
+			EVENT_Enter_User_Ctrl_Mode = true;
+			SetUserCtrlModeFlag(true);
+			ret = true;
+		}
+	}
+	return ret;
+}
+
+bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 {
 	uint32_t	param = CMD_GET_PARAMETER(cmd_packet);
 	bool		ret_value = false;
@@ -395,50 +488,87 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char *return_string)
 	{
 		case SET_USER_MODE:
 			if(param!=0)
+			{
 				EVENT_Enter_User_Ctrl_Mode = true;
+				SetUserCtrlModeFlag(true);
+				*return_string_ptr = message_ok;
+			}
 			else
-				return_string = error_developing;	// To be implemented -- an event to leave User Ctrl Mode
+			{
+				SetUserCtrlModeFlag(false);
+				*return_string_ptr = error_developing;	// To be implemented -- an event to leave User Ctrl Mode
+			}
 			break;
-		case GET_PWM_DUTY:
-			return_string = error_developing;	// To be implemented -- return current duty value
+		case GET_PWM_DUTY_VALUE:
+			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
 			break;
-		case SET_PWM_DUTY:
-			return_string = error_developing;
+		case SET_PWM_DUTY_VALUE:
+			*return_string_ptr = error_developing;
+			break;
+		case GET_PWM_DUTY_PERCENTAGE:
+			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
+			break;
+		case SET_PWM_DUTY_PERCENTAGE:
+			if(param<=MAX_DUTY_SELECTION_VALUE)
+			{
+				PWMOutputSetting(param+DUTY_SELECTION_OFFSET_VALUE);
+				*return_string_ptr = message_ok;
+				ret_value = true;
+			}
+			else
+				*return_string_ptr = error_parameter;
 			break;
 		case GET_PWM_DUTY_RANGE:
-			return_string = error_developing;	// To be implemented -- return current duty range
+			*return_string_ptr = error_developing;	// To be implemented -- return current duty range
 			break;
 		case GET_PWM_FREQ:
-			return_string = error_developing;	// To be implemented -- return current frequency
+			*return_string_ptr = error_developing;	// To be implemented -- return current frequency
 			break;
 		case SET_PWM_FREQ:
-			return_string = error_developing;
+			*return_string_ptr = error_developing;
 			break;
 		case GET_PWM_FREQ_RANGE:
-			return_string = error_developing;	// To be implemented -- return current frequency range
+			*return_string_ptr = error_developing;	// To be implemented -- return current frequency range
 			break;
 		case GET_PWM_OUTPUT:
-			return_string = error_developing;	// To be implemented -- return pwm output enable setting
+			if (Chip_GPIO_GetPinState(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN))
+			{
+				*return_string_ptr = pwm_output_On;
+			}
+			else
+			{
+				*return_string_ptr = pwm_output_Off;
+			}
+			ret_value = true;
 			break;
 		case SET_PWM_OUTPUT:
-			return_string = error_developing;
+			if(param==0)
+			{
+				Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+			}
+			else
+			{
+				Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+			}
+			*return_string_ptr = message_ok;
+			ret_value = true;
 			break;
 		case SET_PWM_USE_TABLE:
 			if(param<POWER_OUTPUT_STEP_TOTAL_NO)
 			{
 				PowerOutputSetting(param);
-				return_string = message_ok;
+				*return_string_ptr = message_ok;
 				ret_value = true;
 			}
 			else
-				return_string = error_parameter;
+				*return_string_ptr = error_parameter;
 			break;
 		case GET_FW_VERSION:
-			return_string = error_developing;	// To be implemented -- return fw version
+			*return_string_ptr = error_developing;	// To be implemented -- return fw version
 			break;
 		default:
 			// command error
-			return_string = error_command;
+			*return_string_ptr = error_command;
 			break;
 	}
 

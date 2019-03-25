@@ -104,7 +104,7 @@ static inline void Change_PWM_Selection(bool decrease_dir)
 	}
 }
 
-static void PWMOutputSetting(uint8_t current_pwm_sel)
+void PWMOutputSetting(uint8_t current_pwm_sel)
 {
 	if(current_pwm_sel==PWM_OFF_DUTY_SELECTION_VALUE)
 	{
@@ -128,16 +128,6 @@ static void PWMOutputSetting(uint8_t current_pwm_sel)
 bool Event_Proc_State_Independent_for_voltage_output(void)
 {
 	bool	bRet = false;
-	char 	ret_str[MAX_RETURN_STR_LEN];
-
-	if(EVENT_UART_CMD_Received)
-	{
-		EVENT_UART_CMD_Received = false;
-		CommandExecution(received_cmd_packet,ret_str);
-		if(CheckEchoEnableStatus())
-			OutputString_with_newline(ret_str);					// Echo incoming command (if echo_enabled)
-
-	}
 
 	return bRet;
 }
@@ -171,6 +161,14 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 			if(EVENT_Button_pressed_debounced)
 			{
 				EVENT_Button_pressed_debounced = false;
+			}
+			if(EVENT_UART_CMD_Received)
+			{
+				char 	*ret_str;
+
+				EVENT_UART_CMD_Received = false;
+				if(CommandExecution(received_cmd_packet,&ret_str)&&(CheckEchoEnableStatus()))
+					OutputString_with_newline(ret_str);					// Echo incoming command (if echo_enabled)
 			}
 			break;
 		case US_PWM_WELCOME:

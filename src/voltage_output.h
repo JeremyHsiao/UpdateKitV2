@@ -17,6 +17,8 @@ extern UPDATE_STATE System_State_Begin_Proc_for_voltage_output(UPDATE_STATE curr
 extern UPDATE_STATE System_State_Running_Proc_for_voltage_output(UPDATE_STATE current_state);
 extern UPDATE_STATE System_State_End_Proc_for_voltage_output(UPDATE_STATE current_state);
 
+extern void PWMOutputSetting(uint8_t current_pwm_sel);
+
 #define				PWM_WELCOME_MESSAGE_IN_MS			(1000)
 #define				USER_PWM_EEPROM_STORE_DELAY			(3)				// save value to EEPROM after 5 seconds without latest changes.
 
