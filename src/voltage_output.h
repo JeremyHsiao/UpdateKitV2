@@ -26,4 +26,6 @@ extern void PWMOutputSetting(uint8_t current_pwm_sel);
 #define				DUTY_SELECTION_OFFSET_VALUE		(1)
 #define				PWM_OFF_DUTY_SELECTION_VALUE	(0)
 
+extern uint8_t		voltage_output_welcome_message_line2[];
+
 #endif /* VOLTAGE_OUTPUT_H_ */

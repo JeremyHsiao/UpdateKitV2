@@ -12,6 +12,8 @@
 #include "gpio.h"
 #include "uart_0_rb.h"
 #include "event.h"
+#include "build_defs.h"
+#include "fw_version.h"
 #include "voltage_output.h"
 #include "cmd_interpreter.h"
 
@@ -429,6 +431,11 @@ bool ProcessUserCommand(char *input_str, CmdExecutionPacket *ptr_packet)
 			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_PWM_USE_TABLE);
 			OutputString_with_newline(token);
 		}
+		else if (strcmp(token,"fw_ver")==0)
+		{
+			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_FW_VER);
+			OutputString_with_newline(token);
+		}
 		else
 		{
 			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_MAX);
@@ -479,6 +486,8 @@ bool CommandInterpreter(char *input_str, CmdExecutionPacket* ptr_packet)
 	return ret;
 }
 
+char command_return_string[17];
+
 bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 {
 	uint32_t	param = CMD_GET_PARAMETER(cmd_packet);
@@ -490,23 +499,15 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			if(param!=0)
 			{
 				EVENT_Enter_User_Ctrl_Mode = true;
-				SetUserCtrlModeFlag(true);
 				*return_string_ptr = message_ok;
+				ret_value = true;
 			}
 			else
 			{
-				SetUserCtrlModeFlag(false);
-				*return_string_ptr = error_developing;	// To be implemented -- an event to leave User Ctrl Mode
+				EVENT_Leave_User_Ctrl_Mode = true;
+				*return_string_ptr = message_ok;
+				ret_value = true;
 			}
-			break;
-		case GET_PWM_DUTY_VALUE:
-			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
-			break;
-		case SET_PWM_DUTY_VALUE:
-			*return_string_ptr = error_developing;
-			break;
-		case GET_PWM_DUTY_PERCENTAGE:
-			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
 			break;
 		case SET_PWM_DUTY_PERCENTAGE:
 			if(param<=MAX_DUTY_SELECTION_VALUE)
@@ -517,18 +518,6 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			}
 			else
 				*return_string_ptr = error_parameter;
-			break;
-		case GET_PWM_DUTY_RANGE:
-			*return_string_ptr = error_developing;	// To be implemented -- return current duty range
-			break;
-		case GET_PWM_FREQ:
-			*return_string_ptr = error_developing;	// To be implemented -- return current frequency
-			break;
-		case SET_PWM_FREQ:
-			*return_string_ptr = error_developing;
-			break;
-		case GET_PWM_FREQ_RANGE:
-			*return_string_ptr = error_developing;	// To be implemented -- return current frequency range
 			break;
 		case GET_PWM_OUTPUT:
 			if (Chip_GPIO_GetPinState(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN))
@@ -564,7 +553,25 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 				*return_string_ptr = error_parameter;
 			break;
 		case GET_FW_VERSION:
-			*return_string_ptr = error_developing;	// To be implemented -- return fw version
+			{
+				const char voltage_output_welcome_message_line2[] =
+				{   'V', 'e', 'r', ':', FW_MAJOR, FW_MIDDLE, FW_MINOR, '_', // "Ver:x.x_" - total 8 chars
+				   BUILD_MONTH_CH0, BUILD_MONTH_CH1, BUILD_DAY_CH0, BUILD_DAY_CH1, BUILD_HOUR_CH0, BUILD_HOUR_CH1,  BUILD_MIN_CH0, BUILD_MIN_CH1, // 8 chars
+					'\0'};
+
+				strcpy(command_return_string, voltage_output_welcome_message_line2);
+				*return_string_ptr = command_return_string;
+				ret_value = true;
+			}
+			break;
+		case GET_PWM_DUTY_VALUE:
+		case SET_PWM_DUTY_VALUE:
+		case GET_PWM_DUTY_RANGE:
+		case GET_PWM_FREQ:
+		case SET_PWM_FREQ:
+		case GET_PWM_FREQ_RANGE:
+		case GET_PWM_DUTY_PERCENTAGE:
+			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
 			break;
 		default:
 			// command error

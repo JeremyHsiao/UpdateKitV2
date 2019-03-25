@@ -62,7 +62,7 @@ void OutputVoltageCurrentViaUART_Task(void)
 //	LCM_MAX_PAGE_NO
 void lcm_content_init_for_voltage_output(void)
 {
-	const uint8_t	welcome_message_line2[] =
+	const uint8_t				voltage_output_welcome_message_line2[] =
 	{   'V', 'e', 'r', ':', FW_MAJOR, FW_MIDDLE, FW_MINOR, '_', // "Ver:x.x_" - total 8 chars
 	   BUILD_MONTH_CH0, BUILD_MONTH_CH1, BUILD_DAY_CH0, BUILD_DAY_CH1, BUILD_HOUR_CH0, BUILD_HOUR_CH1,  BUILD_MIN_CH0, BUILD_MIN_CH1, // 8 chars
 		'\0'};
@@ -71,7 +71,7 @@ void lcm_content_init_for_voltage_output(void)
 
 	// PWM Welcome page	                                                1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_PWM_WELCOME][0][0], " Voltage Output ", LCM_DISPLAY_COL);
-	memcpy((void *)&lcd_module_display_content[LCM_PWM_WELCOME][1][0], welcome_message_line2, LCM_DISPLAY_COL);
+	memcpy((void *)&lcd_module_display_content[LCM_PWM_WELCOME][1][0], voltage_output_welcome_message_line2, LCM_DISPLAY_COL);
 
 	// PWM Output ON page		     								   1234567890123456
 	memcpy((void *)&lcd_module_display_content[LCM_PWM_OUT_ON][0][0], "PWM Duty is    %", LCM_DISPLAY_COL);
@@ -167,8 +167,15 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 				char 	*ret_str;
 
 				EVENT_UART_CMD_Received = false;
-				if(CommandExecution(received_cmd_packet,&ret_str)&&(CheckEchoEnableStatus()))
+				CommandExecution(received_cmd_packet,&ret_str);
+				if(CheckEchoEnableStatus())
 					OutputString_with_newline(ret_str);					// Echo incoming command (if echo_enabled)
+			}
+			if(EVENT_Leave_User_Ctrl_Mode)
+			{
+				EVENT_Leave_User_Ctrl_Mode = false;
+				SetUserCtrlModeFlag(false);
+				return_next_state = US_PWM_CHECK_SEL;
 			}
 			break;
 		case US_PWM_WELCOME:
@@ -246,6 +253,9 @@ UPDATE_STATE System_State_End_Proc_for_voltage_output(UPDATE_STATE current_state
 				return_next_state = US_PWM_OUT_OFF;
 			else
 				return_next_state = US_PWM_OUT_ON;
+			break;
+		case US_PWM_USER_CTRL:
+			return_next_state = US_PWM_CHECK_SEL;
 			break;
 		default:
 			break;
