@@ -43,40 +43,67 @@ char 	serial_gets_return_string[MAX_SERIAL_GETS_LEN+1];	// Extra one is for '\0'
 
 enum
 {
-	CMD_CODE_GET = 0,
+	CMD_CODE_NONE_COMMAND = 0,
+	CMD_CODE_GET,
 	CMD_CODE_SET,
-	CMD_CODE_RESERVED_2,
-	CMD_CODE_RESERVED_3
+//	CMD_CODE_RESERVED_2,
+	CMD_CODE_MAX_NO
 };
+
+static const char *command_code_list[CMD_CODE_MAX_NO-1] =
+{
+		// not checking non-command --> so the enum number is +1 larger than the sequence of command_code_list
+		"get",
+		"set",
+//		"reserved_2",
+};
+
+static const char enter_user_ctrl_mode_str[] = "x&Vht&GD";
 
 enum
 {
-	CMD_OBJECT_USERMODE = 0,
-	CMD_OBJECT_PWM_DUTY_VALUE,
+	CMD_OBJECT_NONE_OBJECT = 0,
+	CMD_OBJECT_USERMODE,
 	CMD_OBJECT_PWM_DUTY_PERCENTAGE,
-	CMD_OBJECT_PWM_DUTY_RANGE,
-	CMD_OBJECT_PWM_FREQ_VALUE,
-	CMD_OBJECT_PWM_FREQ_RANGE,
 	CMD_OBJECT_PWM_OUTPUT,
 	CMD_OBJECT_PWM_USE_TABLE,
 	CMD_OBJECT_FW_VER,
-	CMD_OBJECT_MAX,
+	CMD_OBJECT_PWM_DUTY_VALUE,
+	CMD_OBJECT_PWM_DUTY_RANGE,
+	CMD_OBJECT_PWM_FREQ_VALUE,
+	CMD_OBJECT_PWM_FREQ_RANGE,
+	CMD_OBJECT_MAX_NO,
 };
 
-#define CMD_DEFINE_GET						(((CmdExecutionPacket)CMD_CODE_GET) << CmdCodeBitPos )
-#define CMD_DEFINE_SET						(((CmdExecutionPacket)CMD_CODE_SET) << CmdCodeBitPos )
-#define CMD_DEFINE_RESERVED3     			(((CmdExecutionPacket)CMD_CODE_RESERVED_3) << CmdCodeBitPos )
-#define CMD_DEFINE_OBJ(OBJECT)				(((CmdExecutionPacket)(OBJECT)) << CmdObjBitPos)
+static const char *command_object_list[CMD_OBJECT_MAX_NO-1] =
+{
+	// not checking non-object--> so the enum number is +1 larger than the sequence of command_object_list
+	"user_mode",
+	"pwm_percent",
+	"pwm_output",
+	"pwm_use_table",
+	"fw_ver",
+	"pwm_duty_value",
+	"pwm_duty_range",
+	"pwm_freq_value",
+	"pwm_freq_range"
+};
 
-#define CMD_GET_OBJECT_VALUE(OBJECT)		( CMD_DEFINE_GET | CMD_DEFINE_OBJ(OBJECT) )
-#define CMD_SET_OBJECT_VALUE(OBJECT)	    ( CMD_DEFINE_SET | CMD_DEFINE_OBJ(OBJECT) )
-#define CMD_CODE_WITH_OBJECT(PACKET)		(PACKET&(~CmdValueBitMask))
-#define CMD_GET_PARAMETER(PACKET)			((PACKET&CmdValueBitMask)>>CmdValueBitPos)
-#define CMD_DEFINE_PARAMETER(PARAM)			((((CmdExecutionPacket)PARAM)<<(CmdValueBitPos))&CmdValueBitMask)
+#define CMD_DEFINE_PACK_CMD(cmd)				( CmdCodeBitMask  & (((CmdExecutionPacket)cmd)    << CmdCodeBitPos ) )
+#define CMD_DEFINE_GET							CMD_DEFINE_PACK_CMD(CMD_CODE_GET)
+#define CMD_DEFINE_SET							CMD_DEFINE_PACK_CMD(CMD_CODE_SET)
 
-#define CMD_NONE_DEFAULT					((((CmdExecutionPacket)CMD_CODE_RESERVED_3) << CmdCodeBitPos ) | CMD_DEFINE_OBJ(CMD_OBJECT_MAX) )
+#define CMD_DEFINE_PACK_OBJ(obj)				( CmdOjbBitMask   & (((CmdExecutionPacket)obj)    << CmdObjBitPos  ) )
+#define CMD_GET_OBJECT_VALUE(OBJECT)			( CMD_DEFINE_GET | CMD_DEFINE_PACK_OBJ(OBJECT) )
+#define CMD_SET_OBJECT_VALUE(OBJECT)	    	( CMD_DEFINE_SET | CMD_DEFINE_PACK_OBJ(OBJECT) )
+
+#define CMD_DEFINE_PACK_PARAMETER(param)		( CmdValueBitMask & (((CmdExecutionPacket)param) << CmdValueBitPos) )
+
+#define CMD_EXTRACT_CODE_WITH_OBJECT(PACKET)	(PACKET&(~CmdValueBitMask))
+#define CMD_EXTRACT_PARAMETER(PACKET)			((PACKET&CmdValueBitMask)>>CmdValueBitPos)
 
 typedef enum {
+	DEFAULT_NON_CMD			= 0,
 	//  No GET
 	SET_USER_MODE 			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_USERMODE),				// Enter/Leave user control mode
 	GET_PWM_DUTY_VALUE		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_VALUE),		// get duty cycle value
@@ -95,7 +122,6 @@ typedef enum {
 	SET_PWM_USE_TABLE		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_USE_TABLE),			// use table value in code as output value
 	GET_FW_VERSION			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_FW_VER),				// get FW version
 	//  No SET
-	DEFAULT_NON_CMD			= CMD_NONE_DEFAULT
 } CMD_LIST;
 
 char *error_parameter  = "Parameter error.";
@@ -187,47 +213,11 @@ char *serial_gets(char input_ch)
 	return ret_ptr;
 }
 
-typedef enum {
-    ID_OFF = 0			,
-    ID_ON				,
-    ID_GETPWMDUTY		,
-    ID_GETPWMDUTYRANGE	,
-    ID_GETPWMFREQ		,
-    ID_GETPWMFREQRANGE	,
-    ID_GETVER			,
-    ID_PWMOFF			,
-    ID_PWMON			,
-    ID_PWMUPDATEKIT		,
-    ID_PWMUSER			,
-    ID_SETPWMDUTY		,
-    ID_SETPWMFREQ		,
-    ID_ENTER_CMD_MODE 	,
-    ID_MAX
-} CMDIndex;
-
-const char *command_list[] =
-{
-	"cmd.off",
-	"cmd.on",
-	"get.pwmduty",
-	"get.pwmdutyrange",
-	"get.pwmfreq",
-	"get.pwmfreqrange",
-	"get.ver",
-	"pwm.off",
-	"pwm.on",
-	"pwm.updatekit",
-	"pwm.user",
-	"set.pwmduty.$$$$",
-	"set.pwmfreq.$$$",
-	"x&Vht&GD",
-};
-
 bool CheckIfUserCtrlModeCommand(char *input_str)
 {
 	char* token = strtok(trimwhitespace(input_str), " ");
 
-	if (strcmp(token,command_list[ID_ENTER_CMD_MODE])==0)
+	if (strcmp(token,enter_user_ctrl_mode_str)==0)
 		return true;
 	else
 		return false;
@@ -236,66 +226,46 @@ bool CheckIfUserCtrlModeCommand(char *input_str)
 bool CommandInterpreter(char *input_str, CmdExecutionPacket *ptr_packet)
 {
 	char 				*token = strtok(trimwhitespace(input_str), " ");
-	bool				ret = true;
+
+	*ptr_packet = 0;			// clear for further OR after command/object/parameter are decoded
 
 	// 1st command
-	if(token!=NULL)
+	if(token==NULL)
 	{
-		OutputString_with_newline(token);
-		if (strcmp(token,"get")==0)
-		{
-			*ptr_packet = CMD_DEFINE_GET;
-		}
-		else if (strcmp(token,"set")==0)
-		{
-			*ptr_packet = CMD_DEFINE_SET;
-		}
-		else
-		{
-			*ptr_packet = CMD_CODE_RESERVED_3;
-		}
+		return false;
 	}
 	else
 	{
-		// return false if none token at all
-		ret = false;
+		int	index = CMD_CODE_MAX_NO-1;
+		while(index-->0)
+		{
+			if (strcmp(token,command_code_list[index])==0)
+			{
+				*ptr_packet = CMD_DEFINE_PACK_CMD(index+1);
+				OutputString_with_newline(token);
+				break;
+			}
+		}
 	}
 
 	// 2nd object
 	token = strtok(NULL, " ");
-	if(token!=NULL)
+	if(token==NULL)
 	{
-		if (strcmp(token,"pwm_percent")==0)
-		{
-			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_PWM_DUTY_PERCENTAGE);
-			OutputString_with_newline(token);
-		}
-		else if (strcmp(token,"user_mode")==0)
-		{
-			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_USERMODE);
-		}
-		else if (strcmp(token,"pwm_output")==0)
-		{
-			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_PWM_OUTPUT);
-		}
-		else if (strcmp(token,"pwm_use_table")==0)
-		{
-			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_PWM_USE_TABLE);
-			OutputString_with_newline(token);
-		}
-		else if (strcmp(token,"fw_ver")==0)
-		{
-			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_FW_VER);
-			OutputString_with_newline(token);
-		}
-		else
-		{
-			*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_MAX);
-		}
+		return false;
 	}
 	else
 	{
-		*ptr_packet |= CMD_DEFINE_OBJ(CMD_OBJECT_MAX);
+		int	index = CMD_OBJECT_MAX_NO-1;
+		while(index-->0)
+		{
+			if (strcmp(token,command_object_list[index])==0)
+			{
+				*ptr_packet |= CMD_DEFINE_PACK_OBJ(index+1);
+				OutputString_with_newline(token);
+				break;
+			}
+		}
 	}
 
 	// 3rd parameter
@@ -303,13 +273,11 @@ bool CommandInterpreter(char *input_str, CmdExecutionPacket *ptr_packet)
 	if(token!=NULL)
 	{
 		int val;
-		OutputString_with_newline(token);
 		val = atoi(token);
-		*ptr_packet |= CMD_DEFINE_PARAMETER(val);
+		*ptr_packet |= CMD_DEFINE_PACK_PARAMETER(val);
 	}
-	OutputHexValue_with_newline(*ptr_packet);
 
-	return ret;
+	return true;
 }
 
 void SetUserCtrlModeFlag(bool flag)
@@ -321,10 +289,10 @@ char command_return_string[17];
 
 bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 {
-	uint32_t	param = CMD_GET_PARAMETER(cmd_packet);
+	uint32_t	param = CMD_EXTRACT_PARAMETER(cmd_packet);
 	bool		ret_value = false;
 
-	switch(CMD_CODE_WITH_OBJECT(cmd_packet))
+	switch(CMD_EXTRACT_CODE_WITH_OBJECT(cmd_packet))
 	{
 		case SET_USER_MODE:
 			if(param!=0)

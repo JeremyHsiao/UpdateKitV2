@@ -179,9 +179,14 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 				if(CommandInterpreter(command_string, &received_cmd_packet))
 				{
 					CommandExecution(received_cmd_packet,&ret_str);
-					if(CheckEchoEnableStatus())
-						OutputString_with_newline(ret_str);					// Echo incoming command (if echo_enabled)
 				}
+				else
+				{
+					ret_str = "Command Error";
+				}
+				if(CheckEchoEnableStatus())
+					OutputString_with_newline(ret_str);					// Echo incoming command (if echo_enabled)
+				OutputHexValue_with_newline(received_cmd_packet);		// debug purpose and can be removed later
 			}
 			if(EVENT_Leave_User_Ctrl_Mode)
 			{
