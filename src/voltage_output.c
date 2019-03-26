@@ -147,6 +147,15 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 	switch(current_state)
 	{
 		case US_PWM_CHECK_SEL:
+			if(EVENT_UART_CMD_Received)
+			{
+				EVENT_UART_CMD_Received = false;
+				if(CheckIfUserCtrlModeCommand(command_string))
+				{
+					EVENT_Enter_User_Ctrl_Mode = true;
+				}
+			}
+
 			if(EVENT_Enter_User_Ctrl_Mode)
 			{
 				EVENT_Enter_User_Ctrl_Mode = false;
@@ -167,9 +176,12 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 				char 	*ret_str;
 
 				EVENT_UART_CMD_Received = false;
-				CommandExecution(received_cmd_packet,&ret_str);
-				if(CheckEchoEnableStatus())
-					OutputString_with_newline(ret_str);					// Echo incoming command (if echo_enabled)
+				if(CommandInterpreter(command_string, &received_cmd_packet))
+				{
+					CommandExecution(received_cmd_packet,&ret_str);
+					if(CheckEchoEnableStatus())
+						OutputString_with_newline(ret_str);					// Echo incoming command (if echo_enabled)
+				}
 			}
 			if(EVENT_Leave_User_Ctrl_Mode)
 			{
@@ -187,6 +199,15 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 			break;
 		case US_PWM_OUT_ON:
 		case US_PWM_OUT_OFF:
+			if(EVENT_UART_CMD_Received)
+			{
+				EVENT_UART_CMD_Received = false;
+				if(CheckIfUserCtrlModeCommand(command_string))
+				{
+					EVENT_Enter_User_Ctrl_Mode = true;
+				}
+			}
+
 			if(EVENT_Enter_User_Ctrl_Mode)
 			{
 				EVENT_Enter_User_Ctrl_Mode = false;

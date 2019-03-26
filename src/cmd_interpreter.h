@@ -18,13 +18,14 @@ typedef		uint32_t			CmdExecutionPacket;
 extern void init_cmd_interpreter(void);
 extern char *serial_gets(char input_ch);
 extern bool CheckIfUserCtrlModeCommand(char *input_str);
-extern char *trimwhitespace(char *str);
 extern bool CommandInterpreter(char *input_str, CmdExecutionPacket* cmd_packet);
 extern bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string);
 extern void EchoEnable(bool enabled);
 extern bool CheckEchoEnableStatus(void);
 extern void SetUserCtrlModeFlag(bool flag);
 
+// two variables related to command interpreter -- consider to be private or public
 extern CmdExecutionPacket		received_cmd_packet;
+extern char						*command_string;
 
 #endif /* _CMD_INTERPRETER_H_ */

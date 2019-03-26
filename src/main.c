@@ -137,21 +137,14 @@ int main(void)
 					}
 	#endif // #ifdef DEBUG_RX_LOG
 					// For voltage output branch
+					command_string = serial_gets(key);
+					if (command_string!=(char*)NULL)
 					{
-						char *return_str = serial_gets(key);
-						if (return_str!=(char*)NULL)
-						{
-							if(CheckEchoEnableStatus())
-								OutputString_with_newline(return_str);					// Echo incoming command (if echo_enabled)
+						if(CheckEchoEnableStatus())
+							OutputString_with_newline(command_string);					// Echo incoming command (if echo_enabled)
 
-							trimwhitespace(return_str);
-
-							if(CommandInterpreter(return_str,&received_cmd_packet))
-							{
-								EVENT_UART_CMD_Received = true;
-								break;
-							}
-						}
+						EVENT_UART_CMD_Received = true;
+						break;
 					}
 					// For voltage output branch
 
