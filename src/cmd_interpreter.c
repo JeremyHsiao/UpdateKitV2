@@ -22,7 +22,6 @@
  ****************************************************************************/
 char 	*ptr_str;
 bool 	EchoEnabled;
-static	bool In_User_Ctrl_Mode;
 char 	serial_gets_return_string[MAX_SERIAL_GETS_LEN+1];	// Extra one is for '\0'
 
 // internal structure for execution: 24-bit value + 6-bit object + 2-bit cmd
@@ -169,7 +168,6 @@ void init_cmd_interpreter(void)
 	*serial_gets_return_string = '\0';
 	ptr_str = serial_gets_return_string;
 	EchoEnabled = true; //
-	In_User_Ctrl_Mode = false;
 }
 
 char *serial_gets(char input_ch)
@@ -215,9 +213,8 @@ char *serial_gets(char input_ch)
 
 bool CheckIfUserCtrlModeCommand(char *input_str)
 {
-	char* token = strtok(trimwhitespace(input_str), " ");
-
-	if (strcmp(token,enter_user_ctrl_mode_str)==0)
+	// Must be the exact string to enter user control mode
+	if (strcmp(trimwhitespace(input_str),enter_user_ctrl_mode_str)==0)
 		return true;
 	else
 		return false;
@@ -242,7 +239,7 @@ bool CommandInterpreter(char *input_str, CmdExecutionPacket *ptr_packet)
 			if (strcmp(token,command_code_list[index])==0)
 			{
 				*ptr_packet = CMD_DEFINE_PACK_CMD(index+1);
-				OutputString_with_newline(token);
+				// OutputString_with_newline(token);	// debug purpose
 				break;
 			}
 		}
@@ -262,7 +259,7 @@ bool CommandInterpreter(char *input_str, CmdExecutionPacket *ptr_packet)
 			if (strcmp(token,command_object_list[index])==0)
 			{
 				*ptr_packet |= CMD_DEFINE_PACK_OBJ(index+1);
-				OutputString_with_newline(token);
+				// OutputString_with_newline(token);	// debug purpose
 				break;
 			}
 		}
@@ -278,11 +275,6 @@ bool CommandInterpreter(char *input_str, CmdExecutionPacket *ptr_packet)
 	}
 
 	return true;
-}
-
-void SetUserCtrlModeFlag(bool flag)
-{
-	In_User_Ctrl_Mode = flag;
 }
 
 char command_return_string[17];

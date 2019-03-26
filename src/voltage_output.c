@@ -132,13 +132,6 @@ bool Event_Proc_State_Independent_for_voltage_output(void)
 	return bRet;
 }
 
-//	// For voltage output branch
-//	US_PWM_WELCOME,
-//	US_PWM_CHECK_SEL,
-//	US_PWM_OUT_ON,
-//	US_PWM_OUT_OFF,
-//	US_PWM_USER_CTRL,
-//	// For voltage output branch	-- END
 UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_state)
 {
 	UPDATE_STATE return_next_state = current_state;
@@ -186,12 +179,11 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 				}
 				if(CheckEchoEnableStatus())
 					OutputString_with_newline(ret_str);					// Echo incoming command (if echo_enabled)
-				OutputHexValue_with_newline(received_cmd_packet);		// debug purpose and can be removed later
+				//OutputHexValue_with_newline(received_cmd_packet);		// debug purpose and can be removed later
 			}
 			if(EVENT_Leave_User_Ctrl_Mode)
 			{
 				EVENT_Leave_User_Ctrl_Mode = false;
-				SetUserCtrlModeFlag(false);
 				return_next_state = US_PWM_CHECK_SEL;
 			}
 			break;
