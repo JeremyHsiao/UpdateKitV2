@@ -166,6 +166,10 @@ UPDATE_STATE Event_Proc_by_System_State_for_voltage_output(UPDATE_STATE current_
 				char 	*ret_str;
 
 				EVENT_UART_CMD_Received = false;
+
+				if(CheckEchoEnableStatus())
+					OutputString_with_newline(command_string);					// Echo incoming command (if echo_enabled)
+
 				if(CommandInterpreter(command_string, &received_cmd_packet))
 				{
 					CommandExecution(received_cmd_packet,&ret_str);

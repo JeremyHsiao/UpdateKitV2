@@ -140,9 +140,6 @@ int main(void)
 					command_string = serial_gets(key);
 					if ((command_string!=(char*)NULL)&&(*command_string!='\0'))
 					{
-						if(CheckEchoEnableStatus())
-							OutputString_with_newline(command_string);					// Echo incoming command (if echo_enabled)
-
 						EVENT_UART_CMD_Received = true;
 						break;
 					}

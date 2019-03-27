@@ -67,6 +67,7 @@ enum
 	CMD_OBJECT_PWM_DUTY_PERCENTAGE,
 	CMD_OBJECT_PWM_OUTPUT,
 	CMD_OBJECT_PWM_USE_TABLE,
+	CMD_OBJECT_ECHO,
 	CMD_OBJECT_FW_VER,
 	CMD_OBJECT_PWM_DUTY_VALUE,
 	CMD_OBJECT_PWM_DUTY_RANGE,
@@ -82,6 +83,7 @@ static const char *command_object_list[CMD_OBJECT_MAX_NO-1] =
 	"pwm_percent",
 	"pwm_output",
 	"pwm_use_table",
+	"echo",
 	"fw_ver",
 	"pwm_duty_value",
 	"pwm_duty_range",
@@ -105,11 +107,11 @@ static const char *command_object_list[CMD_OBJECT_MAX_NO-1] =
 typedef enum {
 	DEFAULT_NON_CMD			= 0,
 	//  No GET
-	SET_USER_MODE 			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_USERMODE),				// Enter/Leave user control mode
+	SET_USER_MODE 			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_USERMODE),			// Enter/Leave user control mode
 	GET_PWM_DUTY_VALUE		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_VALUE),		// get duty cycle value
 	SET_PWM_DUTY_VALUE		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_VALUE),		// set duty cycle value
-	GET_PWM_DUTY_PERCENTAGE	= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_PERCENTAGE),		// get duty cycle value
-	SET_PWM_DUTY_PERCENTAGE	= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_PERCENTAGE),		// set duty cycle value
+	GET_PWM_DUTY_PERCENTAGE	= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_PERCENTAGE),	// get duty cycle value
+	SET_PWM_DUTY_PERCENTAGE	= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_PERCENTAGE),	// set duty cycle value
 	GET_PWM_DUTY_RANGE		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_RANGE),		// get duty cycle range
 	//  No SET
 	GET_PWM_FREQ 			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_FREQ_VALUE),		// get duty cycle value
@@ -119,17 +121,19 @@ typedef enum {
 	GET_PWM_OUTPUT 			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_OUTPUT),			// get if pwm output is enabled
 	SET_PWM_OUTPUT 			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_OUTPUT),			// set pwm output enable
 	//  No GET
-	SET_PWM_USE_TABLE		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_USE_TABLE),			// use table value in code as output value
+	SET_PWM_USE_TABLE		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_USE_TABLE),		// use table value in code as output value
 	GET_FW_VERSION			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_FW_VER),				// get FW version
 	//  No SET
+	GET_ECHO 				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_ECHO),				// get echo status
+	SET_ECHO 				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_ECHO),				// set echo status
 } CMD_LIST;
 
 char *error_parameter  = "Parameter error.";
 char *error_command    = "Command error.";
 char *error_developing = "Under development";
 char *message_ok       = "OK";
-char *pwm_output_On    = "PWM_ON";
-char *pwm_output_Off   = "PWM_OFF";
+char *message_On       = "ON";
+char *message_Off      = "OFF";
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -171,6 +175,16 @@ void init_cmd_interpreter(void)
 	EchoEnabled = true; //
 	received_cmd_packet = 0;
 	command_string = (char *)NULL;
+}
+
+void EchoEnable(bool enabled)
+{
+	EchoEnabled = enabled;
+}
+
+bool CheckEchoEnableStatus(void)
+{
+	return EchoEnabled;
 }
 
 char *serial_gets(char input_ch)
@@ -333,11 +347,11 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 		case GET_PWM_OUTPUT:
 			if (Chip_GPIO_GetPinState(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN))
 			{
-				*return_string_ptr = pwm_output_On;
+				*return_string_ptr = message_On;
 			}
 			else
 			{
-				*return_string_ptr = pwm_output_Off;
+				*return_string_ptr = message_Off;
 			}
 			ret_value = true;
 			break;
@@ -375,6 +389,15 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 				ret_value = true;
 			}
 			break;
+		case GET_ECHO:
+			*return_string_ptr = (CheckEchoEnableStatus())?message_On:message_Off;
+			ret_value = true;
+			break;
+		case SET_ECHO:
+			EchoEnable((param!=0)?true:false);
+			*return_string_ptr = message_ok;
+			ret_value = true;
+			break;
 		case GET_PWM_DUTY_VALUE:
 		case SET_PWM_DUTY_VALUE:
 		case GET_PWM_DUTY_RANGE:
@@ -392,26 +415,3 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 
 	return ret_value;
 }
-
-void EchoEnable(bool enabled)
-{
-	EchoEnabled = enabled;
-}
-
-bool CheckEchoEnableStatus(void)
-{
-	return EchoEnabled;
-}
-
-//	// Returns 2nd token and check
-//	{
-//		char* token = strtok(NULL, " ");
-//		OutputString_with_newline(token);
-//	}
-//
-//	// Returns 3rd token and check
-//	{
-//		char* token = strtok(NULL, " ");
-//		OutputString_with_newline(token);
-//	}
-
