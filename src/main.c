@@ -138,7 +138,7 @@ int main(void)
 	#endif // #ifdef DEBUG_RX_LOG
 					// For voltage output branch
 					command_string = serial_gets(key);
-					if (command_string!=(char*)NULL)
+					if ((command_string!=(char*)NULL)&&(*command_string!='\0'))
 					{
 						if(CheckEchoEnableStatus())
 							OutputString_with_newline(command_string);					// Echo incoming command (if echo_enabled)
@@ -278,6 +278,7 @@ int main(void)
 			Clear_SW_TIMER_Reload_Flag(SYSTEM_STATE_PROC_TIMER);
 //			System_State_Begin_Proc(current_system_proc_state);
 			System_State_Begin_Proc_for_voltage_output(current_system_proc_state);		// For voltage output branch
+			// OutputHexValue_with_newline(current_system_proc_state);	// debug purpose
 		}
 
 		//

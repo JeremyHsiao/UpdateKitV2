@@ -23,6 +23,7 @@
 char 	*ptr_str;
 bool 	EchoEnabled;
 char 	serial_gets_return_string[MAX_SERIAL_GETS_LEN+1];	// Extra one is for '\0'
+char 	command_return_string[17];
 
 // internal structure for execution: 24-bit value + 6-bit object + 2-bit cmd
 // get obj
@@ -168,6 +169,8 @@ void init_cmd_interpreter(void)
 	*serial_gets_return_string = '\0';
 	ptr_str = serial_gets_return_string;
 	EchoEnabled = true; //
+	received_cmd_packet = 0;
+	command_string = (char *)NULL;
 }
 
 char *serial_gets(char input_ch)
@@ -213,6 +216,7 @@ char *serial_gets(char input_ch)
 
 bool CheckIfUserCtrlModeCommand(char *input_str)
 {
+	// OutputString_with_newline(input_str);				 // debug purpose
 	// Must be the exact string to enter user control mode
 	if (strcmp(trimwhitespace(input_str),enter_user_ctrl_mode_str)==0)
 		return true;
@@ -271,13 +275,31 @@ bool CommandInterpreter(char *input_str, CmdExecutionPacket *ptr_packet)
 	{
 		int val;
 		val = atoi(token);
+		// OutputString_with_newline(token);	// debug purpose
+		// OutputHexValue_with_newline(val);	// debug purpose
 		*ptr_packet |= CMD_DEFINE_PACK_PARAMETER(val);
 	}
 
 	return true;
 }
 
-char command_return_string[17];
+//
+// test commands:
+//
+// x&Vht&GD
+// set user_mode 1
+// set pwm_percent 100
+// set pwm_percent 50
+// set pwm_percent 0
+// set pwm_output 0
+// set pwm_output 1
+// get pwm_output
+// set pwm_use_table 0
+// set pwm_use_table 9
+// set pwm_use_table 5
+// set user_mode 0
+// x&Vht&GD
+// get fw_ver
 
 bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 {
@@ -290,15 +312,13 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			if(param!=0)
 			{
 				EVENT_Enter_User_Ctrl_Mode = true;
-				*return_string_ptr = message_ok;
-				ret_value = true;
 			}
 			else
 			{
 				EVENT_Leave_User_Ctrl_Mode = true;
-				*return_string_ptr = message_ok;
-				ret_value = true;
 			}
+			*return_string_ptr = message_ok;
+			ret_value = true;
 			break;
 		case SET_PWM_DUTY_PERCENTAGE:
 			if(param<=MAX_DUTY_SELECTION_VALUE)
