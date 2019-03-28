@@ -121,7 +121,8 @@ int main(void)
 			do
 			{
 				uint8_t	key, bytes;
-				bool	processor_event_detected;
+				// For voltage output branch
+				// bool	processor_event_detected;
 
 				// Process RS-232 input character
 				bytes = UART0_GetChar(&key);
@@ -145,11 +146,12 @@ int main(void)
 					}
 					// For voltage output branch
 
-					processor_event_detected = UART_input_processor(key);
-					if(processor_event_detected!=false)
-					{
-						break;			// leave loop whenever event has been detected
-					}
+					// For voltage output branch
+					//processor_event_detected = UART_input_processor(key);
+					//if(processor_event_detected!=false)
+					//{
+					//	break;			// leave loop whenever event has been detected
+					//}
 				}
 				else
 				{

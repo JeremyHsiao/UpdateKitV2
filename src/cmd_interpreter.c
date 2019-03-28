@@ -20,10 +20,10 @@
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
-char 	*ptr_str;
-bool 	EchoEnabled;
-char 	serial_gets_return_string[MAX_SERIAL_GETS_LEN+1];	// Extra one is for '\0'
-char 	command_return_string[17];
+char 			*ptr_str;
+bool 			EchoEnabled;
+char 			serial_gets_return_string[MAX_SERIAL_GETS_LEN+1];	// Extra one is for '\0'
+char 			command_return_string[17];
 
 // internal structure for execution: 24-bit value + 6-bit object + 2-bit cmd
 // get obj
@@ -337,7 +337,9 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 		case SET_PWM_DUTY_PERCENTAGE:
 			if(param<=MAX_DUTY_SELECTION_VALUE)
 			{
-				PWMOutputSetting(param+DUTY_SELECTION_OFFSET_VALUE);
+				uint8_t	pwm_sel_value;
+				pwm_sel_value = Set_PWM_Selection_by_Duty_Cycle(param);	// input param is duty cycle and return value is pwm_sel_value (duty cycle with some offset)
+				PWMOutputSetting(pwm_sel_value);
 				*return_string_ptr = message_ok;
 				ret_value = true;
 			}
@@ -345,7 +347,7 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 				*return_string_ptr = error_parameter;
 			break;
 		case GET_PWM_OUTPUT:
-			if (Chip_GPIO_GetPinState(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN))
+			if(Get_PWM_Sel_Value()!=PWM_OFF_DUTY_SELECTION_VALUE)
 			{
 				*return_string_ptr = message_On;
 			}
@@ -358,11 +360,20 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 		case SET_PWM_OUTPUT:
 			if(param==0)
 			{
-				Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+				if(Get_PWM_Sel_Value()!=PWM_OFF_DUTY_SELECTION_VALUE)
+				{
+					pwm_selection_before_off_command = Get_PWM_Sel_Value();
+					Set_PWM_Selection_Value(PWM_OFF_DUTY_SELECTION_VALUE);
+					PWMOutputSetting(PWM_OFF_DUTY_SELECTION_VALUE);
+				}
 			}
 			else
 			{
-				Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
+				if(Get_PWM_Sel_Value()==PWM_OFF_DUTY_SELECTION_VALUE)
+				{
+					Set_PWM_Selection_Value(pwm_selection_before_off_command);
+					PWMOutputSetting(PWM_OFF_DUTY_SELECTION_VALUE);
+				}
 			}
 			*return_string_ptr = message_ok;
 			ret_value = true;
