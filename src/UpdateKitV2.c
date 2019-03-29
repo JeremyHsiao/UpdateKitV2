@@ -557,6 +557,13 @@ void PowerOutputSetting(uint8_t current_step)
 	}
 }
 
+// For branch -- No_Separate_Mode_Branch
+uint8_t Get_Duty_from_Table(uint8_t current_step)
+{
+	return pwm_table[current_step];
+}
+// For branch -- No_Separate_Mode_Branch
+
 uint16_t Filtered_Input_current(uint16_t latest_current)
 {
 //	uint16_t	temp;

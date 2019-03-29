@@ -346,6 +346,25 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			else
 				*return_string_ptr = error_parameter;
 			break;
+		case GET_PWM_DUTY_PERCENTAGE:
+			{
+				uint8_t	temp = Get_PWM_Sel_Value();
+				if(temp==PWM_OFF_DUTY_SELECTION_VALUE)
+				{
+					*return_string_ptr = message_Off;
+				}
+				else if(temp<=MAX_DUTY_SELECTION_VALUE)
+				{
+					itoa_10((temp-DUTY_SELECTION_OFFSET_VALUE),command_return_string);
+					*return_string_ptr = command_return_string;
+				}
+				else
+				{
+					// shouldn't be here -- if enter here it is strange bug of out-of-bound for pwm_sel_value by somewhere
+					*return_string_ptr = error_developing;
+				}
+			}
+			break;
 		case GET_PWM_OUTPUT:
 			if(Get_PWM_Sel_Value()!=PWM_OFF_DUTY_SELECTION_VALUE)
 			{
@@ -372,16 +391,28 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 				if(Get_PWM_Sel_Value()==PWM_OFF_DUTY_SELECTION_VALUE)
 				{
 					Set_PWM_Selection_Value(pwm_selection_before_off_command);
-					PWMOutputSetting(PWM_OFF_DUTY_SELECTION_VALUE);
+					PWMOutputSetting(pwm_selection_before_off_command);
 				}
 			}
 			*return_string_ptr = message_ok;
 			ret_value = true;
 			break;
 		case SET_PWM_USE_TABLE:
-			if(param<POWER_OUTPUT_STEP_TOTAL_NO)
+			if(param==0)
 			{
-				PowerOutputSetting(param);
+				if(Get_PWM_Sel_Value()!=PWM_OFF_DUTY_SELECTION_VALUE)
+				{
+					pwm_selection_before_off_command = Get_PWM_Sel_Value();
+					Set_PWM_Selection_Value(PWM_OFF_DUTY_SELECTION_VALUE);
+					PWMOutputSetting(PWM_OFF_DUTY_SELECTION_VALUE);
+				}
+				*return_string_ptr = message_ok;
+			}
+			else if(param<POWER_OUTPUT_STEP_TOTAL_NO)
+			{
+				uint8_t	new_pwm_sel_value = Get_Duty_from_Table(param);
+				Set_PWM_Selection_Value(new_pwm_sel_value);
+				PWMOutputSetting(new_pwm_sel_value);
 				*return_string_ptr = message_ok;
 				ret_value = true;
 			}
@@ -415,7 +446,6 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 		case GET_PWM_FREQ:
 		case SET_PWM_FREQ:
 		case GET_PWM_FREQ_RANGE:
-		case GET_PWM_DUTY_PERCENTAGE:
 			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
 			break;
 		default:

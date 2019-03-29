@@ -116,4 +116,7 @@ typedef enum
 extern UPDATE_STATE	current_system_proc_state;
 extern uint8_t lcm_page_change_duration_in_sec;
 
+// For branch -- No_Separate_Mode_Branch
+extern uint8_t Get_Duty_from_Table(uint8_t current_step);
+
 #endif /* UPDATEKITV2_H_ */
