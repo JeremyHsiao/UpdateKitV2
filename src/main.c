@@ -8,12 +8,12 @@
 #include "board.h"
 #include "uart_0_rb.h"
 #include "gpio.h"
-#include "string_detector.h"
 #include "lcd_module.h"
 #include "sw_timer.h"
 #include "string.h"
-#include "UpdateKitV2.h"
+#include "user_if.h"
 #include "event.h"
+#include "user_opt.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -37,6 +37,14 @@ uint16_t	UART_TX_LOG_Index = 0;
 /*****************************************************************************
  * Private functions
  ****************************************************************************/
+void Init_Value_From_EEPROM(void)
+{
+}
+
+void Init_UpdateKitV2_variables(void)
+{
+	lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
+}
 
 /*****************************************************************************
  * Public functions
@@ -54,7 +62,7 @@ int main(void)
 	/* Enable and setup SysTick Timer at a periodic rate */
 	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
 
-	Init_UpdateKitV2_variables();
+	//Init_UpdateKitV2_variables();
 	Board_Init();
 	Init_UART0();
 	Init_GPIO();
@@ -64,19 +72,16 @@ int main(void)
 	Repeat_DownCounter(LCD_MODULE_INTERNAL_DELAY_IN_MS,(LONGER_DELAY_US/1000)+1,TIMER_MS);	// Take longer delay for more tolerance of all possible LCM usages.
 	lcm_sw_init();
 
-	Repeat_DownCounter(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_100MS,DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_100MS,TIMER_100MS);
-
 	lcm_auto_display_init();
 	lcm_content_init();
 
+	lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
 	Repeat_DownCounter(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S,lcm_page_change_duration_in_sec,TIMER_S);
 
-	lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
 	lcd_module_display_enable_page(LCM_WELCOME_PAGE);
 	lcd_module_display_enable_page(LCM_PC_MODE);
 	// Clear events if we want to check it at this state
 	EVENT_Button_pressed_debounced = false;
-	Countdown_Once(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S),TIMER_S);
 
 	// Endless loop at the moment
 	while (1)

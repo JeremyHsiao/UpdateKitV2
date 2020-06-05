@@ -101,5 +101,6 @@ extern void Init_LCD_Module_GPIO(void);
 #define LCM_DISPLAY_COL			(16)
 extern uint8_t lcd_module_display_content[][LCM_DISPLAY_ROW][LCM_DISPLAY_COL];
 extern uint8_t lcd_module_display_enable[];
+extern uint8_t lcm_page_change_duration_in_sec;
 
 #endif /* LCD_MODULE_H_ */

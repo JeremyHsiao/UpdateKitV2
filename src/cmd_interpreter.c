@@ -8,7 +8,6 @@
 #include "string.h"
 #include "stdlib.h"
 #include "ctype.h"
-#include "UpdateKitV2.h"
 #include "gpio.h"
 #include "uart_0_rb.h"
 #include "event.h"

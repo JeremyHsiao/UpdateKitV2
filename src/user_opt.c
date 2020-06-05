@@ -33,7 +33,6 @@
 #include "board.h"
 #include "eeprom.h"
 #include "user_opt.h"
-#include "UpdateKitV2.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -53,11 +52,11 @@
 #define EEPROM_RESERVE_AREA				(0x60)
 #define	USER_SELECTION_POSITION			(0x80)			// must be larger than EEPROM_RESERVE_AREA
 #define USER_SELECTION_LENGTH			(4)
-uint8_t User_Select_Last_ReadWrite = POWER_OUTPUT_STEP_TOTAL_NO;
+uint8_t User_Select_Last_ReadWrite = 10;
 // Timeout according to previous update
 #define	SYSTEM_TIMEOUT_VALUE_POSITION	(USER_SELECTION_POSITION+USER_SELECTION_LENGTH)
 #define SYSTEM_TIMEOUT_VALUE_LENGTH		(4)
-uint16_t System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+uint16_t System_Timeout_Last_ReadWrite = 100;
 uint8_t For_TIMEOUT_EEPROM_User_Select_Last_ReadWrite = 0;
 // This is starting position for future EEPROM user data
 #define NEXT_FUTURE_EEPROM_DATA_START	(SYSTEM_TIMEOUT_VALUE_POSITION+(SYSTEM_TIMEOUT_VALUE_POSITION*POWER_OUTPUT_STEP_TOTAL_NO))
@@ -66,6 +65,11 @@ uint8_t For_TIMEOUT_EEPROM_User_Select_Last_ReadWrite = 0;
 #define PWM_SELECTION_LENGTH			(4)
 uint8_t PWM_Select_Last_ReadWrite = 0;
 // END - For voltage output branch
+
+#define DEFAULT_POWER_OUTPUT_STEP				0
+#define POWER_OUTPUT_STEP_TOTAL_NO				10
+#define MINIMAL_TIMEOUT_VALUE					10
+#define	DEFAULT_MAX_FW_UPDATE_TIME_IN_S			1000
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -167,11 +171,11 @@ bool Load_User_Selection(uint8_t *pUserSelect)
 	/* Error checking */
 	if (ret_code != IAP_CMD_SUCCESS) {
 		//DEBUGOUT("Command failed to execute, return code is: %x\r\n", ret_code);
-		*pUserSelect = User_Select_Last_ReadWrite = DEFAULT_POWER_OUTPUT_STEP;
+		*pUserSelect = User_Select_Last_ReadWrite = 0;
 		return false;		// cannot validate
 	}
 
-	if((*ptr<POWER_OUTPUT_STEP_TOTAL_NO)&&(ptr[0]==ptr[3])&&(ptr[1]==ptr[2])&&(ptr[0]==(ptr[1]^0xff)))
+	if((*ptr<5)&&(ptr[0]==ptr[3])&&(ptr[1]==ptr[2])&&(ptr[0]==(ptr[1]^0xff)))
 	{
 		*pUserSelect = User_Select_Last_ReadWrite = *ptr;
 		return true;
@@ -269,12 +273,12 @@ bool Save_System_Timeout_v2(uint8_t user_selection, uint16_t SystemTimeout)
 	// return true if user_selection is 0 -- no need to save timeout value for pc-mode
 	if(user_selection==0)
 	{
-		System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
+		System_Timeout_Last_ReadWrite = ~1;
 		return true;
 	}
 
 	// return false if out of range
-	if(SystemTimeout<=MINIMAL_TIMEOUT_VALUE){
+	if(SystemTimeout<=10){
 		return false;
 	}
 
@@ -298,4 +302,3 @@ bool Save_System_Timeout_v2(uint8_t user_selection, uint16_t SystemTimeout)
 // For voltage output branch
 //#define	PWM_SELECTION_POSITION			(NEXT_FUTURE_EEPROM_DATA_START)
 //#define PWM_SELECTION_LENGTH			(4)
-
