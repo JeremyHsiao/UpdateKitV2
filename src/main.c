@@ -121,11 +121,8 @@ int main(void)
 		{
 			// Entering here means SysTick handler has been processed so we could check timeout-event now.
 
-			// Button-pressed event
-			EVENT_Button_pressed_debounced = Debounce_Button();
-			if(EVENT_Button_pressed_debounced)						// If both key are pressed -- no effect so clear all events
+			if(State_Proc_Button(BUTTON_SRC_ID))
 			{
-				EVENT_Button_pressed_debounced = false;
 				led ^= LED_STATUS_Y;
 			}
 
