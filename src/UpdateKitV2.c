@@ -6,11 +6,8 @@
 
 #include "chip.h"
 #include "board.h"
-#include "pwm.h"
 #include "uart_0_rb.h"
 #include "gpio.h"
-#include "LED_7seg.h"
-#include "adc.h"
 #include "string_detector.h"
 #include "lcd_module.h"
 #include "sw_timer.h"
@@ -20,7 +17,6 @@
 #include "event.h"
 #include "user_opt.h"
 #include "fw_version.h"
-#include "voltage_output.h"	// For voltage output branch
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -195,7 +191,7 @@ void lcm_reset_FW_OK_FULL_INFO_Content(void)
 */
 void lcm_content_init(void)
 {
-	char const		*welcome_message_line1 =  "TPV UpdateKit V2";
+	char const		*welcome_message_line1 =  "Hot Spring Board";
 	const uint8_t	welcome_message_line2[] =
 	{   'F', 'W', ':', 'V', FW_MAJOR, FW_MIDDLE, FW_MINOR, '_', // "FW:Vx.x-" - total 8 chars
 	   BUILD_MONTH_CH0, BUILD_MONTH_CH1, BUILD_DAY_CH0, BUILD_DAY_CH1, BUILD_HOUR_CH0, BUILD_HOUR_CH1,  BUILD_MIN_CH0, BUILD_MIN_CH1, // 8 chars
@@ -379,183 +375,7 @@ uint16_t GetFilteredCurrent(void)
 	return filtered_current;
 }
 
-void UpdateKitV2_UpdateDisplayValueForADC_Task(void)
-{
-	char 	 temp_voltage_str[6+1], temp_current_str[5+1], final_voltage_str[5+1], final_current_str[5+1];		// For storing 0x0 at the end of string by +1
-	char 	*temp_ch_ptr = final_voltage_str;
-	int 	 temp_voltage_str_len, temp_current_str_len;
-	//uint16_t temp_value;
-	uint8_t	 dp_point;
 
-	// Generate string
-	// showing voltage // 0.00v ~ 9.99v
-	{
-//		temp_value = filtered_voltage;			// 0.001V as unit
-//		if(temp_value>9999)
-//		{
-//			temp_value = 9999;
-//		}
-		temp_voltage_str_len = itoa_10(filtered_voltage, temp_voltage_str);
-	}
-	// showing current 0.00A~9.99A -- but current is 0.001A as unit
-	{
-//		temp_value = filtered_current;
-//		if(temp_value>999)		// protection //  showing // 0.00A~9.99A	// 0.001A as unit
-//		{
-//			temp_value = 999;
-//		}
-		temp_current_str_len = itoa_10(filtered_current, temp_current_str);
-	}
-
-	//
-	// Update LCD module display
-	//
-	// filtered_voltage
-	switch(temp_voltage_str_len)
-	{
-		case 1:
-			*temp_ch_ptr++ = ' ';	// final_voltage_str[0]
-			*temp_ch_ptr++ = '0';	// final_voltage_str[1]
-			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
-			*temp_ch_ptr++ = '0';	// final_voltage_str[3]
-			*temp_ch_ptr++ = '0';	// final_voltage_str[4]
-			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
-			break;
-		case 2:
-			*temp_ch_ptr++ = ' ';	// final_voltage_str[0]
-			*temp_ch_ptr++ = '0';	// final_voltage_str[1]
-			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
-			*temp_ch_ptr++ = '0';	// final_voltage_str[3]
-			*temp_ch_ptr++ = temp_voltage_str[0]; // final_voltage_str[4]
-			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
-			break;
-		case 3:
-			*temp_ch_ptr++ = ' ';	// final_voltage_str[0]
-			*temp_ch_ptr++ = '0';	// final_voltage_str[1]
-			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
-			*temp_ch_ptr++ = temp_voltage_str[0];	// final_voltage_str[3]
-			*temp_ch_ptr++ = temp_voltage_str[1];	// final_voltage_str[4]
-			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
-			break;
-		case 4:
-			*temp_ch_ptr++ = ' ';	// final_voltage_str[0]
-			*temp_ch_ptr++ = temp_voltage_str[0];	// final_voltage_str[1]
-			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
-			*temp_ch_ptr++ = temp_voltage_str[1];	// final_voltage_str[3]
-			*temp_ch_ptr++ = temp_voltage_str[2];	// final_voltage_str[4]
-			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
-			break;
-		case 5:
-			*temp_ch_ptr++ = temp_voltage_str[0];;	// final_voltage_str[0]
-			*temp_ch_ptr++ = temp_voltage_str[1];	// final_voltage_str[1]
-			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
-			*temp_ch_ptr++ = temp_voltage_str[2];	// final_voltage_str[3]
-			*temp_ch_ptr++ = temp_voltage_str[3];	// final_voltage_str[4]
-			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
-			break;
-		default:
-			*temp_ch_ptr++ = '9';	// final_voltage_str[0]
-			*temp_ch_ptr++ = '9';	// final_voltage_str[1]
-			*temp_ch_ptr++ = '.';	// final_voltage_str[2]
-			*temp_ch_ptr++ = '9';	// final_voltage_str[3]
-			*temp_ch_ptr++ = '9';	// final_voltage_str[4]
-			*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
-			break;
-	}
-//	memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][5], final_voltage_str, 5);
-	//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][5], final_voltage_str, 5);
-	lcm_text_buffer_cpy(LCM_FW_UPGRADING_PAGE,1,4, final_voltage_str, 5);
-	lcm_text_buffer_cpy(LCM_PWM_OUT_ON,1,4, final_voltage_str, 5); // For voltage output branch
-	lcm_text_buffer_cpy(LCM_PWM_OUT_OFF,1,4, final_voltage_str, 5);// For voltage output branch
-	lcm_text_buffer_cpy(LCM_PWM_USER_CTRL,1,4, final_voltage_str, 5);// For voltage output branch
-
-	// filtered_current
-	final_current_str[1] = '.';
-	final_current_str[4] = 'A';
-	switch(temp_current_str_len)
-	{
-		case 1:
-			final_current_str[0] = '0';
-			final_current_str[2] = '0';
-			final_current_str[3] = '0';
-			break;
-		case 2:
-			final_current_str[0] = '0';
-			final_current_str[2] = '0';
-			final_current_str[3] = temp_current_str[0];
-			break;
-		case 3:
-			final_current_str[0] = '0';
-			final_current_str[2] = temp_current_str[0];
-			final_current_str[3] = temp_current_str[1];
-			break;
-		case 4:
-			final_current_str[0] = temp_current_str[0];
-			final_current_str[2] = temp_current_str[1];
-			final_current_str[3] = temp_current_str[2];
-			break;
-		default:
-			final_current_str[0] = '9';
-			final_current_str[1] = '.';
-			final_current_str[2] = '9';
-			final_current_str[3] = '9';
-			break;
-	}
-//	memcpy((void *)&lcd_module_display_content[LCM_DEV_MEASURE_PAGE][0][11], final_current_str, 5);
-	//memcpy((void *)&lcd_module_display_content[LCM_FW_UPGRADING_PAGE][1][11], final_current_str, 5);
-	lcm_text_buffer_cpy(LCM_FW_UPGRADING_PAGE,1,11, final_current_str, 5);
-	lcm_text_buffer_cpy(LCM_PWM_OUT_ON,1,11, final_current_str, 5);  // For voltage output branch
-	lcm_text_buffer_cpy(LCM_PWM_OUT_OFF,1,11, final_current_str, 5); // For voltage output branch
-	lcm_text_buffer_cpy(LCM_PWM_USER_CTRL,1,11, final_current_str, 5); // For voltage output branch
-
-	//
-	// Update LED 7-segment
-	//
-//	if(LED_7_SEG_showing_current==false)		// showing voltage // 0.00v ~ 9.99v
-	{
-		*temp_ch_ptr++ = '9';	// final_voltage_str[0]
-		*temp_ch_ptr++ = '9';	// final_voltage_str[1]
-		*temp_ch_ptr++ = '.';	// final_voltage_str[2]
-		*temp_ch_ptr++ = '9';	// final_voltage_str[3]
-		*temp_ch_ptr++ = '9';	// final_voltage_str[4]
-		*temp_ch_ptr++ = 'V';	// final_voltage_str[5]
-		memcpy((void *)&final_voltage_str[2], final_voltage_str+3, 2);	// overwrite '.'
-		if(filtered_voltage>9999)	// 9.999V
-		{
-			final_voltage_str[3] = 'U';										// Change 'V' to 'U'
-			dp_point = 2;
-			Update_LED_7SEG_Message_Buffer(LED_VOLTAGE_PAGE,(uint8_t*)final_voltage_str,dp_point);
-		}
-		else
-		{
-			final_voltage_str[4] = 'U';										// Change 'V' to 'U'
-			dp_point = 1;
-			Update_LED_7SEG_Message_Buffer(LED_VOLTAGE_PAGE,(uint8_t*)final_voltage_str+1,dp_point);
-		}
-	}
-//	else
-	{
-		memcpy((void *)&final_current_str[1], final_current_str+2, 3); // overwrite '.'
-		dp_point = 1;
-		Update_LED_7SEG_Message_Buffer(LED_CURRENT_PAGE,(uint8_t*)final_current_str,dp_point);
-	}
-}
-
-void PowerOutputSetting(uint8_t current_step)
-{
-	if(current_step==0)
-	{
-		Chip_GPIO_SetPinOutLow(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
-		pwm_duty = 0;
-		setPWMRate(0, pwm_duty);
-	}
-	else
-	{
-		pwm_duty = pwm_table[current_step];
-		Chip_GPIO_SetPinOutHigh(LPC_GPIO, VOUT_ENABLE_GPIO_PORT, VOUT_ENABLE_GPIO_PIN);
-		setPWMRate(0, pwm_duty);
-	}
-}
 
 // For branch -- No_Separate_Mode_Branch
 uint8_t Get_Duty_from_Table(uint8_t current_step)
@@ -656,7 +476,6 @@ bool Event_Proc_State_Independent(void)
 	if(EVENT_Button_pressed_debounced)
 	{
 		// Always no matter which system state
-		LED_7SEG_ForceToSpecificPage(LED_VOLTAGE_PAGE);
 		Set_SW_Timer_Count(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC,(DEFAULT_LED_DATA_CHANGE_SEC-1));
 		Clear_SW_TIMER_Reload_Flag(LED_VOLTAGE_CURRENT_DISPLAY_SWAP_IN_SEC);
 		// Do not clear this event because it is used by Event_Proc_by_System_State()

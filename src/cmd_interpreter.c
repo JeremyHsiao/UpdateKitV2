@@ -14,7 +14,6 @@
 #include "event.h"
 #include "build_defs.h"
 #include "fw_version.h"
-#include "voltage_output.h"
 #include "cmd_interpreter.h"
 
 /*****************************************************************************
@@ -335,89 +334,21 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			ret_value = true;
 			break;
 		case SET_PWM_DUTY_PERCENTAGE:
-			if(param<=MAX_DUTY_SELECTION_VALUE)
-			{
-				uint8_t	pwm_sel_value;
-				pwm_sel_value = Set_PWM_Selection_by_Duty_Cycle(param);	// input param is duty cycle and return value is pwm_sel_value (duty cycle with some offset)
-				PWMOutputSetting(pwm_sel_value);
-				*return_string_ptr = message_ok;
-				ret_value = true;
-			}
-			else
-				*return_string_ptr = error_parameter;
+			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
 			break;
 		case GET_PWM_DUTY_PERCENTAGE:
 			{
-				uint8_t	temp = Get_PWM_Sel_Value();
-				if(temp==PWM_OFF_DUTY_SELECTION_VALUE)
-				{
-					*return_string_ptr = message_Off;
-				}
-				else if(temp<=MAX_DUTY_SELECTION_VALUE)
-				{
-					itoa_10((temp-DUTY_SELECTION_OFFSET_VALUE),command_return_string);
-					*return_string_ptr = command_return_string;
-				}
-				else
-				{
-					// shouldn't be here -- if enter here it is strange bug of out-of-bound for pwm_sel_value by somewhere
-					*return_string_ptr = error_developing;
-				}
+				*return_string_ptr = error_developing;	// To be implemented -- return current duty value
 			}
 			break;
 		case GET_PWM_OUTPUT:
-			if(Get_PWM_Sel_Value()!=PWM_OFF_DUTY_SELECTION_VALUE)
-			{
-				*return_string_ptr = message_On;
-			}
-			else
-			{
-				*return_string_ptr = message_Off;
-			}
-			ret_value = true;
+			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
 			break;
 		case SET_PWM_OUTPUT:
-			if(param==0)
-			{
-				if(Get_PWM_Sel_Value()!=PWM_OFF_DUTY_SELECTION_VALUE)
-				{
-					pwm_selection_before_off_command = Get_PWM_Sel_Value();
-					Set_PWM_Selection_Value(PWM_OFF_DUTY_SELECTION_VALUE);
-					PWMOutputSetting(PWM_OFF_DUTY_SELECTION_VALUE);
-				}
-			}
-			else
-			{
-				if(Get_PWM_Sel_Value()==PWM_OFF_DUTY_SELECTION_VALUE)
-				{
-					Set_PWM_Selection_Value(pwm_selection_before_off_command);
-					PWMOutputSetting(pwm_selection_before_off_command);
-				}
-			}
-			*return_string_ptr = message_ok;
-			ret_value = true;
+			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
 			break;
 		case SET_PWM_USE_TABLE:
-			if(param==0)
-			{
-				if(Get_PWM_Sel_Value()!=PWM_OFF_DUTY_SELECTION_VALUE)
-				{
-					pwm_selection_before_off_command = Get_PWM_Sel_Value();
-					Set_PWM_Selection_Value(PWM_OFF_DUTY_SELECTION_VALUE);
-					PWMOutputSetting(PWM_OFF_DUTY_SELECTION_VALUE);
-				}
-				*return_string_ptr = message_ok;
-			}
-			else if(param<POWER_OUTPUT_STEP_TOTAL_NO)
-			{
-				uint8_t	new_pwm_sel_value = Get_Duty_from_Table(param);
-				Set_PWM_Selection_Value(new_pwm_sel_value);
-				PWMOutputSetting(new_pwm_sel_value);
-				*return_string_ptr = message_ok;
-				ret_value = true;
-			}
-			else
-				*return_string_ptr = error_parameter;
+			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
 			break;
 		case GET_FW_VERSION:
 			{
