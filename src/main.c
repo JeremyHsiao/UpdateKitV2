@@ -89,13 +89,14 @@ int main(void)
 		uint8_t 				temp;
 		static uint32_t			led = LED_STATUS_G;
 
+		LED_Status_Set_Value(led);
+
 		//
 		// UART/ADC Input data processing section
 		//
 		if(UART_Check_InputBuffer_IsEmpty()==false)
 		{
 			led ^= LED_STATUS_G;
-			LED_Status_Set_Value(led);		// only LED_G
 
 			// Processing chars according to sys_tick -> faster tick means fewer char for each loop
 			temp = ((115200/8)/SYSTICK_PER_SECOND)+1;
@@ -122,17 +123,10 @@ int main(void)
 
 			// Button-pressed event
 			EVENT_Button_pressed_debounced = Debounce_Button();
-			EVENT_2nd_key_pressed_debounced = Debounce_2nd_Key();		// For voltage output branch
-			if(EVENT_2nd_key_pressed_debounced)							// For voltage output branch
+			if(EVENT_Button_pressed_debounced)						// If both key are pressed -- no effect so clear all events
 			{
-				if(EVENT_Button_pressed_debounced)						// If both key are pressed -- no effect so clear all events
-				{
-					EVENT_Button_pressed_debounced = EVENT_2nd_key_pressed_debounced = false;
-				}
-				else
-				{
-					EVENT_Button_pressed_debounced = true;				// If only 2nd key are pressed, set both event true (note: if only original event is true then 1st key are pressed.
-				}
+				EVENT_Button_pressed_debounced = false;
+				led ^= LED_STATUS_Y;
 			}
 
 			// Update LCD module display after each lcm command delay (currently about 3ms)
@@ -144,7 +138,7 @@ int main(void)
 				{
 					lcd_module_display_find_next_enabled_page();
 					led ^= LED_STATUS_R;
-					LED_Status_Set_Value(led);		// only LED_G
+					LED_Status_Set_Value(led);
 				}
 			}
 			//
