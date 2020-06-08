@@ -10,7 +10,8 @@
 #include "sw_timer.h"
 #include "uart_0_rb.h"
 #include "string.h"
-#include "UpdateKitV2.h"
+#include "res_state.h"
+#include "user_if.h"
 
 #define MAX_LCD_CONTENT_PAGE (LCM_MAX_PAGE_NO)
 

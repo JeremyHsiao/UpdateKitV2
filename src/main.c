@@ -8,12 +8,12 @@
 #include "board.h"
 #include "uart_0_rb.h"
 #include "gpio.h"
-#include "string_detector.h"
 #include "lcd_module.h"
 #include "sw_timer.h"
 #include "string.h"
-#include "UpdateKitV2.h"
 #include "event.h"
+#include "res_state.h"
+#include "user_if.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables

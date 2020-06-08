@@ -66,6 +66,50 @@
 // End
 //
 
+extern void Init_Value_From_EEPROM(void);
+extern void Init_UpdateKitV2_variables(void);
+extern void lcm_content_init(void);
+
+#define	WELCOME_MESSAGE_DISPLAY_TIME_IN_S			(3)
+#define OUTPUT_REMINDER_DISPLAY_TIME_IN_S			(6)
+#define DEFAULT_MAX_FW_UPDATE_TIME_IN_S				(1800)
+#define MINIMAL_TIMEOUT_VALUE						(2)
+#define MAXIMAL_TIMEOUT_VALUE						(9999)
+#define LED_STATUS_TOGGLE_DURATION_IN_100MS_FAST	(1)			// 500ms
+#define LED_STATUS_TOGGLE_DURATION_IN_100MS			(5)			// 500ms
+
+#define	DEFAULT_POWER_OUTPUT_STEP				(0)
+#define POWER_OUTPUT_STEP_TOTAL_NO				(10)
+//#define DEFAULT_POWER_OUTPUT_DEBOUNCE_TIME_MS	(800)
+//#define DEFAULT_LEAVE_STANDBY_DEBOUNCE_TIME_MS	(800)
+//#define DEFAULT_HIGH_TO_LOW_DEBOUNCE_TIME_MS	(800)
+#define DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_100MS	(4)		// 400 ms
+#define DEFAULT_LED_DATA_CHANGE_SEC				(3)
+#define DEFAULT_LED_REFRESH_EACH_DIGIT_MS		(2)
+#define DEFAULT_LCM_PAGE_CHANGE_S_WELCOME		(3)
+#define DEFAULT_LCM_PAGE_CHANGE_S_OK			(5)
+#define DEFAULT_OK_THRESHOLD					(5)			// 5 times ok
+//#define DEFAULT_STANDBY_CURRENT_THRESHOLD		(100)		// 80ma
+#define DEFAULT_STANDBY_POWER_THRESHOLD			(500)		// V*A < 0.5W
+//#define DEFAULT_FW_UPGRADE_CURRENT_THRESHOLD	(120)
+//#define DEFAULT_NO_CURRENT_THRESHOLD			(9)			// 9ma
+#define DEFAULT_TV_STANDBY_DEBOUNCE_IN_100MS	(50)		// 5S
+#define DEFAULT_NO_OUTPUT_DEBOUNCE_IN_100MS		(20)		// 2S
+#define DEFAULT_OUTPUT_NORMAL_DEBOUNCE_IN_100MS	(20)		// 2S
+
+#define CHANGE_FW_MAX_UPDATE_TIME_AFTER_OK(x)		(((x*3)+1)/2)
+#define CHANGE_FW_MAX_UPDATE_TIME_AFTER_TOO_LONG(x)	(((x*3)+1)/2)
+
+//#define POWERON_IS_DETECTING
+
+
+extern UPDATE_STATE	current_system_proc_state;
+extern uint8_t lcm_page_change_duration_in_sec;
+
+// For branch -- No_Separate_Mode_Branch
+extern uint8_t Get_Duty_from_Table(uint8_t current_step);
+
+
 #define	WELCOME_MESSAGE_DISPLAY_TIME_IN_S			(3)
 #define OUTPUT_REMINDER_DISPLAY_TIME_IN_S			(6)
 

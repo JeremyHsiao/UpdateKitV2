@@ -38,6 +38,39 @@
 
 #endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
 
+/*****************************************************************************
+ * Private types/enumerations/variables
+ ****************************************************************************/
+uint8_t				current_output_stage;
+
+/*****************************************************************************
+ * Public types/enumerations/variables
+ ****************************************************************************/
+
+UPDATE_STATE	current_system_proc_state;
+uint16_t		max_upgrade_time_in_S;
+uint8_t			lcm_page_change_duration_in_sec;
+
+/*****************************************************************************
+ * Private functions
+ ****************************************************************************/
+
+/*****************************************************************************
+ * Public functions
+ ****************************************************************************/
+
+void Init_Value_From_EEPROM(void)
+{
+	Load_User_Selection(&current_output_stage);
+	Load_System_Timeout_v2(current_output_stage,&max_upgrade_time_in_S);
+}
+
+void Init_UpdateKitV2_variables(void)
+{
+	current_system_proc_state = US_SYSTEM_BOOTUP_STATE;
+	lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
+}
+
 bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, const void * restrict __s2, size_t len)
 {
 	// If row/col is out-of-range, skip

@@ -33,7 +33,9 @@
 #include "board.h"
 #include "eeprom.h"
 #include "user_opt.h"
-#include "UpdateKitV2.h"
+#include "sw_timer.h"
+#include "res_state.h"
+#include "user_if.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
