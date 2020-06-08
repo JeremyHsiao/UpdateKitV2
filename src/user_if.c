@@ -38,7 +38,7 @@
 
 #endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
 
-static inline bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, const void * restrict __s2, size_t len)
+bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, const void * restrict __s2, size_t len)
 {
 	// If row/col is out-of-range, skip
 	if((row>=LCM_DISPLAY_ROW)||(col>=LCM_DISPLAY_COL))
@@ -57,14 +57,11 @@ static inline bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t
 
 void lcm_content_init(void)
 {
-	char const		*welcome_message_line1 =  "AUO HotSpring V1";
+	char const		*welcome_message_line1 =  "Hot Spring Board";
 	const uint8_t	welcome_message_line2[] =
 	{   'F', 'W', ':', 'V', FW_MAJOR, FW_MIDDLE, FW_MINOR, '_', // "FW:Vx.x-" - total 8 chars
 	   BUILD_MONTH_CH0, BUILD_MONTH_CH1, BUILD_DAY_CH0, BUILD_DAY_CH1, BUILD_HOUR_CH0, BUILD_HOUR_CH1,  BUILD_MIN_CH0, BUILD_MIN_CH1, // 8 chars
 		'\0'};
-
-	// Disable all page as initial value
-	memset((void *)lcd_module_display_enable, 0x00, LCM_MAX_PAGE_NO);	// Initial only - later sw determine which page is to be displayed
 
 	// Prepare firmware version for welcome page
 
@@ -72,10 +69,14 @@ void lcm_content_init(void)
 	lcm_text_buffer_cpy(LCM_WELCOME_PAGE,0,0,welcome_message_line1,LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_WELCOME_PAGE,1,0,welcome_message_line2,LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ",LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change",LCM_DISPLAY_COL);
-}
+//	// PC Mode page		     			 1234567890123456
+	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change", LCM_DISPLAY_COL);
 
+	// enable/disable some page/
+	memset((void *)lcd_module_display_enable, 0x00, LCM_MAX_PAGE_NO);	// Initial only - later sw determine which page is to be displayed
+
+}
 
 ///
 ///
