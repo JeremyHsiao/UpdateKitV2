@@ -64,8 +64,6 @@ int main(void)
 	Repeat_DownCounter(LCD_MODULE_INTERNAL_DELAY_IN_MS,(LONGER_DELAY_US/1000)+1,TIMER_MS);	// Take longer delay for more tolerance of all possible LCM usages.
 	lcm_sw_init();
 
-	Repeat_DownCounter(SYSTEM_UPDATE_VOLTAGE_CURRENT_DATA_IN_100MS,DEFAULT_UPDATE_VOLTAGE_CURRENT_DATA_100MS,TIMER_100MS);
-
 	lcm_auto_display_init();
 	lcm_content_init();
 
