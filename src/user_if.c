@@ -13,6 +13,7 @@
 #include "sw_timer.h"
 #include "user_if.h"
 #include "gpio.h"
+#include "uart_0_rb.c"
 
 #ifdef _REAL_UPDATEKIT_V2_BOARD_
 
@@ -38,7 +39,7 @@
 
 #endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
 
-static inline bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, const void * restrict __s2, size_t len)
+bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, const void * restrict __s2, size_t len)
 {
 	// If row/col is out-of-range, skip
 	if((row>=LCM_DISPLAY_ROW)||(col>=LCM_DISPLAY_COL))
@@ -74,6 +75,9 @@ void lcm_content_init(void)
 
 	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ",LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change",LCM_DISPLAY_COL);
+
+	lcm_text_buffer_cpy(LCM_VR_MODE,0,0,"R1:             ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_VR_MODE,1,0,"button to change",LCM_DISPLAY_COL);
 }
 
 
@@ -223,6 +227,69 @@ bool State_Proc_Button(ButtonID button_index)
 	button_state[button_index] = state;
 	return value_change;
 }
+
+int Show_Resistor_Value(uint32_t value, char* result)
+{
+    int return_value;
+
+    if(value<(10^3))			// direct output value
+    {
+    	return_value = itoa_10_fixed_position(value, result, 3);   // 1-999 ==> xxx
+    }
+    else if (value<(10^4))
+    {
+    	// rounding and remove latest digit (so only 3 digit left)
+    	value = (value + (10^1/2)) / (10^1);
+    	itoa_10_fixed_position(value, result, 3);
+    	result[5] = '\0';
+    	result[4] = 'K';
+    	result[3] = result[2];
+    	result[2] = result[1];
+    	result[1] = '.';
+    	return_value = 5;
+    }
+    else if (value<(10^5))
+    {
+    	// rounding and remove latest-2 digit (so only 3 digit left)
+    	value = (value + (10^2/2)) / (10^2);
+    	itoa_10_fixed_position(value, result, 3);
+    	result[5] = '\0';
+    	result[4] = 'K';
+    	result[3] = result[2];
+    	result[2] = '.';
+    	return_value = 5;
+    }
+    else if (value<(10^6))
+    {
+    	// rounding and remove latest-2 digit (so only 3 digit left)
+    	value = (value + (10^3/2)) / (10^3);
+    	itoa_10_fixed_position(value, result, 3);
+    	result[4] = '\0';
+    	result[3] = 'K';
+    	return_value = 4;
+    }
+    else if (value<(2^20))
+    {
+    	// rounding and remove latest-2 digit (so only 3 digit left)
+    	value = (value + (10^4/2)) / (10^4);
+    	itoa_10_fixed_position(value, result, 3);
+    	result[4] = '\0';
+    	result[3] = 'M';
+    	result[3] = result[2];
+    	result[2] = result[1];
+    	result[1] = '.';
+    	return_value = 5;
+    }
+    else
+    {
+    	result[0] = '\0';
+		return_value = 0;
+    }
+
+    return return_value;
+}
+
+
 ///
 ///
 ///

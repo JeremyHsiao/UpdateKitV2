@@ -77,10 +77,9 @@ typedef enum
 {
 	LCM_WELCOME_PAGE = 0,
 	LCM_PC_MODE,
+	LCM_VR_MODE,
 	LCM_MAX_PAGE_NO
 } LCM_PAGE_ID;
-
-extern void lcm_content_init(void);
 
 //
 // Button part of define
@@ -106,6 +105,10 @@ typedef enum
 
 extern Button_Data const button_data[4];
 
+extern void lcm_content_init(void);
+extern bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, const void * restrict __s2, size_t len);
+
 extern bool State_Proc_Button(ButtonID);
+extern int Show_Resistor_Value(uint32_t value, char* result);
 
 #endif // _USER_IF_H_

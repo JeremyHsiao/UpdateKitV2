@@ -80,6 +80,7 @@ int main(void)
 
 	lcd_module_display_enable_page(LCM_WELCOME_PAGE);
 	lcd_module_display_enable_page(LCM_PC_MODE);
+	lcd_module_display_enable_page(LCM_VR_MODE);
 	// Clear events if we want to check it at this state
 	EVENT_Button_pressed_debounced = false;
 
@@ -88,6 +89,10 @@ int main(void)
 	{
 		uint8_t 				temp;
 		static uint32_t			led = LED_STATUS_G;
+		static uint32_t			res_value = 1;
+
+		char temp_text[10];
+		int temp_len;
 
 		LED_Status_Set_Value(led);
 
@@ -124,11 +129,24 @@ int main(void)
 			if(State_Proc_Button(BUTTON_SRC_ID))
 			{
 				led ^= LED_STATUS_Y;
+//				lcd_module_display_enable_only_one_page(LCM_VR_MODE);
+//				if(res_value<(2^20))
+//					res_value++;
+//
+//				temp_len = Show_Resistor_Value(res_value,temp_text);
+//				lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
 			}
 
 			// Update LCD module display after each lcm command delay (currently about 3ms)
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_INTERNAL_DELAY_IN_MS))
 			{
+
+				lcd_module_display_enable_only_one_page(LCM_VR_MODE);
+				if(res_value<(2^20))
+					res_value++;
+				temp_len = Show_Resistor_Value(res_value,temp_text);
+				lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
+
 				lcm_auto_display_refresh_task();
 
 				if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S))
