@@ -140,7 +140,7 @@ uint32_t next_state_10ms_lut[] =
 
 bool State_Proc_Button(ButtonID button_index)
 {
-	Button_Data 	*button_ptr = button_data + button_index;
+	Button_Data 	*button_ptr = (Button_Data *)button_data + button_index;
 	BUTTON_STATE	state = button_state[button_index];
 	bool			pin_down = !Chip_GPIO_GetPinState(LPC_GPIO, button_ptr->port, button_ptr->pin);
 	TIMER_ID		state_timer = button_ptr->state_change_timer, repeat_timer = button_ptr->repeat_timer;
