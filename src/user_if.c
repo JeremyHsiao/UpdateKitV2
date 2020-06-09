@@ -115,7 +115,7 @@ void lcm_content_init(void)
 	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ",LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change",LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_VR_MODE,0,0,"R1:             ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_VR_MODE,0,0,"R0:             ",LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_VR_MODE,1,0,"button to change",LCM_DISPLAY_COL);
 
 	// enable/disable some page/
@@ -270,7 +270,7 @@ bool State_Proc_Button(ButtonID button_index)
 	return value_change;
 }
 
-int Show_Resistor_Value(uint32_t value, char* result)
+int Show_Resistor_3_Digits(uint32_t value, char* result)
 {
     int return_value;
 
@@ -365,10 +365,19 @@ uint32_t Update_Resistor_Value_after_button(uint32_t previous_value, bool inc)
 	if(inc)
 	{
 		change_value =  previous_value + change_value;
+		if(change_value>=(1UL<<20))
+			change_value = (1UL<<20)-1;
 	}
 	else
 	{
-		change_value =  previous_value - change_value;
+		if(previous_value>change_value)
+		{
+			change_value =  previous_value - change_value;
+		}
+		else
+		{
+			change_value = 0;
+		}
 	}
 	return change_value;
 }

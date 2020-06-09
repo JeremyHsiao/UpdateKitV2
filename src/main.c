@@ -59,7 +59,8 @@ int main(void)
 {
 	char 			temp_text[10];
 	int 			temp_len;
-	uint32_t		res_value = 1;
+	uint32_t		res_value[3] = { 1, 1, 1 };
+	uint8_t			res_index = 0;
 
 	SystemCoreClockUpdate();
 	Init_Value_From_EEPROM();
@@ -71,7 +72,7 @@ int main(void)
 	Board_Init();
 	Init_UART0();
 
-	#ifndef _REAL_UPDATEKIT_V2_BOARD_
+#ifndef _REAL_UPDATEKIT_V2_BOARD_
 	// Setup Virtual Serial com-port and UART0
 	// To be updated later: UART0 uses P1_26 & P1_27 and needs to update after final board is available
 
@@ -101,7 +102,7 @@ int main(void)
 	lcd_module_display_enable_page(LCM_PC_MODE);
 	lcd_module_display_enable_page(LCM_VR_MODE);
 
-	temp_len = Show_Resistor_Value(1,temp_text);
+	temp_len = Show_Resistor_3_Digits(1,temp_text);
 	lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
 
 	// Clear events if we want to check it at this state
@@ -116,11 +117,13 @@ int main(void)
 	// Endless loop at the moment
 	while (1)
 	{
-		uint8_t 		temp;
-		int 			rdCnt = 0, txCnt = 0;
-		static uint32_t			led = LED_STATUS_G;
-		uint8_t			shift_register_state;
-		uint32_t		shift_out_data_log;
+		static uint32_t		led = LED_STATUS_G;
+		uint8_t 			temp;
+#ifndef _REAL_UPDATEKIT_V2_BOARD_
+		int 				rdCnt = 0, txCnt = 0;
+		uint8_t				shift_register_state;
+		uint32_t			shift_out_data_log;
+#endif // #ifndef _REAL_UPDATEKIT_V2_BOARD_
 
 		LED_Status_Set_Value(led);
 
@@ -211,21 +214,50 @@ int main(void)
 		{
 			// Entering here means SysTick handler has been processed so we could check timeout-event now.
 
-			if(	(State_Proc_Button(BUTTON_ISP_ID)) ||
-				(State_Proc_Button(BUTTON_SRC_ID)) ||
-				(State_Proc_Button(BUTTON_DEC_ID)) ||
-				(State_Proc_Button(BUTTON_INC_ID)) ||
-				(State_Proc_Button(BUTTON_SEL_ID)) )
+			if(	State_Proc_Button(BUTTON_INC_ID) )
 			{
+				uint32_t	*res_ptr = res_value + res_index;
+
 				led ^= LED_STATUS_Y;
 				lcd_module_display_enable_only_one_page(LCM_VR_MODE);
 
-				res_value = Update_Resistor_Value_after_button(res_value,true);
-				if(res_value>=(1UL<<20))
-					res_value = (1UL<<20)-1;
+				*res_ptr = Update_Resistor_Value_after_button(*res_ptr,true);
 
-				temp_len = Show_Resistor_Value(res_value,temp_text);
+				temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
 				lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
+			}
+
+			if(	State_Proc_Button(BUTTON_DEC_ID) )
+			{
+				uint32_t	*res_ptr = res_value + res_index;
+
+				led ^= LED_STATUS_Y;
+				lcd_module_display_enable_only_one_page(LCM_VR_MODE);
+
+				*res_ptr = Update_Resistor_Value_after_button(*res_ptr,false);
+
+				temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
+				lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
+			}
+
+			if(	State_Proc_Button(BUTTON_SEL_ID) )
+			{
+				// to be implemented
+			}
+
+			if(	State_Proc_Button(BUTTON_SRC_ID) )
+			{
+				if(++res_index>=3)
+				{
+					res_index = 0;
+				}
+				temp_text[0] = '0'+ res_index;
+				lcm_text_buffer_cpy(LCM_VR_MODE,0,1,temp_text,1);
+			}
+
+			if(	State_Proc_Button(BUTTON_ISP_ID) )
+			{
+				// Reserved for debug purpose
 			}
 
 			// Update LCD module display after each lcm command delay (currently about 3ms)
