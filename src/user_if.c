@@ -333,9 +333,9 @@ int Show_Resistor_3_Digits(uint32_t value, char* result)
     return return_value;
 }
 
-uint32_t Update_Resistor_Value_after_button(uint32_t previous_value, bool inc)
+uint32_t Update_Resistor_Value_after_button(uint32_t previous_value, uint32_t step, bool inc)
 {
-	uint32_t change_value;
+	int change_value, temp_value;
 
 	if (previous_value<(1000))
     {
@@ -362,24 +362,22 @@ uint32_t Update_Resistor_Value_after_button(uint32_t previous_value, bool inc)
     	change_value = 0;
     }
 
-	if(inc)
+	change_value *= step;
+	if(inc==false)
+	change_value = -change_value;
+
+	temp_value = previous_value;
+	temp_value += change_value;
+	if(temp_value>=(1UL<<20))
 	{
-		change_value =  previous_value + change_value;
-		if(change_value>=(1UL<<20))
-			change_value = (1UL<<20)-1;
+		temp_value = (1UL<<20)-1;
 	}
-	else
+	else if (temp_value<1)
 	{
-		if(previous_value>change_value)
-		{
-			change_value =  previous_value - change_value;
-		}
-		else
-		{
-			change_value = 0;
-		}
+		temp_value = 1;
 	}
-	return change_value;
+
+	return (uint32_t) temp_value;
 }
 ///
 ///

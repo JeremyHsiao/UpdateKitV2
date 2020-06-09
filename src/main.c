@@ -59,7 +59,7 @@ int main(void)
 {
 	char 			temp_text[10];
 	int 			temp_len;
-	uint32_t		res_value[3] = { 1, 1, 1 };
+	uint32_t		res_value[3] = { 1, 1, 1 }, res_step[3] = { 1, 1, 1 };
 	uint8_t			res_index = 0;
 
 	SystemCoreClockUpdate();
@@ -216,12 +216,13 @@ int main(void)
 
 			if(	State_Proc_Button(BUTTON_INC_ID) )
 			{
-				uint32_t	*res_ptr = res_value + res_index;
+				uint32_t	*res_ptr = res_value + res_index,
+							*step_ptr = res_step + res_index;
 
 				led ^= LED_STATUS_Y;
 				lcd_module_display_enable_only_one_page(LCM_VR_MODE);
 
-				*res_ptr = Update_Resistor_Value_after_button(*res_ptr,true);
+				*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
 
 				temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
 				lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
@@ -229,12 +230,13 @@ int main(void)
 
 			if(	State_Proc_Button(BUTTON_DEC_ID) )
 			{
-				uint32_t	*res_ptr = res_value + res_index;
+				uint32_t	*res_ptr = res_value + res_index,
+							*step_ptr = res_step + res_index;
 
 				led ^= LED_STATUS_Y;
 				lcd_module_display_enable_only_one_page(LCM_VR_MODE);
 
-				*res_ptr = Update_Resistor_Value_after_button(*res_ptr,false);
+				*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr,false);
 
 				temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
 				lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
