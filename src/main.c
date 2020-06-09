@@ -61,6 +61,20 @@ int main(void)
 	Init_UpdateKitV2_variables();
 	Board_Init();
 	Init_UART0();
+
+	#ifndef _REAL_UPDATEKIT_V2_BOARD_
+	// Setup Virtual Serial com-port and UART0
+	// To be updated later: UART0 uses P1_26 & P1_27 and needs to update after final board is available
+
+	cdc_main();
+
+	// Init TPIC6B595 IC
+	Init_Shift_Register_GPIO();
+	Enable_Shift_Register_Output(false);
+	Clear_Register_Byte();
+	Clear_Shiftout_log();
+#endif // ! _REAL_UPDATEKIT_V2_BOARD_
+
 	Init_GPIO();
 
 	Init_LCD_Module_GPIO();
@@ -85,6 +99,11 @@ int main(void)
 	EVENT_Button_pressed_debounced = false;
 	Countdown_Once(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S),TIMER_S);
 
+#ifndef _REAL_UPDATEKIT_V2_BOARD_
+	while(vcom_connected()==0); // wait until virtual com connected.
+	Countdown_Once(WELCOME_MESSAGE_IN_S,vcom_start_to_work_in_sec,TIMER_S); // Read_and_Clear_SW_TIMER_Reload_Flag
+#endif // #ifndef _REAL_UPDATEKIT_V2_BOARD_
+
 	// Endless loop at the moment
 	while (1)
 	{
@@ -92,6 +111,8 @@ int main(void)
 		static uint32_t			led = LED_STATUS_G;
 
 		LED_Status_Set_Value(led);
+
+#ifdef _REAL_UPDATEKIT_V2_BOARD_
 
 		//
 		// UART/ADC Input data processing section
@@ -118,6 +139,61 @@ int main(void)
 			}
 			while(--temp>0);
 		}
+
+#else
+		/* Check if host has connected and opened the VCOM port */
+		if((usb_cdc_welcome_message_shown!=true)&&(Read_and_Clear_SW_TIMER_Reload_Flag(WELCOME_MESSAGE_IN_S)))
+		{
+			txCnt = CDC_OutputString(inst1);
+			usb_cdc_welcome_message_shown = true;
+			Repeat_DownCounter(SHIFT_REGISTER_NEXT_SHIFT_TIMER_IN_S,(4-1),TIMER_S);
+			Clear_Register_Byte();
+			Clear_Shiftout_log();
+			Enable_Shift_Register_Output(true);
+		}
+
+		if(usb_cdc_welcome_message_shown)
+		{
+			/* If VCOM port is opened echo whatever we receive back to host. */
+			rdCnt = vcom_bread(&g_rxBuff[0], VCOM_RX_BUF_SZ);
+			if (rdCnt)
+			{
+				uint32_t push_uart_cnt = rdCnt, push_uart_index = 0;
+				do
+				{
+					uint32_t out_cnt;
+					out_cnt = OutputData(g_rxBuff+push_uart_index, push_uart_cnt);
+					push_uart_index += out_cnt;
+					push_uart_cnt -= out_cnt;
+				}
+				while(push_uart_cnt>0);
+			}
+
+			if(vcom_write_precheck())		// if pre-check ok then proceed -- to avoid some waiting delay due to vcom_write is not available.
+			{
+				txCnt = UART0_GetData(&g_txBuff[0],VCOM_RX_BUF_SZ);
+				if (txCnt)
+				{
+					uint32_t push_cdc_cnt = txCnt, push_cdc_index = 0;
+					do
+					{
+						uint32_t out_cnt;
+						out_cnt = vcom_write(g_txBuff+push_cdc_index, push_cdc_cnt);
+						push_cdc_index += out_cnt;
+						push_cdc_cnt -= out_cnt;
+					}
+					while(push_cdc_cnt>0);
+				}
+			}
+
+			if(Read_and_Clear_SW_TIMER_Reload_Flag(SHIFT_REGISTER_NEXT_SHIFT_TIMER_IN_S))
+			{
+				shift_out_data_log = Test_Shift_Register(shift_register_state++);
+				CDC_OutputHexValue_with_newline(shift_out_data_log);
+			}
+		}
+#endif // #ifndef _REAL_UPDATEKIT_V2_BOARD_
+
 
 		if((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))		// Returns 1 if the SysTick timer counted to 0 since the last read of this register
 		{
