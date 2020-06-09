@@ -199,7 +199,11 @@ int main(void)
 		{
 			// Entering here means SysTick handler has been processed so we could check timeout-event now.
 
-			if(State_Proc_Button(BUTTON_SRC_ID))
+			if(	(State_Proc_Button(BUTTON_ISP_ID)) ||
+				(State_Proc_Button(BUTTON_SRC_ID)) ||
+				(State_Proc_Button(BUTTON_DEC_ID)) ||
+				(State_Proc_Button(BUTTON_INC_ID)) ||
+				(State_Proc_Button(BUTTON_SEL_ID)) )
 			{
 				led ^= LED_STATUS_Y;
 				lcd_module_display_enable_only_one_page(LCM_VR_MODE);

@@ -144,10 +144,11 @@ typedef enum
 	BUTTON_DEC_ID,
 	BUTTON_INC_ID,
 	BUTTON_SEL_ID,
+	BUTTON_ISP_ID,
 	BUTTON_TOTAL_ID
 } ButtonID;
 
-extern Button_Data const button_data[4];
+extern Button_Data const button_data[5];
 
 extern void lcm_content_init(void);
 extern bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, const void * restrict __s2, size_t len);
