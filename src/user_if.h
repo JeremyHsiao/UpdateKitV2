@@ -154,5 +154,6 @@ extern bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, c
 
 extern bool State_Proc_Button(ButtonID);
 extern int Show_Resistor_Value(uint32_t value, char* result);
+extern uint32_t Update_Resistor_Value_after_button(uint32_t previous_value, bool inc);
 
 #endif // _USER_IF_H_

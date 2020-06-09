@@ -328,7 +328,45 @@ int Show_Resistor_Value(uint32_t value, char* result)
     return return_value;
 }
 
+uint32_t Update_Resistor_Value_after_button(uint32_t previous_value, bool inc)
+{
+	uint32_t change_value;
 
+	if (previous_value<(1000))
+    {
+		change_value = 1;
+    }
+    else if (previous_value<(10000))
+    {
+		change_value = 10;
+    }
+    else if (previous_value<(100000))
+    {
+		change_value = 100;
+    }
+    else if (previous_value<(1000000))
+    {
+		change_value = 1000;
+    }
+    else if (previous_value<(1UL<<20))
+    {
+		change_value = 10000;
+    }
+    else
+    {
+    	change_value = 0;
+    }
+
+	if(inc)
+	{
+		change_value =  previous_value + change_value;
+	}
+	else
+	{
+		change_value =  previous_value - change_value;
+	}
+	return change_value;
+}
 ///
 ///
 ///

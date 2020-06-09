@@ -128,8 +128,9 @@ int main(void)
 				led ^= LED_STATUS_Y;
 				lcd_module_display_enable_only_one_page(LCM_VR_MODE);
 
-				if(res_value<(1UL<<20))
-					res_value++;
+				res_value = Update_Resistor_Value_after_button(res_value,true);
+				if(res_value>=(1UL<<20))
+					res_value = (1UL<<20)-1;
 
 				temp_len = Show_Resistor_Value(res_value,temp_text);
 				lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
