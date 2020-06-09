@@ -7,12 +7,14 @@
 
 #include "chip.h"
 #include "fw_version.h"
-#include "lcd_module.h"
 #include "string.h"
 #include "res_state.h"
 #include "sw_timer.h"
-#include "user_if.h"
 #include "gpio.h"
+#include "uart_0_rb.h"
+#include "user_opt.h"
+#include "user_if.h"
+#include "lcd_module.h"
 
 #ifdef _REAL_UPDATEKIT_V2_BOARD_
 
@@ -106,11 +108,16 @@ void lcm_content_init(void)
 	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ", LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change", LCM_DISPLAY_COL);
 
+	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change",LCM_DISPLAY_COL);
+
+	lcm_text_buffer_cpy(LCM_VR_MODE,0,0,"R1:             ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_VR_MODE,1,0,"button to change",LCM_DISPLAY_COL);
+
 	// enable/disable some page/
 	memset((void *)lcd_module_display_enable, 0x00, LCM_MAX_PAGE_NO);	// Initial only - later sw determine which page is to be displayed
 
 }
-
 ///
 ///
 ///
@@ -257,6 +264,71 @@ bool State_Proc_Button(ButtonID button_index)
 	button_state[button_index] = state;
 	return value_change;
 }
+
+int Show_Resistor_Value(uint32_t value, char* result)
+{
+    int return_value;
+
+    if (value<(1000))			// direct output value
+    {
+    	itoa_10_fixed_position(value, result, 5);   // 1-999 ==> xxx
+    	result[5] = '\0';
+    	return_value = 5;
+    }
+    else if (value<(10000))
+    {
+    	// rounding and remove latest digit (so only 3 digit left)
+    	value = (value + (10/2)) / (10);
+    	itoa_10_fixed_position(value, result, 3);
+    	result[5] = '\0';
+    	result[4] = 'K';
+    	result[3] = result[2];
+    	result[2] = result[1];
+    	result[1] = '.';
+    	return_value = 5;
+    }
+    else if (value<(100000))
+    {
+    	// rounding and remove latest-2 digit (so only 3 digit left)
+    	value = (value + (100/2)) / (100);
+    	itoa_10_fixed_position(value, result, 3);
+    	result[5] = '\0';
+    	result[4] = 'K';
+    	result[3] = result[2];
+    	result[2] = '.';
+    	return_value = 5;
+    }
+    else if (value<(1000000))
+    {
+    	// rounding and remove latest-3 digit (so only 3 digit left)
+    	value = (value + (1000/2)) / (1000);
+    	itoa_10_fixed_position(value, result, 4);
+       	result[5] = '\0';
+        result[4] = 'K';
+    	return_value = 5;
+    }
+    else if (value<(1UL<<20))
+    {
+    	// rounding and remove latest-4 digit (so only 3 digit left)
+    	value = (value + (10000/2)) / (10000);
+    	itoa_10_fixed_position(value, result, 3);
+    	result[5] = '\0';
+    	result[4] = 'M';
+    	result[3] = result[2];
+    	result[2] = result[1];
+    	result[1] = '.';
+    	return_value = 5;
+    }
+    else
+    {
+    	result[0] = '\0';
+		return_value = 0;
+    }
+
+    return return_value;
+}
+
+
 ///
 ///
 ///

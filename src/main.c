@@ -8,12 +8,12 @@
 #include "board.h"
 #include "uart_0_rb.h"
 #include "gpio.h"
-#include "lcd_module.h"
 #include "sw_timer.h"
 #include "string.h"
 #include "event.h"
 #include "res_state.h"
 #include "user_if.h"
+#include "lcd_module.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -48,6 +48,10 @@ uint16_t	UART_TX_LOG_Index = 0;
  */
 int main(void)
 {
+	char 			temp_text[10];
+	int 			temp_len;
+	uint32_t		res_value = 1;
+
 	SystemCoreClockUpdate();
 	Init_Value_From_EEPROM();
 
@@ -72,6 +76,11 @@ int main(void)
 	lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
 	lcd_module_display_enable_page(LCM_WELCOME_PAGE);
 	lcd_module_display_enable_page(LCM_PC_MODE);
+	lcd_module_display_enable_page(LCM_VR_MODE);
+
+	temp_len = Show_Resistor_Value(1,temp_text);
+	lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
+
 	// Clear events if we want to check it at this state
 	EVENT_Button_pressed_debounced = false;
 	Countdown_Once(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S),TIMER_S);
@@ -117,11 +126,19 @@ int main(void)
 			if(State_Proc_Button(BUTTON_SRC_ID))
 			{
 				led ^= LED_STATUS_Y;
+				lcd_module_display_enable_only_one_page(LCM_VR_MODE);
+
+				if(res_value<(1UL<<20))
+					res_value++;
+
+				temp_len = Show_Resistor_Value(res_value,temp_text);
+				lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
 			}
 
 			// Update LCD module display after each lcm command delay (currently about 3ms)
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_INTERNAL_DELAY_IN_MS))
 			{
+
 				lcm_auto_display_refresh_task();
 
 				if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S))

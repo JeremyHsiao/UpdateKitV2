@@ -6,12 +6,12 @@
 // */
 //
 #include "chip.h"
-#include "lcd_module.h"
 #include "sw_timer.h"
 #include "uart_0_rb.h"
 #include "string.h"
 #include "res_state.h"
 #include "user_if.h"
+#include "lcd_module.h"
 
 #define MAX_LCD_CONTENT_PAGE (LCM_MAX_PAGE_NO)
 
@@ -485,17 +485,17 @@ void lcm_auto_disable_all_page(void)
 	memset((void *)lcd_module_display_enable, 0x00, sizeof(lcd_module_display_enable));
 }
 
-void lcd_module_display_enable_page(uint8_t enabled_page)
+void lcd_module_display_enable_page(LCM_PAGE_ID enabled_page)
 {
 	lcd_module_display_enable[enabled_page] = 1;
 }
 
-void lcd_module_display_disable_page(uint8_t enabled_page)
+void lcd_module_display_disable_page(LCM_PAGE_ID enabled_page)
 {
 	lcd_module_display_enable[enabled_page] = 0;
 }
 
-void lcd_module_display_enable_only_one_page(uint8_t enabled_page)
+void lcd_module_display_enable_only_one_page(LCM_PAGE_ID enabled_page)
 {
 	uint8_t	temp_page = LCM_MAX_PAGE_NO;
 	do
@@ -532,7 +532,7 @@ void lcm_auto_display_init(void)
 	lcm_auto_disable_all_page();
 }
 
-void lcm_force_to_display_page(uint8_t page_no)
+void lcm_force_to_display_page(LCM_PAGE_ID page_no)
 {
 	// First is checking whether this page is enabled
 	if(lcd_module_display_enable[page_no]!=0x0)
