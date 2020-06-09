@@ -19,6 +19,7 @@ extern int OutputString(char *str);
 extern int OutputString_with_newline(char *str);
 extern int itoa_10(uint32_t value, char* result);
 extern int itoa_10_fixed_position(uint32_t value, char* result, uint8_t total_number_len);
+extern int itoa_16(uint32_t value, char* result);
 
 #define NEW_LINE_SYMBOL		_R_N_
 //#define NEW_LINE_SYMBOL		_N_
