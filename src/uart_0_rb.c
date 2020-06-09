@@ -151,8 +151,6 @@ uint32_t UART0_PutChar(char ch)
 
 int itoa_10(uint32_t value, char* result)
 {
-	// check that the base if valid
-
 	char*       ptr = result, *ptr1 = result, tmp_char;
 	uint32_t    tmp_value;
     int         str_len;
@@ -175,29 +173,27 @@ int itoa_10(uint32_t value, char* result)
 }
 
 //
-// If real-total-length is larger than specified total_number_len, only LSB is kept --> larger digit is discarded.
-//
+// At fixed length if real-length <= total_number_len; otherwise it works the same as iota_10() (shows whole value string)
 int itoa_10_fixed_position(uint32_t value, char* result, uint8_t total_number_len)
 {
-	// check that the base if valid
+    char		temp_str[sizeof(uint32_t)*3];
+    int         digit_len, diff, return_len;
 
-	char		*ptr1 = result + (total_number_len-1);
-	uint32_t    tmp_value;
-    int         str_len;
+    digit_len = itoa_10(value,temp_str);
+    diff = total_number_len - digit_len;
 
-	str_len = 0;
-	do {
-		tmp_value = value % 10;
-		value /= 10;
-		*ptr1-- = "0123456789" [tmp_value];
-		str_len++;
-	} while ( value );
-
-	while(result <= ptr1)
-	{
-		*ptr1-- = ' ';
-	}
-	return str_len;
+    if(diff>0)
+    {
+    	memset(result,' ',diff);	// Add leading blank space
+    	memcpy(result+diff,temp_str,digit_len);
+    	return_len = total_number_len;
+    }
+    else
+    {
+    	memcpy(result+diff,temp_str,digit_len);
+    	return_len = digit_len;
+    }
+	return return_len;
 }
 
 int itoa_16(uint32_t value, char* result)
