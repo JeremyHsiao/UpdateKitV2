@@ -87,7 +87,8 @@ void Init_GPIO(void)
 	LED_G_toggle_cnt = LED_R_toggle_cnt = LED_Y_toggle_cnt = 0;
 
 #else
-	Chip_IOCON_PinMuxSet(LPC_IOCON, SWITCH_KEY_GPIO_PORT, SWITCH_KEY_GPIO_PIN, (SWITCH_KEY_PIN_AS_GPIO | IOCON_MODE_INACT ));
+
+	Chip_IOCON_PinMuxSet(LPC_IOCON, SWITCH_KEY_GPIO_PORT, SWITCH_KEY_GPIO_PIN, SWITCH_KEY_PIN_MUX);
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, SWITCH_KEY_GPIO_PORT, SWITCH_KEY_GPIO_PIN);
 	//Chip_GPIO_SetPinDIRInput(LPC_GPIO, ISP_KEY_GPIO_PORT, ISP_KEY_GPIO_PIN);
 
@@ -98,6 +99,26 @@ void Init_GPIO(void)
 	//Chip_GPIOGP_EnableGroupPins(LPC_GPIOGROUP, 0, UP_SWITCH_PORT, 1 << UP_SWITCH_BIT); // Use this if different port is used in the same group
 	Chip_GPIOGP_SelectAndMode(LPC_GPIOGROUP, 0);
 	Chip_GPIOGP_SelectEdgeMode(LPC_GPIOGROUP, 0);
+
+	// 2nd button - for voltage output selection branch
+	Chip_IOCON_PinMuxSet(LPC_IOCON, SECOND_KEY_GPIO_PORT, SECOND_KEY_GPIO_PIN, SECOND_KEY_PIN_MUX);
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO, SECOND_KEY_GPIO_PORT, SECOND_KEY_GPIO_PIN);
+
+	// Set as gpio without pull-up/down/open-drain for LED_R
+	Chip_IOCON_PinMuxSet(LPC_IOCON, LED_R_GPIO_PORT, LED_R_GPIO_PIN, LED_R_GPIO_PIN_MUX);
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO, LED_R_GPIO_PORT, LED_R_GPIO_PIN);
+	//Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_R_GPIO_PORT, LED_R_GPIO_PIN);
+
+	// Set as gpio without pull-up/down/open-drain for LED_G
+	Chip_IOCON_PinMuxSet(LPC_IOCON, LED_G_GPIO_PORT, LED_G_GPIO_PIN, LED_G_GPIO_PIN_MUX);
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO, LED_G_GPIO_PORT, LED_G_GPIO_PIN);
+	//Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_G_GPIO_PORT, LED_G_GPIO_PIN);
+
+	// Set as gpio without pull-up/down/open-drain for LED_Y
+	Chip_IOCON_PinMuxSet(LPC_IOCON, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN, LED_Y_GPIO_PIN_MUX);
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN);
+	//Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN);
+
 
 #endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
 

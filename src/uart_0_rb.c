@@ -132,6 +132,11 @@ int UART0_GetChar(void *return_ch)
 	return Chip_UART0_ReadRB(LPC_USART0, &rxring, return_ch, 1);
 }
 
+int UART0_GetData(void *return_ch, int len)
+{
+	return Chip_UART0_ReadRB(LPC_USART0, &rxring, return_ch, len);
+}
+
 bool UART_Check_InputBuffer_IsEmpty(void)
 {
 	return (RingBuffer_IsEmpty(&rxring)!=0)?true:false;
@@ -279,6 +284,13 @@ int OutputString_with_newline(char *str)
     return_value += UART0_PutChar('\r');
 #endif //  (NEW_LINE_SYMBOL==_R_N_)
 
+    return return_value;
+}
+
+int OutputData(uint8_t *str, int len)
+{
+	int return_value;
+    return_value = Chip_UART0_SendRB(LPC_USART0, &txring, (const uint8_t *) str, len);
     return return_value;
 }
 

@@ -12,6 +12,7 @@ extern void Init_UART0(void);
 extern void DeInit_UART0(void);
 extern bool UART_Check_InputBuffer_IsEmpty(void);
 extern int UART0_GetChar(void *return_ch);
+extern int UART0_GetData(void *return_ch, int len);
 extern uint32_t UART0_PutChar(char ch);
 extern int OutputHexValue(uint32_t value);
 extern int OutputHexValue_with_newline(uint32_t value);
@@ -20,6 +21,7 @@ extern int OutputString_with_newline(char *str);
 extern int itoa_10(uint32_t value, char* result);
 extern int itoa_10_fixed_position(uint32_t value, char* result, uint8_t total_number_len);
 extern int itoa_16(uint32_t value, char* result);
+extern int OutputData(uint8_t *str, int len);
 
 #define NEW_LINE_SYMBOL		_R_N_
 //#define NEW_LINE_SYMBOL		_N_

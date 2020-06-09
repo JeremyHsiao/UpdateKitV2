@@ -14,6 +14,8 @@
 #include "res_state.h"
 #include "user_if.h"
 #include "lcd_module.h"
+#include "tpic6b595.h"
+#include "cdc_vcom.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -29,6 +31,13 @@ uint8_t 	UART_Rx_log[UART_RX_LOG_LEN];
 uint8_t		*UART_Rx_ptr=UART_Rx_log;
 uint16_t	UART_TX_LOG_Index = 0;
 #endif // #ifdef DEBUG_RX_LOG
+
+uint8_t g_rxBuff[VCOM_RX_BUF_SZ];
+uint8_t g_txBuff[VCOM_RX_BUF_SZ];
+extern int cdc_main(void);
+
+uint8_t			vcom_start_to_work_in_sec = 2;
+bool			usb_cdc_welcome_message_shown = false;
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -107,8 +116,11 @@ int main(void)
 	// Endless loop at the moment
 	while (1)
 	{
-		uint8_t 				temp;
+		uint8_t 		temp;
+		int 			rdCnt = 0, txCnt = 0;
 		static uint32_t			led = LED_STATUS_G;
+		uint8_t			shift_register_state;
+		uint32_t		shift_out_data_log;
 
 		LED_Status_Set_Value(led);
 
