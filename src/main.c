@@ -247,12 +247,16 @@ int main(void)
 
 			if(	State_Proc_Button(BUTTON_SRC_ID) )
 			{
+				uint32_t	*res_ptr;
 				if(++res_index>=3)
 				{
 					res_index = 0;
 				}
 				temp_text[0] = '0'+ res_index;
 				lcm_text_buffer_cpy(LCM_VR_MODE,0,1,temp_text,1);
+				res_ptr = res_value + res_index;
+				temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
+				lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
 			}
 
 			if(	State_Proc_Button(BUTTON_ISP_ID) )
