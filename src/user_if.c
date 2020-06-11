@@ -122,13 +122,13 @@ void lcm_content_init(void)
 	lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,0,    "Set RA   A:    1", LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,1,0,    "B:    1  C:    1", LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_ALL_SET_R0_BLINKING,0,0, "Set      A:     ", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_R0_BLINKING,0,0, "         A:     ", LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_ALL_SET_R0_BLINKING,1,0, "B:    1  C:    1", LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,0,0, "Set      A:    1", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,0,0, "         A:    1", LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,1,0, "B:       C:    1", LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,0,0, "Set      A:    1", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,0,0, "         A:    1", LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,1,0, "B:    1  C:     ", LCM_DISPLAY_COL);
 
 	// enable/disable some page/
@@ -161,7 +161,7 @@ uint32_t next_state_10ms_lut[] =
 };
 
 #define ACCLERATING_TICK	(12-1)		// unit: 10ms		+1 each 120ms
-#define TURBO_TICK			(3-1)		// unit: 10ms		+1 each 30ms
+#define TURBO_TICK			(2-1)		// unit: 10ms		+1 each 20ms
 
 bool State_Proc_Button(ButtonID button_index)
 {
