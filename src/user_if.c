@@ -108,15 +108,28 @@ void lcm_content_init(void)
 	lcm_text_buffer_cpy(LCM_WELCOME_PAGE,0,0,welcome_message_line1,LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_WELCOME_PAGE,1,0,welcome_message_line2,LCM_DISPLAY_COL);
 
-//	// PC Mode page		     			 1234567890123456
+//	//                      			 1234567890123456
 	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ", LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change", LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ",LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change",LCM_DISPLAY_COL);
-
 	lcm_text_buffer_cpy(LCM_VR_MODE,0,0,"R0:             ",LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_VR_MODE,1,0,"button to change",LCM_DISPLAY_COL);
+
+	//	//                      			 	      1234567890123456
+	lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,0,0,      "Value   R1:     ", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,1,0,      "R2:     R3:     ", LCM_DISPLAY_COL);
+
+	lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,0,    "Set     R1:     ", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,1,0,    "R2:     R3:     ", LCM_DISPLAY_COL);
+
+	lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,0,0, "        R1:     ", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,1,0, "R2:     R3:     ", LCM_DISPLAY_COL);
+
+	lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,0,0, "        R1:     ", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,1,0, "R2:     R3:     ", LCM_DISPLAY_COL);
+
+	lcm_text_buffer_cpy(LCM_ALL_SET_R3_BLINKING,0,0, "        R1:     ", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_R3_BLINKING,1,0, "R2:     R3:     ", LCM_DISPLAY_COL);
 
 	// enable/disable some page/
 	memset((void *)lcd_module_display_enable, 0x00, LCM_MAX_PAGE_NO);	// Initial only - later sw determine which page is to be displayed
