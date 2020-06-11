@@ -125,9 +125,9 @@ typedef enum
 	LCM_VR_MODE,
 	LCM_ALL_VR_DISPLAY,
 	LCM_ALL_SET_BLINKING,
+	LCM_ALL_SET_R0_BLINKING,
 	LCM_ALL_SET_R1_BLINKING,
 	LCM_ALL_SET_R2_BLINKING,
-	LCM_ALL_SET_R3_BLINKING,
 	LCM_MAX_PAGE_NO
 } LCM_PAGE_ID;
 
@@ -164,5 +164,6 @@ extern int Show_Resistor_3_Digits(uint32_t value, char* result);
 extern uint32_t Update_Resistor_Value_after_button(uint32_t previous_value, uint32_t step, bool inc);
 
 extern void UI_Version_01(void);
+extern void UI_Version_02(void);
 
 #endif // _USER_IF_H_

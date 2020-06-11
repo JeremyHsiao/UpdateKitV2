@@ -90,12 +90,14 @@ int main(void)
 	lcm_auto_display_init();
 	lcm_content_init();
 
+	// V01
+	// lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
+	//V02
+	lcm_page_change_duration_in_sec = DEFAULT_VR_BLINKING_IN_S;
 	Repeat_DownCounter(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S,lcm_page_change_duration_in_sec,TIMER_S);
-
-	lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
 	lcd_module_display_enable_page(LCM_WELCOME_PAGE);
 	lcd_module_display_enable_page(LCM_PC_MODE);
-	lcd_module_display_enable_page(LCM_VR_MODE);
+	lcd_module_display_enable_page(LCM_ALL_VR_DISPLAY);
 
 	// Clear events if we want to check it at this state
 	EVENT_Button_pressed_debounced = false;
@@ -206,7 +208,7 @@ int main(void)
 		{
 			// Entering here means SysTick handler has been processed so we could check timeout-event now.
 
-			UI_Version_01();
+			UI_Version_02();
 
 			// Update LCD module display after each lcm command delay (currently about 3ms)
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_INTERNAL_DELAY_IN_MS))
