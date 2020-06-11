@@ -112,7 +112,7 @@ void lcm_content_init(void)
 	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ", LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change", LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_VR_MODE,0,0,"R0:             ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_VR_MODE,0,0,"R0:    1        ",LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_VR_MODE,1,0,"button to change",LCM_DISPLAY_COL);
 
 	//	//                      			 	      1234567890123456
@@ -391,6 +391,64 @@ uint32_t Update_Resistor_Value_after_button(uint32_t previous_value, uint32_t st
 	}
 
 	return (uint32_t) temp_value;
+}
+
+void UI_Version_01(void)
+{
+	char 				temp_text[10];
+	int 				temp_len;
+	static uint32_t		res_value[3] = { 1, 1, 1 }, res_step[3] = { 1, 1, 1 };
+	static uint8_t		res_index = 0;
+
+	if(	State_Proc_Button(BUTTON_INC_ID) )
+	{
+		uint32_t	*res_ptr = res_value + res_index,
+					*step_ptr = res_step + res_index;
+
+		lcd_module_display_enable_only_one_page(LCM_VR_MODE);
+
+		*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+
+		temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
+		lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
+	}
+
+	if(	State_Proc_Button(BUTTON_DEC_ID) )
+	{
+		uint32_t	*res_ptr = res_value + res_index,
+					*step_ptr = res_step + res_index;
+
+		lcd_module_display_enable_only_one_page(LCM_VR_MODE);
+
+		*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr,false);
+
+		temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
+		lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
+	}
+
+	if(	State_Proc_Button(BUTTON_SEL_ID) )
+	{
+		// to be implemented
+	}
+
+	if(	State_Proc_Button(BUTTON_SRC_ID) )
+	{
+		uint32_t	*res_ptr;
+		if(++res_index>=3)
+		{
+			res_index = 0;
+		}
+		temp_text[0] = '0'+ res_index;
+		lcm_text_buffer_cpy(LCM_VR_MODE,0,1,temp_text,1);
+		res_ptr = res_value + res_index;
+		temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
+		lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
+	}
+
+	if(	State_Proc_Button(BUTTON_ISP_ID) )
+	{
+		// Reserved for debug purpose
+	}
 }
 ///
 ///

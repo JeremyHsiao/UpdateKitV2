@@ -163,4 +163,6 @@ extern bool State_Proc_Button(ButtonID);
 extern int Show_Resistor_3_Digits(uint32_t value, char* result);
 extern uint32_t Update_Resistor_Value_after_button(uint32_t previous_value, uint32_t step, bool inc);
 
+extern void UI_Version_01(void);
+
 #endif // _USER_IF_H_
