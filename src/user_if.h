@@ -121,8 +121,8 @@ extern uint8_t Get_Duty_from_Table(uint8_t current_step);
 typedef enum
 {
 	LCM_WELCOME_PAGE = 0,
-	LCM_PC_MODE,
-	LCM_VR_MODE,
+//	LCM_PC_MODE,
+	LCM_SINGLE_VR_DISPLAY,
 	LCM_ALL_VR_DISPLAY,
 	LCM_ALL_SET_BLINKING,
 	LCM_ALL_SET_R0_BLINKING,
@@ -162,6 +162,7 @@ extern bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, c
 extern bool State_Proc_Button(ButtonID);
 extern int Show_Resistor_3_Digits(uint32_t value, char* result);
 extern uint32_t Update_Resistor_Value_after_button(uint32_t previous_value, uint32_t step, bool inc);
+extern bool If_any_button_pressed(void);
 
 extern void UI_Version_01(void);
 extern void UI_Version_02(void);

@@ -96,8 +96,9 @@ int main(void)
 	lcm_page_change_duration_in_sec = DEFAULT_VR_BLINKING_IN_S;
 	Repeat_DownCounter(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S,lcm_page_change_duration_in_sec,TIMER_S);
 	lcd_module_display_enable_page(LCM_WELCOME_PAGE);
-	lcd_module_display_enable_page(LCM_PC_MODE);
-	lcd_module_display_enable_page(LCM_ALL_VR_DISPLAY);
+//	lcd_module_display_enable_page(LCM_PC_MODE);
+//	lcd_module_display_enable_page(LCM_ALL_VR_DISPLAY);
+	lcm_force_to_display_page(LCM_WELCOME_PAGE);
 
 	// Clear events if we want to check it at this state
 	EVENT_Button_pressed_debounced = false;
@@ -106,6 +107,8 @@ int main(void)
 #ifndef _REAL_UPDATEKIT_V2_BOARD_
 	while(vcom_connected()==0); // wait until virtual com connected.
 	Countdown_Once(WELCOME_MESSAGE_IN_S,vcom_start_to_work_in_sec,TIMER_S); // Read_and_Clear_SW_TIMER_Reload_Flag
+#else
+	Countdown_Once(WELCOME_MESSAGE_IN_S,WELCOME_MESSAGE_DISPLAY_TIME_IN_S,TIMER_S); // Read_and_Clear_SW_TIMER_Reload_Flag
 #endif // #ifndef _REAL_UPDATEKIT_V2_BOARD_
 
 	// Endless loop at the moment
@@ -208,7 +211,20 @@ int main(void)
 		{
 			// Entering here means SysTick handler has been processed so we could check timeout-event now.
 
-			UI_Version_02();
+			if (usb_cdc_welcome_message_shown==true)
+			{
+				UI_Version_02();
+			}
+			else
+			{
+				// Display welcome message until time-out or button-pressed
+				if(Read_and_Clear_SW_TIMER_Reload_Flag(WELCOME_MESSAGE_IN_S) || If_any_button_pressed())
+				{
+					lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
+					lcm_force_to_display_page(LCM_ALL_VR_DISPLAY);
+					usb_cdc_welcome_message_shown = true;
+				}
+			}
 
 			// Update LCD module display after each lcm command delay (currently about 3ms)
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_INTERNAL_DELAY_IN_MS))
@@ -223,6 +239,7 @@ int main(void)
 					LED_Status_Set_Value(led);
 				}
 			}
+
 			//
 			// End of Output UI section
 			//

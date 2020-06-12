@@ -109,11 +109,11 @@ void lcm_content_init(void)
 	lcm_text_buffer_cpy(LCM_WELCOME_PAGE,1,0,welcome_message_line2,LCM_DISPLAY_COL);
 
 //	//                      			 1234567890123456
-	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ", LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change", LCM_DISPLAY_COL);
+//	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ", LCM_DISPLAY_COL);
+//	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change", LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_VR_MODE,0,0,"R0:    1        ",LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_VR_MODE,1,0,"button to change",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_SINGLE_VR_DISPLAY,0,0,"R0:    1        ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_SINGLE_VR_DISPLAY,1,0,"button to change",LCM_DISPLAY_COL);
 
 	//	//                      			 	      1234567890123456
 	lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,0,0,      "Value-R  A:    1", LCM_DISPLAY_COL);
@@ -152,16 +152,16 @@ BUTTON_STATE button_state[4] = { BUTTON_UP_STATE, BUTTON_UP_STATE, BUTTON_UP_STA
 
 uint32_t next_state_10ms_lut[] =
 {
-		(4-1),	// BUTTON_UP_STATE = 0,					time before end of debounce == debounce-time
-		(120-1), // BUTTON_DOWN_DEBOUNCE_STATE,			time before end of stepwise == no repeat during this period
-		(360-1), // BUTTON_DOWN_STEPWISE_STATE,			time before end of accelerating == +1 fast
+		(4),	// BUTTON_UP_STATE = 0,					time before end of debounce == debounce-time
+		(120), // BUTTON_DOWN_DEBOUNCE_STATE,			time before end of stepwise == no repeat during this period
+		(360), // BUTTON_DOWN_STEPWISE_STATE,			time before end of accelerating == +1 fast
 		(~0U), // BUTTON_ACCELERATING_STATE,			not used
 		(~0U), // BUTTON_TURBO_STATE,					not used
 		(4-1), // BUTTON_UP_DEBOUNCE_STATE,				time before end of up-debounce == start to detect next key pressed.
 };
 
-#define ACCLERATING_TICK	(12-1)		// unit: 10ms		+1 each 120ms
-#define TURBO_TICK			(2-1)		// unit: 10ms		+1 each 20ms
+#define ACCLERATING_TICK	(12)		// unit: 10ms		+1 each 120ms
+#define TURBO_TICK			(1)			// unit: 10ms		+1 each 10ms
 
 bool State_Proc_Button(ButtonID button_index)
 {
@@ -405,12 +405,12 @@ void UI_Version_01(void)
 		uint32_t	*res_ptr = res_value + res_index,
 					*step_ptr = res_step + res_index;
 
-		lcd_module_display_enable_only_one_page(LCM_VR_MODE);
+		lcd_module_display_enable_only_one_page(LCM_SINGLE_VR_DISPLAY);
 
 		*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
 
 		temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
-		lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
+		lcm_text_buffer_cpy(LCM_SINGLE_VR_DISPLAY,0,3,temp_text,temp_len);
 	}
 
 	if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -418,12 +418,12 @@ void UI_Version_01(void)
 		uint32_t	*res_ptr = res_value + res_index,
 					*step_ptr = res_step + res_index;
 
-		lcd_module_display_enable_only_one_page(LCM_VR_MODE);
+		lcd_module_display_enable_only_one_page(LCM_SINGLE_VR_DISPLAY);
 
 		*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr,false);
 
 		temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
-		lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
+		lcm_text_buffer_cpy(LCM_SINGLE_VR_DISPLAY,0,3,temp_text,temp_len);
 	}
 
 	if(	State_Proc_Button(BUTTON_SEL_ID) )
@@ -439,10 +439,10 @@ void UI_Version_01(void)
 			res_index = 0;
 		}
 		temp_text[0] = '0'+ res_index;
-		lcm_text_buffer_cpy(LCM_VR_MODE,0,1,temp_text,1);
+		lcm_text_buffer_cpy(LCM_SINGLE_VR_DISPLAY,0,1,temp_text,1);
 		res_ptr = res_value + res_index;
 		temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
-		lcm_text_buffer_cpy(LCM_VR_MODE,0,3,temp_text,temp_len);
+		lcm_text_buffer_cpy(LCM_SINGLE_VR_DISPLAY,0,3,temp_text,temp_len);
 	}
 
 	if(	State_Proc_Button(BUTTON_ISP_ID) )
@@ -562,6 +562,21 @@ void UI_Version_02(void)
 		}
 	}
 
+}
+
+bool If_any_button_pressed(void)
+{
+	bool bRet = false;
+
+	if (	State_Proc_Button(BUTTON_INC_ID) ||
+			State_Proc_Button(BUTTON_DEC_ID) ||
+			State_Proc_Button(BUTTON_SEL_ID) ||
+			State_Proc_Button(BUTTON_SRC_ID) ||
+			State_Proc_Button(BUTTON_ISP_ID) )
+	{
+		bRet = true;
+	}
+	return bRet;
 }
 
 ///
