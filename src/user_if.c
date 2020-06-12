@@ -49,6 +49,50 @@
  ****************************************************************************/
 uint8_t				current_output_stage;
 
+char  *FineTuneResistorMsg[] = {
+	//"0123456789012345"
+	  "RL1/22        1\xf4",		// power(2,0)
+	  "RL43  R16/76/136",
+	  "RL2/23        2\xf4",		// power(2,1)
+	  "RL44  R17/77/137",
+	  "RL3/24        4\xf4",		// power(2,2)
+	  "RL45  R18/78/138",
+	  "RL4/25        8\xf4",		// power(2,3)
+	  "RL46  R19/79/139",
+	  "RL5/26       16\xf4",		// power(2,4)
+	  "RL47  R20/80/140",
+	  "RL1/22       32\xf4",		// power(2,5)			/// RL and R to be updated later after this line
+	  "RL43  R16/76/136",
+	  "RL2/23       64\xf4",		// power(2,6)
+	  "RL44  R17/77/137",
+	  "RL3/24      128\xf4",		// power(2,7)
+	  "RL45  R18/78/138",
+	  "RL4/25      256\xf4",		// power(2,8)
+	  "RL46  R19/79/139",
+	  "RL5/26      512\xf4",		// power(2,9)
+	  "RL47  R20/80/140",
+	  "RL1/22     1024\xf4",		// power(2,10)
+	  "RL43  R16/76/136",
+	  "RL2/23     2048\xf4",		// power(2,11)
+	  "RL44  R17/77/137",
+	  "RL3/24     4096\xf4",		// power(2,12)
+	  "RL45  R18/78/138",
+	  "RL4/25     8192\xf4",		// power(2,13)
+	  "RL46  R19/79/139",
+	  "RL5/26    16384\xf4",		// power(2,14)
+	  "RL47  R20/80/140",
+	  "RL1/22    32768\xf4",		// power(2,15)
+	  "RL43  R16/76/136",
+	  "RL2/23    65536\xf4",		// power(2,16)
+	  "RL44  R17/77/137",
+	  "RL3/24   131072\xf4",		// power(2,17)
+	  "RL45  R18/78/138",
+	  "RL4/25   262144\xf4",		// power(2,18)
+	  "RL46  R19/79/139",
+	  "RL5/26   524288\xf4",		// power(2,19)
+	  "RL47  R20/80/140",
+};
+
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
@@ -130,6 +174,9 @@ void lcm_content_init(void)
 
 	lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,0,0, "         A:    1", LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,1,0, "B:    1  C:     ", LCM_DISPLAY_COL);
+
+	lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   0,0, FineTuneResistorMsg[0], LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   1,0, FineTuneResistorMsg[1], LCM_DISPLAY_COL);
 
 	// enable/disable some page/
 	memset((void *)lcd_module_display_enable, 0x00, LCM_MAX_PAGE_NO);	// Initial only - later sw determine which page is to be displayed
@@ -480,16 +527,21 @@ void UI_V2_Update_after_change(uint8_t res_id, uint32_t new_value, char* temp_te
 	}
 }
 
+// LCM_ALL_SET_2N_VALUE
+
+#define RES_INDEX_NO	(4)
+
 void UI_Version_02(void)
 {
 	char 				temp_text[10];
 	int 				temp_len;
 	static uint32_t		res_value[3] = { 1, 1, 1 }, res_step[3] = { 1, 1, 1 };
 	static uint8_t		res_index = 3;		// default at Value-R menu
+	static uint16_t		res_2_power_N = 0;
 
 	if(	State_Proc_Button(BUTTON_SRC_ID) )
 	{
-		if(++res_index>3)
+		if(++res_index>RES_INDEX_NO)
 			res_index = 0;
 
 		switch(res_index)			// next state after button pressed
@@ -511,6 +563,9 @@ void UI_Version_02(void)
 				break;
 			case 3:			// Value-R menu
 				lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
+				break;
+			case 4:			// Value-R menu
+				lcd_module_display_enable_only_one_page(LCM_ALL_SET_2N_VALUE);
 				break;
 		}
 	}
@@ -549,7 +604,38 @@ void UI_Version_02(void)
 			lcm_force_to_display_page(LCM_ALL_SET_BLINKING);
 		}
 	}
+	else if (res_index == 4)
+	{
+		char *update_str;
 
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			++res_2_power_N;
+			if(res_2_power_N>=20)
+			{
+				res_2_power_N = 0;
+			}
+			update_str = FineTuneResistorMsg[res_2_power_N*2];
+			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   0,0, update_str, LCM_DISPLAY_COL);
+			update_str = FineTuneResistorMsg[res_2_power_N*2+1];
+			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   1,0, update_str, LCM_DISPLAY_COL);
+		}
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			if(res_2_power_N==0)
+			{
+				res_2_power_N = (20-1);
+			}
+			else
+			{
+				res_2_power_N--;
+			}
+			update_str = FineTuneResistorMsg[res_2_power_N*2];
+			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   0,0, update_str, LCM_DISPLAY_COL);
+			update_str = FineTuneResistorMsg[res_2_power_N*2+1];
+			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   1,0, update_str, LCM_DISPLAY_COL);
+		}
+	}
 }
 
 bool If_any_button_pressed(void)
@@ -566,6 +652,7 @@ bool If_any_button_pressed(void)
 	}
 	return bRet;
 }
+
 
 ///
 ///
