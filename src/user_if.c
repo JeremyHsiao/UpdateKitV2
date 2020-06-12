@@ -460,22 +460,22 @@ void UI_V2_Update_after_change(uint8_t res_id, uint32_t new_value, char* temp_te
 	switch (res_id)
 	{//
 		case 0:
-			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY  ,   0,8+3,temp_text,temp_len);
-			lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,   0,8+3,temp_text,temp_len);
-			lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,0,8+3,temp_text,temp_len);
-			lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,0,8+3,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY  ,   0,9+2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,   0,9+2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,0,9+2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,0,9+2,temp_text,temp_len);
 			break;
 		case 1:
-			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY  ,   1,3,temp_text,temp_len);
-			lcm_text_buffer_cpy(LCM_ALL_SET_R0_BLINKING,1,3,temp_text,temp_len);
-			lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,   1,3,temp_text,temp_len);
-			lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,1,3,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY  ,   1,2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SET_R0_BLINKING,1,2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,   1,2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,1,2,temp_text,temp_len);
 			break;
 		case 2:
-			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY  ,   1,8+3,temp_text,temp_len);
-			lcm_text_buffer_cpy(LCM_ALL_SET_R0_BLINKING,1,8+3,temp_text,temp_len);
-			lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,1,8+3,temp_text,temp_len);
-			lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,   1,8+3,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY  ,   1,9+2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SET_R0_BLINKING,1,9+2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,1,9+2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,   1,9+2,temp_text,temp_len);
 			break;
 	}
 }
@@ -485,27 +485,49 @@ void UI_Version_02(void)
 	char 				temp_text[10];
 	int 				temp_len;
 	static uint32_t		res_value[3] = { 1, 1, 1 }, res_step[3] = { 1, 1, 1 };
-	static uint8_t		res_index = 3;
+	static uint8_t		res_index = 3;		// default at Value-R menu
 
-	if(res_index>=3)
+	if(	State_Proc_Button(BUTTON_SRC_ID) )
 	{
-		if(	State_Proc_Button(BUTTON_SRC_ID) )
-		{
-			lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
-			lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
-			lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
+		if(++res_index>3)
 			res_index = 0;
-		}
 
-		if(	State_Proc_Button(BUTTON_ISP_ID) )
+		switch(res_index)			// next state after button pressed
 		{
-			// Reserved for debug purpose
+			case 0:			// changing RA under all VR menu
+				lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
+				lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+				lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
+				break;
+			case 1:			// changing RB under all VR menu
+				lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"B",1);
+				lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+				lcd_module_display_enable_page(LCM_ALL_SET_R1_BLINKING);
+				break;
+			case 2:			// changing RC under all VR menu
+				lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"C",1);
+				lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+				lcd_module_display_enable_page(LCM_ALL_SET_R2_BLINKING);
+				break;
+			case 3:			// Value-R menu
+				lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
+				break;
 		}
 	}
-	else
+
+	if(	State_Proc_Button(BUTTON_SEL_ID) )
+	{
+		// to be implemented
+	}
+
+	if(	State_Proc_Button(BUTTON_ISP_ID) )
+	{
+		// Reserved for debug purpose
+	}
+
+	if(res_index<3)
 	{
 		// when res_index == 0 or 1 or 2
-
 		if(	State_Proc_Button(BUTTON_INC_ID) )
 		{
 			uint32_t	*res_ptr = res_value + res_index,
@@ -516,7 +538,6 @@ void UI_Version_02(void)
 			UI_V2_Update_after_change(res_index,*res_ptr,temp_text,temp_len);
 			lcm_force_to_display_page(LCM_ALL_SET_BLINKING);
 		}
-
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
 		{
 			uint32_t	*res_ptr = res_value + res_index,
@@ -526,39 +547,6 @@ void UI_Version_02(void)
 			temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
 			UI_V2_Update_after_change(res_index,*res_ptr,temp_text,temp_len);
 			lcm_force_to_display_page(LCM_ALL_SET_BLINKING);
-		}
-
-		if(	State_Proc_Button(BUTTON_SEL_ID) )
-		{
-			// to be implemented
-		}
-
-		if(	State_Proc_Button(BUTTON_SRC_ID) )
-		{
-			switch (res_index)
-			{
-				case 0:
-					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"B",1);
-					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
-					lcd_module_display_enable_page(LCM_ALL_SET_R1_BLINKING);
-					res_index++;
-					break;
-				case 1:
-					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"C",1);
-					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
-					lcd_module_display_enable_page(LCM_ALL_SET_R2_BLINKING);
-					res_index++;
-					break;
-				case 2:
-					lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
-					res_index++;
-					break;
-			}
-		}
-
-		if(	State_Proc_Button(BUTTON_ISP_ID) )
-		{
-			// Reserved for debug purpose
 		}
 	}
 
