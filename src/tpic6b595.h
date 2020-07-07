@@ -17,5 +17,6 @@ extern void Clear_Shiftout_log(void);
 extern uint32_t Read_Shiftout_log(void);
 extern uint32_t Setup_Shift_Register_32it(uint32_t value);
 extern uint32_t Test_Shift_Register(uint8_t test_value);
+extern void Calc_Relay_Value(uint32_t *Resistor, uint64_t *Relay);
 
 #endif /* TPIC6B595_H_ */

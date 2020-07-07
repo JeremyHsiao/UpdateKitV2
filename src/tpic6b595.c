@@ -124,6 +124,53 @@ static void inline Delay125ns(void)
 	__NOP();
 }
 
+#define RESISTOR_MSB_INDEX		(19)
+#define RESISTOR_MSB			(1UL<<RESISTOR_MSB_INDEX)
+#define SMALL_RESISITOR_VALUE	(1UL<<4)
+
+void Calc_Relay_Value(uint32_t *Resistor, uint64_t *Relay)
+{
+	uint64_t	Relay_Value;
+	uint8_t		resistor_index;
+
+	Relay_Value = 0;
+	resistor_index = 2; // RC->RB->RA
+	do
+	{
+		uint32_t	Resistor_Value = Resistor[resistor_index];
+		uint8_t		index = RESISTOR_MSB_INDEX;
+		do
+		{
+			Relay_Value<<=1;
+			if(Resistor_Value&RESISTOR_MSB)
+			{
+				Relay_Value |= 1;
+			}
+			Resistor_Value<<=1;
+		}
+		while(index-->0);
+
+	}
+	while (resistor_index-->0);
+
+	// Shortcut for small resistor value
+	if(Resistor[2]<SMALL_RESISITOR_VALUE)
+	{
+		Relay_Value |= (1ULL<<62);
+	}
+	if(Resistor[1]<SMALL_RESISITOR_VALUE)
+	{
+		Relay_Value |= (1ULL<<61);
+	}
+	if(Resistor[0]<SMALL_RESISITOR_VALUE)
+	{
+		Relay_Value |= (1ULL<<60);
+	}
+
+	// Return relay value
+	*Relay = Relay_Value;
+}
+
 static uint32_t MCU_SERIN_log = 0;
 
 uint8_t const Shift_Register_GPIO_Initial_Matrix [] =
