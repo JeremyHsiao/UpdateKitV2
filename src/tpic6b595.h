@@ -2,7 +2,7 @@
  * tpic6b595.h
  *
  *  Created on: May 15, 2020
- *      Author: Jerem
+ *      Author: Jeremy
  */
 
 #ifndef TPIC6B595_H_

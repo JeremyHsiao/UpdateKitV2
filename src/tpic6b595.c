@@ -7,6 +7,7 @@
 
 #include "board.h"
 #include "stdbool.h"
+#include "res_state.h"
 
 #define _TEST_ON_BOARD_LPC11U68
 #ifdef _TEST_ON_BOARD_LPC11U68
@@ -300,3 +301,43 @@ uint32_t Test_Shift_Register(uint8_t test_value)
 
 	return Read_Shiftout_log();
 }
+
+/*
+void Update_Resistor_Relay(uint32_t *latest_res_value)
+{
+	static UPDATE_RELAY_STATE state = URS_INITIAL;
+	static uint32_t res_setup[3] = {0, 0, 0}, res_modified = { ~1UL, ~1UL, ~1UL };
+	uint8_t		index;
+
+	switch(state)
+	{
+		case URS_INITIAL:
+			// setup relay
+			// setup variable
+			state = URS_POLLING_CHANGE;
+			break;
+		case URS_WAIT_STABLE:
+			if(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS))
+			{
+				state = URS_POLLING_CHANGE;
+			}
+			break;
+		case URS_POLLING_CHANGE:
+			index=2;
+			do
+			{
+				if(res_modified[index] != latest_res_value[index])
+				{
+					res_modified[index] = latest_res_value[index];
+					Countdown_Once(RELAY_SETUP_HYSTERSIS_IN_100MS,10,TIMER_100MS);
+					state = URS_WAIT_STABLE;
+				}
+			}
+			while(index-->0);
+			break;
+	}
+
+
+}
+*/
+
