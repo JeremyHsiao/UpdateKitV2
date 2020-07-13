@@ -179,4 +179,6 @@ extern bool If_any_button_pressed(void);
 extern void UI_Version_01(void);
 extern void UI_Version_02(void);
 
+extern uint32_t *GetResistorValue(void);
+
 #endif // _USER_IF_H_
