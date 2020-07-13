@@ -200,6 +200,9 @@ void lcm_content_init(void)
 	//lcm_text_buffer_cpy(LCM_SEL_R2_DISPLAY,0,0,    "                ", LCM_DISPLAY_COL);
 	//lcm_text_buffer_cpy(LCM_SEL_R2_DISPLAY,1,0,    "RC:          1 \xf4", LCM_DISPLAY_COL);
 
+	lcm_text_buffer_cpy(LCM_SEL_UNIT_0_DISPLAY,0,0,    "UNIT:\x2B\x2D      1  ", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_SEL_UNIT_0_DISPLAY,1,0,    "RA:          1 \xf4", LCM_DISPLAY_COL);
+
 	lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,0,0,    "UNIT:\x2B\x2D     10  ", LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,0,    "RA:            \xf4", LCM_DISPLAY_COL);
 
@@ -586,36 +589,53 @@ void UI_V2_Update_after_change(uint8_t res_id, uint32_t new_value, char* temp_te
 #define RES_INDEX_NO	(4)
 #define RES_SEL_INDEX_NO	(6)
 
+static uint32_t		res_value[3] = { 1, 1, 1 };
+
+uint32_t *GetResistorValue(void)
+{
+	return res_value;
+}
+
 void UI_Version_02(void)
 {
 	char 				temp_text[10];
 	int 				temp_len;
-	static uint32_t		res_value[3] = { 1, 1, 1 }, res_step[3] = { 1, 1, 1 };
+	int                 Unit1=10;
+	int                 Unit2=100;
+	int                 Unit3=1000;
+	int                 Unit4=10000;
+	int                 Unit5=100000;
+	static uint32_t		res_step[3] = { 1, 1, 1 };
 	static uint8_t		res_index = 3;		// default at Value-R menu
-	static uint8_t		res_sel_index = 6; // default at Fine-tuning menu
 	//static uint16_t		res_2_power_N = 0;
 
 	if(	State_Proc_Button(BUTTON_SRC_ID) )
 	{
-		if(res_index<=4)
+		if(res_index<=3)
 		{
-			if(++res_index>4)
+			if(++res_index>3)
 			{
 				res_index = 0;
 			}
 			switch(res_index)			// next state after button pressed
 			{
 				case 0:			// changing RA under all VR menu
+					temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len); //above 2 line for update value form step to press source
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
 					break;
 				case 1:			// changing RB under all VR menu
+					temp_len = Show_Resistor_3_Digits(res_value[1],temp_text);
+					UI_V2_Update_after_change(1,res_value[1],temp_text,temp_len);
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"B",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R1_BLINKING);
 					break;
 				case 2:			// changing RC under all VR menu
+					temp_len = Show_Resistor_3_Digits(res_value[2],temp_text);
+					UI_V2_Update_after_change(2,res_value[2],temp_text,temp_len);
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"C",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R2_BLINKING);
@@ -628,75 +648,153 @@ void UI_Version_02(void)
 					break;
 			}
 		}
-		else if (res_index<=15)
+		else if (res_index<=22)
 		{
 			switch(res_index)			// next state after button pressed
 			{
-				case 5:			// changing RA under all VR menu
+				case 5:			// changing RA under UNIT menu
 					res_index=0;
+					temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);//above 2 line for update value form step to press source
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
 					break;
-				case 6:			// changing RB under all VR menu
+				case 6:			// changing RB under UNIT menu
 					res_index=1;
+					temp_len = Show_Resistor_3_Digits(res_value[1],temp_text);
+					UI_V2_Update_after_change(1,res_value[1],temp_text,temp_len);
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"B",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R1_BLINKING);
 					break;
-				case 7:			// changing RC under all VR menu
+				case 7:			// changing RC under UNIT menu
 					res_index=2;
+					temp_len = Show_Resistor_3_Digits(res_value[2],temp_text);
+					UI_V2_Update_after_change(2,res_value[2],temp_text,temp_len);
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"C",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R2_BLINKING);
 					break;
-				case 8:			// changing RA under all VR menu
+				case 8:			// changing RA under UNIT menu
 					res_index=0;
+					temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
 					break;
-				case 9:			// changing RA under all VR menu
+				case 9:			// changing RA under UNIT menu
 					res_index=0;
+					temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
 					break;
-				case 10:			// changing RA under all VR menu
+				case 10:			// changing RA under UNIT menu
 					res_index=0;
+					temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
 					break;
-				case 11:			// changing RA under all VR menu
+				case 11:			// changing RA under UNIT menu
 					res_index=0;
+					temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
 					break;
-				case 12:			// changing RA under all VR menu
-					res_index=1;
-					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"B",1);
+				case 12:			// changing RA under UNIT menu
+					res_index=0;
+					temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);
+					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
 					break;
-				case 13:			// changing RA under all VR menu
+				case 13:			// changing RB under UNIT menu
 					res_index=1;
+					temp_len = Show_Resistor_3_Digits(res_value[1],temp_text);
+					UI_V2_Update_after_change(1,res_value[1],temp_text,temp_len);
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"B",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
-					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
+					lcd_module_display_enable_page(LCM_ALL_SET_R1_BLINKING);
 					break;
-				case 14:			// changing RA under all VR menu
+				case 14:			// changing RB under UNIT menu
 					res_index=1;
+					temp_len = Show_Resistor_3_Digits(res_value[1],temp_text);
+					UI_V2_Update_after_change(1,res_value[1],temp_text,temp_len);
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"B",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
-					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
+					lcd_module_display_enable_page(LCM_ALL_SET_R1_BLINKING);
 					break;
-				case 15:			// changing RA under all VR menu
+				case 15:			// changing RB under UNIT menu
 					res_index=1;
+					temp_len = Show_Resistor_3_Digits(res_value[1],temp_text);
+					UI_V2_Update_after_change(1,res_value[1],temp_text,temp_len);
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"B",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
-					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
+					lcd_module_display_enable_page(LCM_ALL_SET_R1_BLINKING);
+					break;
+				case 16:			// changing RB under UNIT menu
+					res_index=1;
+					temp_len = Show_Resistor_3_Digits(res_value[1],temp_text);
+					UI_V2_Update_after_change(1,res_value[1],temp_text,temp_len);
+					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"B",1);
+					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+					lcd_module_display_enable_page(LCM_ALL_SET_R1_BLINKING);
+					break;
+				case 17:			// changing RB under UNIT menu
+					res_index=1;
+					temp_len = Show_Resistor_3_Digits(res_value[1],temp_text);
+					UI_V2_Update_after_change(1,res_value[1],temp_text,temp_len);
+					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"B",1);
+					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+					lcd_module_display_enable_page(LCM_ALL_SET_R1_BLINKING);
+					break;
+				case 18:			// changing RC under UNIT menu
+					res_index=2;
+					temp_len = Show_Resistor_3_Digits(res_value[2],temp_text);
+					UI_V2_Update_after_change(2,res_value[2],temp_text,temp_len);
+					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"C",1);
+					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+					lcd_module_display_enable_page(LCM_ALL_SET_R2_BLINKING);
+					break;
+				case 19:			// changing RC under UNIT menu
+					res_index=2;
+					temp_len = Show_Resistor_3_Digits(res_value[2],temp_text);
+					UI_V2_Update_after_change(2,res_value[2],temp_text,temp_len);
+					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"C",1);
+					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+					lcd_module_display_enable_page(LCM_ALL_SET_R2_BLINKING);
+					break;
+				case 20:			// changing RC under UNIT menu
+					res_index=2;
+					temp_len = Show_Resistor_3_Digits(res_value[2],temp_text);
+					UI_V2_Update_after_change(2,res_value[2],temp_text,temp_len);
+					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"C",1);
+					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+					lcd_module_display_enable_page(LCM_ALL_SET_R2_BLINKING);
+					break;
+				case 21:			// changing RC under UNIT menu
+					res_index=2;
+					temp_len = Show_Resistor_3_Digits(res_value[2],temp_text);
+					UI_V2_Update_after_change(2,res_value[2],temp_text,temp_len);
+					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"C",1);
+					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+					lcd_module_display_enable_page(LCM_ALL_SET_R2_BLINKING);
+					break;
+				case 22:			// changing RC under UNIT menu
+					res_index=2;
+					temp_len = Show_Resistor_3_Digits(res_value[2],temp_text);
+					UI_V2_Update_after_change(2,res_value[2],temp_text,temp_len);
+					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"C",1);
+					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+					lcd_module_display_enable_page(LCM_ALL_SET_R2_BLINKING);
 					break;
 			}
 
@@ -709,22 +807,29 @@ void UI_Version_02(void)
 		{
 			case 0:			// changing Fine-tuning RA
 				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,1,"A",1);
+				temp_len = itoa_10_fixed_position(res_value[0],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[0],temp_text,5); // above 2 line for update value without pressing +-
 				lcd_module_display_enable_only_one_page(LCM_ALL_SEL_SET_DISPLAY);
-				//lcd_module_display_enable_page(LCM_SEL_SET_R0_BLINKING);
+				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
 				res_index=5;
 				break;
 			case 1:			// changing Fine-tuning RB
 				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,1,"B",1);
+				temp_len = itoa_10_fixed_position(res_value[1],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[1],temp_text,5);// above 2 line for update value without pressing +-
 				lcd_module_display_enable_only_one_page(LCM_ALL_SEL_SET_DISPLAY);
-				//lcd_module_display_enable_page(LCM_SEL_SET_R1_BLINKING);
+				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
 				res_index=6;
 				break;
 			case 2:			// changing Fine-tuning RC
 				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,1,"C",1);
+				temp_len = itoa_10_fixed_position(res_value[2],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[2],temp_text,5);// above 2 line for update value without pressing +-
 				lcd_module_display_enable_only_one_page(LCM_ALL_SEL_SET_DISPLAY);
-				//lcd_module_display_enable_page(LCM_SEL_SET_R2_BLINKING);
+				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
 				res_index=7;
 				break;
+
 			case 5:
 				lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,1,"A",1);
 				temp_len = itoa_10_fixed_position(res_value[res_index-5],temp_text,8);
@@ -739,14 +844,18 @@ void UI_Version_02(void)
 				UI_V2_Update_after_change(res_index,res_value[res_index-5],temp_text,temp_len);
 				lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
 				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_1_DISPLAY);
-				res_index=12;
+				res_index=13;
 				break;
 			case 7:
 				lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,1,"C",1);
+				temp_len = itoa_10_fixed_position(res_value[res_index-5],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[res_index-5],temp_text,temp_len);
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
 				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_1_DISPLAY);
-				res_index=16;
+				res_index=18;
 				break;
-			case 8: //case8 to case 11 change RA UNIT
+
+			case 8: //case 8 to case 12 change RA UNIT
 				lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,1,"A",1);
 				temp_len = itoa_10_fixed_position(res_value[res_index-8],temp_text,8);
 				UI_V2_Update_after_change(res_index,res_value[res_index-8],temp_text,temp_len);
@@ -776,106 +885,98 @@ void UI_Version_02(void)
 				UI_V2_Update_after_change(res_index,res_value[res_index-11],temp_text,temp_len);
 				lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
 				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_5_DISPLAY);
-				res_index=4;
+				res_index=12;
 				break;
-			case 12: //case12 to case 15 change RB UNIT
-				lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,1,"B",1);
-				temp_len = itoa_10_fixed_position(res_value[res_index-11],temp_text,8);
-				UI_V2_Update_after_change(res_index,res_value[res_index-11],temp_text,temp_len);
-				lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
-				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_2_DISPLAY);
-				res_index=13;
-				break;
-			case 13:
-				lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,1,"B",1);
+			case 12:
+				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,1,"A",1);
 				temp_len = itoa_10_fixed_position(res_value[res_index-12],temp_text,8);
 				UI_V2_Update_after_change(res_index,res_value[res_index-12],temp_text,temp_len);
-				lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
-				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_3_DISPLAY);
+				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_ALL_SEL_SET_DISPLAY);
+				res_index=5;
+				break;
+
+			case 13://case 13 to case 17 change RB UNIT
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,1,"B",1);
+				temp_len = itoa_10_fixed_position(res_value[res_index-12],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[res_index-12],temp_text,temp_len);
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_2_DISPLAY);
 				res_index=14;
 				break;
 			case 14:
-				lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,1,"B",1);
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,1,"B",1);
 				temp_len = itoa_10_fixed_position(res_value[res_index-13],temp_text,8);
 				UI_V2_Update_after_change(res_index,res_value[res_index-13],temp_text,temp_len);
-				lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
-				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_4_DISPLAY);
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_3_DISPLAY);
 				res_index=15;
 				break;
 			case 15:
-				lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,1,"B",1);
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,1,"B",1);
 				temp_len = itoa_10_fixed_position(res_value[res_index-14],temp_text,8);
 				UI_V2_Update_after_change(res_index,res_value[res_index-14],temp_text,temp_len);
-				lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
-				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_5_DISPLAY);
-				res_index=1;
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_4_DISPLAY);
+				res_index=16;
 				break;
 			case 16:
-				lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,1,"C",1);
-				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_2_DISPLAY);
-				res_index=7;
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,1,"B",1);
+				temp_len = itoa_10_fixed_position(res_value[res_index-15],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[res_index-15],temp_text,temp_len);
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_5_DISPLAY);
+				res_index=17;
 				break;
-
-
-
-
-
-
-
-
-/*			case 5:			// changing Fine-tuning RB
-				lcm_text_buffer_cpy(LCM_ALL_SEL_UNIT_DISPLAY,0,13,"B",1);
-
-				temp_len = itoa_10_fixed_position(res_value[res_index-4],temp_text,8);
-				UI_V2_Update_after_change(res_index,res_value[res_index-4],temp_text,temp_len);
-				lcm_text_buffer_cpy(LCM_ALL_SEL_UNIT_DISPLAY,1,6,temp_text,temp_len);
-
-				lcd_module_display_enable_only_one_page(LCM_ALL_SEL_UNIT_DISPLAY);
-				lcd_module_display_enable_page(LCM_SEL_SET_R1_DISPLAY);
+			case 17:
+				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,1,"B",1);
+				temp_len = itoa_10_fixed_position(res_value[res_index-16],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[res_index-16],temp_text,temp_len);
+				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_ALL_SEL_SET_DISPLAY);
 				res_index=6;
 				break;
-			case 6:			// changing Fine-tuning RC
-				lcm_text_buffer_cpy(LCM_ALL_SEL_UNIT_DISPLAY,0,13,"C",1);
 
-				temp_len = itoa_10_fixed_position(res_value[res_index-4],temp_text,8);
-				UI_V2_Update_after_change(res_index,res_value[res_index-4],temp_text,temp_len);
-				lcm_text_buffer_cpy(LCM_ALL_SEL_UNIT_DISPLAY,1,6,temp_text,temp_len);
-
-				lcd_module_display_enable_only_one_page(LCM_ALL_SEL_UNIT_DISPLAY);
-				lcd_module_display_enable_page(LCM_SEL_SET_R2_DISPLAY);
+			case 18: //case 18 to case 22 change RC UNIT
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,1,"C",1);
+				temp_len = itoa_10_fixed_position(res_value[res_index-16],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[res_index-16],temp_text,temp_len);
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_2_DISPLAY);
+				res_index=19;
+				break;
+			case 19:
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,1,"C",1);
+				temp_len = itoa_10_fixed_position(res_value[res_index-17],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[res_index-17],temp_text,temp_len);
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_3_DISPLAY);
+				res_index=20;
+				break;
+			case 20:
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,1,"C",1);
+				temp_len = itoa_10_fixed_position(res_value[res_index-18],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[res_index-18],temp_text,temp_len);
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_4_DISPLAY);
+				res_index=21;
+				break;
+			case 21:
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,1,"C",1);
+				temp_len = itoa_10_fixed_position(res_value[res_index-19],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[res_index-19],temp_text,temp_len);
+				lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_SEL_UNIT_5_DISPLAY);
+				res_index=22;
+				break;
+			case 22:
+				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,1,"C",1);
+				temp_len = itoa_10_fixed_position(res_value[res_index-20],temp_text,8);
+				UI_V2_Update_after_change(res_index,res_value[res_index-20],temp_text,temp_len);
+				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_ALL_SEL_SET_DISPLAY);
 				res_index=7;
 				break;
-			case 7:			// changing Fine-tuning RA
-				lcm_text_buffer_cpy(LCM_ALL_SEL_UNIT_DISPLAY,0,13,"A",1);
-
-				temp_len = itoa_10_fixed_position(res_value[res_index-7],temp_text,8);
-				UI_V2_Update_after_change(res_index,res_value[res_index-7],temp_text,temp_len);
-				lcm_text_buffer_cpy(LCM_ALL_SEL_UNIT_DISPLAY,1,6,temp_text,temp_len);
-
-				lcd_module_display_enable_only_one_page(LCM_ALL_SEL_UNIT_DISPLAY);
-				lcd_module_display_enable_page(LCM_SEL_SET_R0_DISPLAY);
-				res_index=5;
-				break;*/
-		}
-	}
-
-
-	if(	State_Proc_Button(BUTTON_SEL_ID) )
-	{
-		if(res_sel_index<=6)
-		{
-			if(++res_sel_index>6)
-			{
-				res_sel_index = 0;
-			}
-			switch(res_sel_index)			// next state after button pressed
-			{
-				case 0:
-					lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,2,"C",1);
-					lcd_module_display_enable_only_one_page(LCM_ALL_SEL_SET_DISPLAY);
-					//lcd_module_display_enable_page(LCM_SEL_UNIT_R0_DISPLAY);
-					break;
-			}
 		}
 	}
 	// INC/DEC
@@ -942,7 +1043,9 @@ void UI_Version_02(void)
 		}
 	}
 
-	if(res_index>4)
+	if(res_index==5 ||
+	   res_index==6 ||
+	   res_index==7)
 	{
 		if(	State_Proc_Button(BUTTON_INC_ID) )
 		{
@@ -958,8 +1061,6 @@ void UI_Version_02(void)
 			temp_len = itoa_10_fixed_position(res_value[res_index-5],temp_text,8);
 			UI_V2_Update_after_change(res_index,res_value[res_index-5],temp_text,temp_len);
 			lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
-			lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
-			lcm_force_to_display_page(LCM_ALL_SEL_SET_DISPLAY);
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-5],temp_text);
 			UI_V2_Update_after_change(res_index-5,res_value[res_index-5],temp_text,temp_len);
@@ -986,6 +1087,667 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-5],temp_text);
 			UI_V2_Update_after_change(res_index-5,res_value[res_index-5],temp_text,temp_len);
+		}
+	}
+
+	if(res_index==8)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-8]<=1048564)
+			{
+				res_value[res_index-8]=res_value[res_index-8]+Unit1;
+			}
+			else
+			{
+				res_value[res_index-8]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-8],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-8],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-8],temp_text);
+			UI_V2_Update_after_change(res_index-8,res_value[res_index-8],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-8]>10)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-8]=res_value[res_index-8]-Unit1;
+			}
+			else
+			{
+				res_value[res_index-8]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-8],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-8],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-8],temp_text);
+			UI_V2_Update_after_change(res_index-8,res_value[res_index-8],temp_text,temp_len);
+		}
+	}
+	if(res_index==9)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-9]<=1048475)
+			{
+				res_value[res_index-9]=res_value[res_index-9]+Unit2;
+			}
+			else
+			{
+				res_value[res_index-9]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-9],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-9],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-9],temp_text);
+			UI_V2_Update_after_change(res_index-9,res_value[res_index-9],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-9]>100)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-9]=res_value[res_index-9]-Unit2;
+			}
+			else
+			{
+				res_value[res_index-9]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-9],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-9],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-9],temp_text);
+			UI_V2_Update_after_change(res_index-9,res_value[res_index-9],temp_text,temp_len);
+		}
+	}
+	if(res_index==10)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-10]<=1047575)
+			{
+				res_value[res_index-10]=res_value[res_index-10]+Unit3;
+			}
+			else
+			{
+				res_value[res_index-10]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-10],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-10],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-10],temp_text);
+			UI_V2_Update_after_change(res_index-10,res_value[res_index-10],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-10]>1000)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-10]=res_value[res_index-10]-Unit3;
+			}
+			else
+			{
+				res_value[res_index-10]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-10],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-10],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-10],temp_text);
+			UI_V2_Update_after_change(res_index-10,res_value[res_index-10],temp_text,temp_len);
+		}
+	}
+	if(res_index==11)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-11]<=1038575)
+			{
+				res_value[res_index-11]=res_value[res_index-11]+Unit4;
+			}
+			else
+			{
+				res_value[res_index-11]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-11],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-11],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-11],temp_text);
+			UI_V2_Update_after_change(res_index-11,res_value[res_index-11],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-11]>10000)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-11]=res_value[res_index-11]-Unit4;
+			}
+			else
+			{
+				res_value[res_index-11]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-11],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-11],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-11],temp_text);
+			UI_V2_Update_after_change(res_index-11,res_value[res_index-11],temp_text,temp_len);
+		}
+	}
+	if(res_index==12)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-12]<=948575)
+			{
+				res_value[res_index-12]=res_value[res_index-12]+Unit5;
+			}
+			else
+			{
+				res_value[res_index-12]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-12],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-12],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-12],temp_text);
+			UI_V2_Update_after_change(res_index-12,res_value[res_index-12],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-12]>100000)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-12]=res_value[res_index-12]-Unit5;
+			}
+			else
+			{
+				res_value[res_index-12]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-12],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-12],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-12],temp_text);
+			UI_V2_Update_after_change(res_index-12,res_value[res_index-12],temp_text,temp_len);
+		}
+	}
+	if(res_index==13)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-12]<=1048564)
+			{
+				res_value[res_index-12]=res_value[res_index-12]+Unit1;
+			}
+			else
+			{
+				res_value[res_index-12]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-12],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-12],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-12],temp_text);
+			UI_V2_Update_after_change(res_index-12,res_value[res_index-12],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-12]>10)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-12]=res_value[res_index-12]-Unit1;
+			}
+			else
+			{
+				res_value[res_index-12]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-12],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-12],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-12],temp_text);
+			UI_V2_Update_after_change(res_index-12,res_value[res_index-12],temp_text,temp_len);
+		}
+	}
+	if(res_index==14)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-13]<=1048475)
+			{
+				res_value[res_index-13]=res_value[res_index-13]+Unit2;
+			}
+			else
+			{
+				res_value[res_index-13]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-13],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-13],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-13],temp_text);
+			UI_V2_Update_after_change(res_index-13,res_value[res_index-13],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-13]>100)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-13]=res_value[res_index-13]-Unit2;
+			}
+			else
+			{
+				res_value[res_index-13]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-13],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-13],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-13],temp_text);
+			UI_V2_Update_after_change(res_index-13,res_value[res_index-13],temp_text,temp_len);
+		}
+	}
+	if(res_index==15)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-14]<=1047575)
+			{
+				res_value[res_index-14]=res_value[res_index-14]+Unit3;
+			}
+			else
+			{
+				res_value[res_index-14]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-14],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-14],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-14],temp_text);
+			UI_V2_Update_after_change(res_index-14,res_value[res_index-14],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-14]>1000)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-14]=res_value[res_index-14]-Unit3;
+			}
+			else
+			{
+				res_value[res_index-14]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-14],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-14],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-14],temp_text);
+			UI_V2_Update_after_change(res_index-14,res_value[res_index-14],temp_text,temp_len);
+		}
+	}
+	if(res_index==16)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-15]<=1038575)
+			{
+				res_value[res_index-15]=res_value[res_index-15]+Unit4;
+			}
+			else
+			{
+				res_value[res_index-15]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-15],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-15],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-15],temp_text);
+			UI_V2_Update_after_change(res_index-15,res_value[res_index-15],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-15]>10000)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-15]=res_value[res_index-15]-Unit4;
+			}
+			else
+			{
+				res_value[res_index-15]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-15],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-15],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-15],temp_text);
+			UI_V2_Update_after_change(res_index-15,res_value[res_index-15],temp_text,temp_len);
+		}
+	}
+	if(res_index==17)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-16]<=948575)
+			{
+				res_value[res_index-16]=res_value[res_index-16]+Unit5;
+			}
+			else
+			{
+				res_value[res_index-16]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-16],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-16],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-16],temp_text);
+			UI_V2_Update_after_change(res_index-16,res_value[res_index-16],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-16]>100000)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-16]=res_value[res_index-16]-Unit5;
+			}
+			else
+			{
+				res_value[res_index-16]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-16],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-16],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-16],temp_text);
+			UI_V2_Update_after_change(res_index-16,res_value[res_index-16],temp_text,temp_len);
+		}
+	}
+	if(res_index==18)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-16]<=1048564)
+			{
+				res_value[res_index-16]=res_value[res_index-16]+Unit1;
+			}
+			else
+			{
+				res_value[res_index-16]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-16],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-16],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-16],temp_text);
+			UI_V2_Update_after_change(res_index-16,res_value[res_index-16],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-16]>10)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-16]=res_value[res_index-16]-Unit1;
+			}
+			else
+			{
+				res_value[res_index-16]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-16],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-16],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-16],temp_text);
+			UI_V2_Update_after_change(res_index-16,res_value[res_index-16],temp_text,temp_len);
+		}
+	}
+	if(res_index==19)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-17]<=1048475)
+			{
+				res_value[res_index-17]=res_value[res_index-17]+Unit2;
+			}
+			else
+			{
+				res_value[res_index-17]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-17],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-17],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-17],temp_text);
+			UI_V2_Update_after_change(res_index-17,res_value[res_index-17],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-17]>100)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-17]=res_value[res_index-17]-Unit2;
+			}
+			else
+			{
+				res_value[res_index-17]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-17],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-17],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-17],temp_text);
+			UI_V2_Update_after_change(res_index-17,res_value[res_index-17],temp_text,temp_len);
+		}
+	}
+	if(res_index==20)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-18]<=1047575)
+			{
+				res_value[res_index-18]=res_value[res_index-18]+Unit3;
+			}
+			else
+			{
+				res_value[res_index-18]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-18],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-18],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-18],temp_text);
+			UI_V2_Update_after_change(res_index-18,res_value[res_index-18],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-18]>1000)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-18]=res_value[res_index-18]-Unit3;
+			}
+			else
+			{
+				res_value[res_index-18]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-18],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-18],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-18],temp_text);
+			UI_V2_Update_after_change(res_index-18,res_value[res_index-18],temp_text,temp_len);
+		}
+	}
+	if(res_index==21)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-19]<=1038575)
+			{
+				res_value[res_index-19]=res_value[res_index-19]+Unit4;
+			}
+			else
+			{
+				res_value[res_index-19]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-19],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-19],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-19],temp_text);
+			UI_V2_Update_after_change(res_index-19,res_value[res_index-19],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-19]>10000)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-19]=res_value[res_index-19]-Unit4;
+			}
+			else
+			{
+				res_value[res_index-19]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-19],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-19],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-19],temp_text);
+			UI_V2_Update_after_change(res_index-19,res_value[res_index-19],temp_text,temp_len);
+		}
+	}
+	if(res_index==22)
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			if(res_value[res_index-20]<=948575)
+			{
+				res_value[res_index-20]=res_value[res_index-20]+Unit5;
+			}
+			else
+			{
+				res_value[res_index-20]=1048575;
+			}
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
+			temp_len = itoa_10_fixed_position(res_value[res_index-20],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-20],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-20],temp_text);
+			UI_V2_Update_after_change(res_index-20,res_value[res_index-20],temp_text,temp_len);
+		}
+
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
+						//*step_ptr = res_step + res_index-5;
+
+			if (res_value[res_index-20]>100000)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			{
+				res_value[res_index-20]=res_value[res_index-20]-Unit5;
+			}
+			else
+			{
+				res_value[res_index-20]=1;
+			}
+
+			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
+			temp_len = itoa_10_fixed_position(res_value[res_index-20],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-20],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-20],temp_text);
+			UI_V2_Update_after_change(res_index-20,res_value[res_index-20],temp_text,temp_len);
 		}
 	}
 }
