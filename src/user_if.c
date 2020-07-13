@@ -69,27 +69,27 @@ char  *FineTuneResistorMsg[] = {
 	  "RL50  R23/83/143",
 	  "RL9/30      256\xf4",		// power(2,8)
 	  "RL51  R40/100/160",
-	  "RL10/31      512\xf4",		// power(2,9)
+	  "RL10/31     512\xf4",		// power(2,9)
 	  "RL52  R41/101/161",
-	  "RL11/32     1024\xf4",		// power(2,10)
+	  "RL11/32    1024\xf4",		// power(2,10)
 	  "RL53  R42/102/162",
-	  "RL12/33     2048\xf4",		// power(2,11)
+	  "RL12/33    2048\xf4",		// power(2,11)
 	  "RL54  R43/103/163",
-	  "RL13/34     4096\xf4",		// power(2,12)
+	  "RL13/34    4096\xf4",		// power(2,12)
 	  "RL55  R44/104/164",
-	  "RL14/35     8192\xf4",		// power(2,13)
+	  "RL14/35    8192\xf4",		// power(2,13)
 	  "RL56  R45/105/165",
-	  "RL15/36    16384\xf4",		// power(2,14)
+	  "RL15/36   16384\xf4",		// power(2,14)
 	  "RL57  R46/106/166",
-	  "RL16/37    32768\xf4",		// power(2,15)
+	  "RL16/37   32768\xf4",		// power(2,15)
 	  "RL58  R47/107/167",
-	  "RL17/38    65536\xf4",		// power(2,16)
+	  "RL17/38   65536\xf4",		// power(2,16)
 	  "RL59  R64/124/184",
-	  "RL18/39   131072\xf4",		// power(2,17)
+	  "RL18/39  131072\xf4",		// power(2,17)
 	  "RL60  R65/125/185",
-	  "RL19/40   262144\xf4",		// power(2,18)
+	  "RL19/40  262144\xf4",		// power(2,18)
 	  "RL61  R66/126/186",
-	  "RL20/41   524288\xf4",		// power(2,19)
+	  "RL20/41  524288\xf4",		// power(2,19)
 	  "RL62  R67/127/187",
 };
 
@@ -100,7 +100,6 @@ char  *FineTuneResistorMsg[] = {
 UPDATE_STATE	current_system_proc_state;
 uint16_t		max_upgrade_time_in_S;
 uint8_t			lcm_page_change_duration_in_sec;
-static uint16_t		res_2_power_N = 0;
 
 /*****************************************************************************
  * Private functions
