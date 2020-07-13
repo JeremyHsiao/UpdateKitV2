@@ -83,6 +83,14 @@ int main(void)
 
 	Init_GPIO();
 
+	// Init TPIC6B595 IC
+	Init_Shift_Register_GPIO();
+	Enable_Shift_Register_Output(false);
+	Clear_Register_Byte();
+	Clear_Shiftout_log();
+	// init value
+	//Enable_Shift_Register_Output(true);
+
 	Init_LCD_Module_GPIO();
 	// This is used for (1) software delay within lcm_sw_init() (2) regular content update lcm_auto_display_refresh_task() in main loop
 	Repeat_DownCounter(LCD_MODULE_INTERNAL_DELAY_IN_MS,(LONGER_DELAY_US/1000)+1,TIMER_MS);	// Take longer delay for more tolerance of all possible LCM usages.
@@ -246,17 +254,24 @@ int main(void)
 			{
 				uint32_t	*resistor_ptr;
 				//uint64_t	relay_value;
-				//uint32_t	readout_high, readout_low;
+				uint32_t	readout_high, readout_low;
 				uint32_t	relay_high, relay_low;
 
 				resistor_ptr = GetResistorValue();
 				Calc_Relay_Value(resistor_ptr,&relay_value);
-				relay_high = (uint32_t)((relay_value>>32)&0xffffffff);
-				relay_low  = (uint32_t)(relay_value&0xffffffff);
+				relay_high = (uint32_t)((relay_value>>32)&~(0UL));
+				relay_low  = (uint32_t)(relay_value&~(0UL));
 				Setup_Shift_Register_32it(relay_high);
 				Setup_Shift_Register_32it(relay_low);
-//				readout_high = Setup_Shift_Register_32it(relay_high);
-//				readout_low = Setup_Shift_Register_32it(relay_low);
+				readout_high = Setup_Shift_Register_32it(relay_high);
+				readout_low = Setup_Shift_Register_32it(relay_low);
+				if((readout_high!=relay_high)||(readout_low!=relay_low))
+				{
+					relay_low = relay_high; // dummy line for breakpoint
+					// need to debug
+				}
+				Latch_Register_Byte_to_Output();
+				Enable_Shift_Register_Output(true);// to be removed?
 			}
 
 			//

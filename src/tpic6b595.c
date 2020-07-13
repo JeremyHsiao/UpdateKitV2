@@ -9,7 +9,7 @@
 #include "stdbool.h"
 #include "res_state.h"
 
-#define _TEST_ON_BOARD_LPC11U68
+//#define _TEST_ON_BOARD_LPC11U68
 #ifdef _TEST_ON_BOARD_LPC11U68
 
 #define MCU_RCK_port	2
@@ -75,7 +75,7 @@
 
 #define MCU_RCK_port	2
 #define MCU_RCK_pin		0
-//#define MCU_SRCK_mux	(IOCON_FUNC0 | IOCON_MODE_INACT | IOCON_DIGMODE_EN )		//P2.2-23
+#define MCU_RCK_mux		(IOCON_FUNC0 | IOCON_MODE_INACT | IOCON_DIGMODE_EN)		// P2.0-1 -- Digital mode (ie ADMODE is off)
 
 #define MCU_SRCK_port 	2
 #define MCU_SRCK_pin	2
@@ -176,6 +176,7 @@ static uint32_t MCU_SERIN_log = 0;
 
 uint8_t const Shift_Register_GPIO_Initial_Matrix [] =
 {
+//		port				pin				output	init_high
 		MCU_RCK_port, 		MCU_RCK_pin, 	true,	false,			// D8
 		MCU_SRCK_port,		MCU_SRCK_pin,	true,	false,			// D9
 		MCU_SRCLR_port,		MCU_SRCLR_pin,  true,	true,			// D11
