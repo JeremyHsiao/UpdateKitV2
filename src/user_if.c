@@ -606,8 +606,13 @@ void UI_Version_02(void)
 	int                 Unit4=10000;
 	int                 Unit5=100000;
 	static uint32_t		res_step[3] = { 1, 1, 1 };
+#ifdef BOARD_DEBUG_SW
+	static uint8_t		res_index = 4;		// default at Value-R menu
+	static uint16_t		res_2_power_N = 0;
+#else
 	static uint8_t		res_index = 3;		// default at Value-R menu
 	//static uint16_t		res_2_power_N = 0;
+#endif // #ifdef BOARD_DEBUG_SW
 
 	if(	State_Proc_Button(BUTTON_SRC_ID) )
 	{
@@ -1025,6 +1030,7 @@ void UI_Version_02(void)
 			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   0,0, update_str, LCM_DISPLAY_COL);
 			update_str = FineTuneResistorMsg[res_2_power_N*2+1];
 			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   1,0, update_str, LCM_DISPLAY_COL);
+			res_value[0] = res_value[1] = res_value[2] = 1UL<<(res_2_power_N);
 		}
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
 		{
@@ -1040,6 +1046,7 @@ void UI_Version_02(void)
 			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   0,0, update_str, LCM_DISPLAY_COL);
 			update_str = FineTuneResistorMsg[res_2_power_N*2+1];
 			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   1,0, update_str, LCM_DISPLAY_COL);
+			res_value[0] = res_value[1] = res_value[2] = 1UL<<(res_2_power_N);
 		}
 	}
 

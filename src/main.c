@@ -229,10 +229,17 @@ int main(void)
 				// Display welcome message until time-out or button-pressed
 				if(Read_and_Clear_SW_TIMER_Reload_Flag(WELCOME_MESSAGE_IN_S) || If_any_button_pressed())
 				{
+#ifdef BOARD_DEBUG_SW
+					lcd_module_display_enable_only_one_page(LCM_ALL_SET_2N_VALUE);
+					lcm_force_to_display_page(LCM_ALL_SET_2N_VALUE);
+					usb_cdc_welcome_message_shown = true;
+					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,1,TIMER_100MS);
+#else
 					lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
 					lcm_force_to_display_page(LCM_ALL_VR_DISPLAY);
 					usb_cdc_welcome_message_shown = true;
 					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,1,TIMER_100MS);
+#endif // BOARD_DEBUG_SW
 				}
 			}
 
