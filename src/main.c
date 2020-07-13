@@ -42,6 +42,7 @@ bool			usb_cdc_welcome_message_shown = false;
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
+uint64_t	relay_value;		// public for debug purpose
 
 /*****************************************************************************
  * Private functions
@@ -223,6 +224,7 @@ int main(void)
 					lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
 					lcm_force_to_display_page(LCM_ALL_VR_DISPLAY);
 					usb_cdc_welcome_message_shown = true;
+					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,1,TIMER_100MS);
 				}
 			}
 
@@ -238,6 +240,23 @@ int main(void)
 					led ^= LED_STATUS_R;
 					LED_Status_Set_Value(led);
 				}
+			}
+
+			if(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS))
+			{
+				uint32_t	*resistor_ptr;
+				//uint64_t	relay_value;
+				//uint32_t	readout_high, readout_low;
+				uint32_t	relay_high, relay_low;
+
+				resistor_ptr = GetResistorValue();
+				Calc_Relay_Value(resistor_ptr,&relay_value);
+				relay_high = (uint32_t)((relay_value>>32)&0xffffffff);
+				relay_low  = (uint32_t)(relay_value&0xffffffff);
+				Setup_Shift_Register_32it(relay_high);
+				Setup_Shift_Register_32it(relay_low);
+//				readout_high = Setup_Shift_Register_32it(relay_high);
+//				readout_low = Setup_Shift_Register_32it(relay_low);
 			}
 
 			//
