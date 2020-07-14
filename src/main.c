@@ -16,6 +16,7 @@
 #include "lcd_module.h"
 #include "tpic6b595.h"
 #include "cdc_vcom.h"
+#include "user_opt.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -227,6 +228,10 @@ int main(void)
 			if (usb_cdc_welcome_message_shown==true)
 			{
 				UI_Version_02();
+				if(If_value_has_been_changed())
+				{
+					Countdown_Once(EEPROM_UPDATE_TIMER_IN_S,5,TIMER_S);
+				}
 			}
 			else
 			{
@@ -237,12 +242,12 @@ int main(void)
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_2N_VALUE);
 					lcm_force_to_display_page(LCM_ALL_SET_2N_VALUE);
 					usb_cdc_welcome_message_shown = true;
-					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,1,TIMER_100MS);
+					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,5,TIMER_100MS);
 #else
 					lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
 					lcm_force_to_display_page(LCM_ALL_VR_DISPLAY);
 					usb_cdc_welcome_message_shown = true;
-					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,1,TIMER_100MS);
+					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,5,TIMER_100MS);
 #endif // _BOARD_DEBUG_SW_
 				}
 			}
@@ -285,6 +290,13 @@ int main(void)
 				Enable_Shift_Register_Output(true);// to be removed?
 			}
 
+			if(Read_and_Clear_SW_TIMER_Reload_Flag(EEPROM_UPDATE_TIMER_IN_S))
+			{
+				if(Check_if_Resistor_different_from_last_ReadWrite()==true)
+				{
+					Save_Resistor_Value();
+				}
+			}
 			//
 			// End of Output UI section
 			//

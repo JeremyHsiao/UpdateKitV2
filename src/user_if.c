@@ -98,8 +98,7 @@ uint8_t			lcm_page_change_duration_in_sec;
 
 void Init_Value_From_EEPROM(void)
 {
-	Load_User_Selection(&current_output_stage);
-	Load_System_Timeout_v2(current_output_stage,&max_upgrade_time_in_S);
+	Load_Resistor_Value();
 }
 
 void Init_UpdateKitV2_variables(void)
@@ -576,11 +575,17 @@ void UI_V2_Update_after_change(uint8_t res_id, uint32_t new_value, char* temp_te
 #define RES_SEL_INDEX_NO	(6)
 
 static uint32_t		res_value[3] = { 1, 1, 1 };
-static uint16_t		res_2_power_N = 0;
+static uint32_t		res_2_power_N = 0;
+bool	Value_has_been_changed;
 
 uint32_t *GetResistorValue(void)
 {
 	return res_value;
+}
+
+uint32_t *Get_2PowerN_Value(void)
+{
+	return &res_2_power_N;
 }
 
 void UI_Version_02(void)
@@ -985,6 +990,7 @@ void UI_Version_02(void)
 			// update fine-tune value
 			temp_len = itoa_10_fixed_position(*res_ptr,temp_text,8);
 			lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
 		{
@@ -998,6 +1004,7 @@ void UI_Version_02(void)
 			// update fine-tune value
 			temp_len = itoa_10_fixed_position(*res_ptr,temp_text,8);
 			lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if (res_index == 4)
@@ -1027,6 +1034,7 @@ void UI_Version_02(void)
 			{
 				res_value[0] = res_value[1] = res_value[2] = ~0UL;
 			}
+			Value_has_been_changed=true;
 		}
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
 		{
@@ -1054,6 +1062,7 @@ void UI_Version_02(void)
 			{
 				res_value[0] = res_value[1] = res_value[2] = ~0UL;
 			}
+			Value_has_been_changed=true;
 		}
 	}
 
@@ -1078,6 +1087,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-5],temp_text);
 			UI_V2_Update_after_change(res_index-5,res_value[res_index-5],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1101,6 +1111,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-5],temp_text);
 			UI_V2_Update_after_change(res_index-5,res_value[res_index-5],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 
@@ -1123,6 +1134,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-8],temp_text);
 			UI_V2_Update_after_change(res_index-8,res_value[res_index-8],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1146,6 +1158,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-8],temp_text);
 			UI_V2_Update_after_change(res_index-8,res_value[res_index-8],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==9)
@@ -1167,6 +1180,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-9],temp_text);
 			UI_V2_Update_after_change(res_index-9,res_value[res_index-9],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1190,6 +1204,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-9],temp_text);
 			UI_V2_Update_after_change(res_index-9,res_value[res_index-9],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==10)
@@ -1211,6 +1226,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-10],temp_text);
 			UI_V2_Update_after_change(res_index-10,res_value[res_index-10],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1234,6 +1250,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-10],temp_text);
 			UI_V2_Update_after_change(res_index-10,res_value[res_index-10],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==11)
@@ -1255,6 +1272,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-11],temp_text);
 			UI_V2_Update_after_change(res_index-11,res_value[res_index-11],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1278,6 +1296,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-11],temp_text);
 			UI_V2_Update_after_change(res_index-11,res_value[res_index-11],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==12)
@@ -1299,6 +1318,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-12],temp_text);
 			UI_V2_Update_after_change(res_index-12,res_value[res_index-12],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1322,6 +1342,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-12],temp_text);
 			UI_V2_Update_after_change(res_index-12,res_value[res_index-12],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==13)
@@ -1343,6 +1364,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-12],temp_text);
 			UI_V2_Update_after_change(res_index-12,res_value[res_index-12],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1366,6 +1388,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-12],temp_text);
 			UI_V2_Update_after_change(res_index-12,res_value[res_index-12],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==14)
@@ -1387,6 +1410,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-13],temp_text);
 			UI_V2_Update_after_change(res_index-13,res_value[res_index-13],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1410,6 +1434,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-13],temp_text);
 			UI_V2_Update_after_change(res_index-13,res_value[res_index-13],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==15)
@@ -1431,6 +1456,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-14],temp_text);
 			UI_V2_Update_after_change(res_index-14,res_value[res_index-14],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1454,6 +1480,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-14],temp_text);
 			UI_V2_Update_after_change(res_index-14,res_value[res_index-14],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==16)
@@ -1475,6 +1502,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-15],temp_text);
 			UI_V2_Update_after_change(res_index-15,res_value[res_index-15],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1498,6 +1526,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-15],temp_text);
 			UI_V2_Update_after_change(res_index-15,res_value[res_index-15],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==17)
@@ -1519,6 +1548,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-16],temp_text);
 			UI_V2_Update_after_change(res_index-16,res_value[res_index-16],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1542,6 +1572,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-16],temp_text);
 			UI_V2_Update_after_change(res_index-16,res_value[res_index-16],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==18)
@@ -1563,6 +1594,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-16],temp_text);
 			UI_V2_Update_after_change(res_index-16,res_value[res_index-16],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1586,6 +1618,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-16],temp_text);
 			UI_V2_Update_after_change(res_index-16,res_value[res_index-16],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==19)
@@ -1607,6 +1640,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-17],temp_text);
 			UI_V2_Update_after_change(res_index-17,res_value[res_index-17],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1630,6 +1664,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-17],temp_text);
 			UI_V2_Update_after_change(res_index-17,res_value[res_index-17],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==20)
@@ -1651,6 +1686,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-18],temp_text);
 			UI_V2_Update_after_change(res_index-18,res_value[res_index-18],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1674,6 +1710,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-18],temp_text);
 			UI_V2_Update_after_change(res_index-18,res_value[res_index-18],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==21)
@@ -1695,6 +1732,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-19],temp_text);
 			UI_V2_Update_after_change(res_index-19,res_value[res_index-19],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1718,6 +1756,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-19],temp_text);
 			UI_V2_Update_after_change(res_index-19,res_value[res_index-19],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 	if(res_index==22)
@@ -1739,6 +1778,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-20],temp_text);
 			UI_V2_Update_after_change(res_index-20,res_value[res_index-20],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
@@ -1762,6 +1802,7 @@ void UI_Version_02(void)
 			// update RA/RB/RC
 			temp_len = Show_Resistor_3_Digits(res_value[res_index-20],temp_text);
 			UI_V2_Update_after_change(res_index-20,res_value[res_index-20],temp_text,temp_len);
+			Value_has_been_changed=true;
 		}
 	}
 }
@@ -1782,6 +1823,17 @@ bool If_any_button_pressed(void)
 	return bRet;
 }
 
+bool If_value_has_been_changed(void)
+{
+	if(Value_has_been_changed)
+	{
+		Value_has_been_changed = false;
+		return true;
+	}
+	else
+		return false;
+
+}
 
 ///
 ///

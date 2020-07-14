@@ -180,5 +180,7 @@ extern void UI_Version_01(void);
 extern void UI_Version_02(void);
 
 extern uint32_t *GetResistorValue(void);
+extern uint32_t *Get_2PowerN_Value(void);
+extern bool If_value_has_been_changed(void);
 
 #endif // _USER_IF_H_

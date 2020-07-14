@@ -8,15 +8,8 @@
 #ifndef USER_OPT_H_
 #define USER_OPT_H_
 
-extern bool Load_User_Selection(uint8_t *pUserSelect);
-extern bool Save_User_Selection(uint8_t UserSelect);
-extern bool Check_if_different_from_last_ReadWrite(uint8_t UserSelect);
-extern bool Load_System_Timeout_v2(uint8_t user_selection, uint16_t *pSystemTimeout);
-extern bool Check_if_different_from_last_System_Timeout_v2(uint8_t user_selection, uint16_t timeout);
-extern bool Save_System_Timeout_v2(uint8_t user_selection, uint16_t SystemTimeout);
-
-extern bool Load_PWM_Selection(uint8_t *pUserSelect);
-extern bool Check_if_different_from_last_PWM_ReadWrite(uint8_t UserSelect);
-extern bool Save_PWM_Selection(uint8_t UserSelect);
+extern int Load_Resistor_Value(void);
+extern bool Check_if_Resistor_different_from_last_ReadWrite(void);
+extern bool Save_Resistor_Value(void);
 
 #endif /* USER_OPT_H_ */

@@ -36,6 +36,7 @@
 #include "sw_timer.h"
 #include "res_state.h"
 #include "user_if.h"
+#include "string.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -51,23 +52,10 @@
 //uint32_t buffer[(IAP_NUM_BYTES_TO_READ_WRITE / sizeof(uint32_t)) + 1];
 ///* Pre-setup String */
 
-// User Selection
 #define EEPROM_RESERVE_AREA				(0x60)
-#define	USER_SELECTION_POSITION			(0x80)			// must be larger than EEPROM_RESERVE_AREA
-#define USER_SELECTION_LENGTH			(4)
-uint8_t User_Select_Last_ReadWrite = POWER_OUTPUT_STEP_TOTAL_NO;
-// Timeout according to previous update
-#define	SYSTEM_TIMEOUT_VALUE_POSITION	(USER_SELECTION_POSITION+USER_SELECTION_LENGTH)
-#define SYSTEM_TIMEOUT_VALUE_LENGTH		(4)
-uint16_t System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
-uint8_t For_TIMEOUT_EEPROM_User_Select_Last_ReadWrite = 0;
-// This is starting position for future EEPROM user data
-#define NEXT_FUTURE_EEPROM_DATA_START	(SYSTEM_TIMEOUT_VALUE_POSITION+(SYSTEM_TIMEOUT_VALUE_POSITION*POWER_OUTPUT_STEP_TOTAL_NO))
-// For voltage output branch
-#define	PWM_SELECTION_POSITION			(NEXT_FUTURE_EEPROM_DATA_START)
-#define PWM_SELECTION_LENGTH			(4)
-uint8_t PWM_Select_Last_ReadWrite = 0;
-// END - For voltage output branch
+#define OPTION_COUNT					(4)
+#define	RESISTOR_VALUE_POSITION			(0x80)													// must be larger than EEPROM_RESERVE_AREA
+#define RESISTOR_VALUE_LENGTH			(sizeof(uint32_t)*(OPTION_COUNT*2))
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -157,59 +145,121 @@ static inline uint8_t Chip_EEPROM_Read_v2(uint32_t srcAdd, uint8_t *ptr, uint32_
 	return result[0];
 }
 
-bool Load_User_Selection(uint8_t *pUserSelect)
+
+static uint32_t last_read_write_value[OPTION_COUNT*2];
+
+int Load_Resistor_Value(void)
 {
-	uint32_t user_selection_buffer[(USER_SELECTION_LENGTH / sizeof(uint32_t)) + 1];
-	uint8_t *ptr = (uint8_t *) user_selection_buffer;
-	uint8_t ret_code;
+	uint32_t res[OPTION_COUNT*2];
+	uint8_t *ptr = (uint8_t *) res;
+	uint8_t ret_code, index;
+	uint32_t *res_ptr = GetResistorValue();
+	uint32_t *power_2_ptr = Get_2PowerN_Value();
+	int 		return_value = 0;
 
 	/* Data to be read from EEPROM */
-	ret_code = Chip_EEPROM_Read_v2(USER_SELECTION_POSITION, ptr, USER_SELECTION_LENGTH);
+	ret_code = Chip_EEPROM_Read_v2(RESISTOR_VALUE_POSITION, ptr, RESISTOR_VALUE_LENGTH);
 
 	/* Error checking */
 	if (ret_code != IAP_CMD_SUCCESS) {
 		//DEBUGOUT("Command failed to execute, return code is: %x\r\n", ret_code);
-		*pUserSelect = User_Select_Last_ReadWrite = DEFAULT_POWER_OUTPUT_STEP;
-		return false;		// cannot validate
+		res_ptr[0]=res_ptr[1]=res_ptr[2]=1;
+		*power_2_ptr = 0;
+		return -1;		// cannot validate
 	}
 
-	if((*ptr<POWER_OUTPUT_STEP_TOTAL_NO)&&(ptr[0]==ptr[3])&&(ptr[1]==ptr[2])&&(ptr[0]==(ptr[1]^0xff)))
+	// update last_read_write value
+	memcpy(last_read_write_value,res,RESISTOR_VALUE_LENGTH);
+
+	index = 2;
+	do
 	{
-		*pUserSelect = User_Select_Last_ReadWrite = *ptr;
+		if((res[index]>=(1UL<<20))||(res[index]!=(~res[index+OPTION_COUNT])))
+		{
+			res_ptr[index]=1;
+			return_value = 1;
+		}
+		else
+		{
+			res_ptr[index] = res[index];
+		}
+	}
+	while(index-->0);
+
+	if((res[3]>=(22))||(res[3]!=(~res[3+OPTION_COUNT])))
+	{
+		*power_2_ptr=0;
+		return_value = 1;
+	}
+	else
+	{
+		*power_2_ptr=res[3];
+	}
+
+	return return_value;
+}
+
+bool Check_if_Resistor_different_from_last_ReadWrite(void)
+{
+	uint32_t *res_ptr = GetResistorValue();
+	uint32_t *power_2_ptr = Get_2PowerN_Value();
+
+	if(	(last_read_write_value[0]!=res_ptr[0])||
+		(last_read_write_value[1]!=res_ptr[1])||
+		(last_read_write_value[2]!=res_ptr[2])||
+		(last_read_write_value[3]!=*power_2_ptr))
+	{
 		return true;
 	}
 	else
 	{
-		*pUserSelect = User_Select_Last_ReadWrite = DEFAULT_POWER_OUTPUT_STEP;
 		return false;
 	}
+
 }
 
-bool Check_if_different_from_last_ReadWrite(uint8_t UserSelect)
+bool Save_Resistor_Value(void)
 {
-	return (UserSelect!=User_Select_Last_ReadWrite)?true:false;
-}
+	uint32_t res[OPTION_COUNT*2];
+	uint8_t *ptr = (uint8_t *) res;
+	uint8_t ret_code, index;
+	uint32_t *res_ptr = GetResistorValue();
+	uint32_t *power_2_ptr = Get_2PowerN_Value();
 
-bool Save_User_Selection(uint8_t UserSelect)
-{
-	uint32_t user_selection_buffer[(USER_SELECTION_LENGTH / sizeof(uint32_t)) + 1];
-	uint8_t *ptr = (uint8_t *) user_selection_buffer;
-	uint8_t ret_code;
+	index = 2;
+	do
+	{
+		if(res_ptr[index]>=(1UL<<20))
+		{
+			// return false if out of range
+			return false;
+		}
+		else
+		{
+			res[index] = res_ptr[index];
+			res[index+OPTION_COUNT] = ~res[index];
+		}
+	}
+	while(index-->0);
 
-	// return false if out of range
-	if(UserSelect>=POWER_OUTPUT_STEP_TOTAL_NO){
+	if(*power_2_ptr>=22)
+	{
+		// return false if out of range
 		return false;
+	}
+	else
+	{
+		res[3] = *power_2_ptr;
+		res[3+OPTION_COUNT] = ~res[3];
 	}
 
 	/* Data to be written to EEPROM */
-	ptr[0]=ptr[3]=UserSelect;
-	ptr[1]=ptr[2]=(UserSelect^0xff);
-	ret_code = Chip_EEPROM_Write_v2(USER_SELECTION_POSITION, ptr, USER_SELECTION_LENGTH);
+	ret_code = Chip_EEPROM_Write_v2(RESISTOR_VALUE_POSITION, ptr, RESISTOR_VALUE_LENGTH);
 
 	/* Error checking */
 	if (ret_code == IAP_CMD_SUCCESS)
 	{
-		User_Select_Last_ReadWrite = UserSelect;
+		memcpy(last_read_write_value,res,RESISTOR_VALUE_LENGTH);
 		return true;
 	}
 	else
@@ -217,87 +267,4 @@ bool Save_User_Selection(uint8_t UserSelect)
 		return false;
 	}
 }
-
-bool Load_System_Timeout_v2(uint8_t user_selection, uint16_t *pSystemTimeout)
-{
-	uint32_t system_timeout_buffer[(SYSTEM_TIMEOUT_VALUE_LENGTH / sizeof(uint32_t)) + 1];
-	uint16_t *ptr = (uint16_t *) system_timeout_buffer;
-	uint8_t ret_code;
-
-	// return default value if user_selection is 0 -- in fact this value is not used for pc-mode
-	if(user_selection==0)
-	{
-		*pSystemTimeout = System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
-		return true;
-	}
-
-	/* Data to be read from EEPROM */
-	ret_code = Chip_EEPROM_Read_v2(SYSTEM_TIMEOUT_VALUE_POSITION+(user_selection*SYSTEM_TIMEOUT_VALUE_LENGTH), (uint8_t *)ptr, SYSTEM_TIMEOUT_VALUE_LENGTH);
-
-	/* Error checking */
-	if (ret_code != IAP_CMD_SUCCESS) {
-		//DEBUGOUT("Command failed to execute, return code is: %x\r\n", ret_code);
-		*pSystemTimeout = System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
-		return false;		// cannot validate
-	}
-
-	if((*ptr>MINIMAL_TIMEOUT_VALUE)&&(ptr[0]==(ptr[1]^0xffff)))
-	{
-//		To check max. value
-//		if(*ptr>MAXIMAL_TIMEOUT_VALUE)
-//			*ptr = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
-		*pSystemTimeout = System_Timeout_Last_ReadWrite = *ptr;
-		For_TIMEOUT_EEPROM_User_Select_Last_ReadWrite = user_selection;
-		return true;
-	}
-	else
-	{
-		*pSystemTimeout = System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
-		return false;
-	}
-}
-
-bool Check_if_different_from_last_System_Timeout_v2(uint8_t user_selection, uint16_t timeout)
-{
-	return ((timeout!=System_Timeout_Last_ReadWrite)||(user_selection!=For_TIMEOUT_EEPROM_User_Select_Last_ReadWrite))?true:false;
-}
-
-bool Save_System_Timeout_v2(uint8_t user_selection, uint16_t SystemTimeout)
-{
-	uint32_t system_timeout_buffer[(SYSTEM_TIMEOUT_VALUE_LENGTH / sizeof(uint32_t)) + 1];
-	uint16_t *ptr = (uint16_t *) system_timeout_buffer;
-	uint8_t ret_code;
-
-	// return true if user_selection is 0 -- no need to save timeout value for pc-mode
-	if(user_selection==0)
-	{
-		System_Timeout_Last_ReadWrite = DEFAULT_MAX_FW_UPDATE_TIME_IN_S;
-		return true;
-	}
-
-	// return false if out of range
-	if(SystemTimeout<=MINIMAL_TIMEOUT_VALUE){
-		return false;
-	}
-
-	/* Data to be written to EEPROM */
-	ptr[0]=SystemTimeout;
-	ptr[1]=(SystemTimeout^0xffff);
-	ret_code = Chip_EEPROM_Write_v2(SYSTEM_TIMEOUT_VALUE_POSITION+(user_selection*SYSTEM_TIMEOUT_VALUE_LENGTH), (uint8_t *)ptr, SYSTEM_TIMEOUT_VALUE_LENGTH);
-
-	/* Error checking */
-	if (ret_code == IAP_CMD_SUCCESS)
-	{
-		System_Timeout_Last_ReadWrite = SystemTimeout;
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-// For voltage output branch
-//#define	PWM_SELECTION_POSITION			(NEXT_FUTURE_EEPROM_DATA_START)
-//#define PWM_SELECTION_LENGTH			(4)
 
