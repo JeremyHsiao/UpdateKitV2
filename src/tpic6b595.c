@@ -155,15 +155,15 @@ void Calc_Relay_Value(uint32_t *Resistor, uint64_t *Relay)
 	while (resistor_index-->0);
 
 	// Shortcut for small resistor value
-	if(Resistor[2]<SMALL_RESISITOR_VALUE)
+	if(Resistor[2]>=SMALL_RESISITOR_VALUE)
 	{
 		Relay_Value |= (1ULL<<62);
 	}
-	if(Resistor[1]<SMALL_RESISITOR_VALUE)
+	if(Resistor[1]>=SMALL_RESISITOR_VALUE)
 	{
 		Relay_Value |= (1ULL<<61);
 	}
-	if(Resistor[0]<SMALL_RESISITOR_VALUE)
+	if(Resistor[0]>=SMALL_RESISITOR_VALUE)
 	{
 		Relay_Value |= (1ULL<<60);
 	}
