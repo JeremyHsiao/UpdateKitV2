@@ -40,7 +40,7 @@ uint32_t LED_G_toggle_cnt, LED_R_toggle_cnt, LED_Y_toggle_cnt;
 
 void Init_GPIO(void)
 {
-#ifdef _REAL_UPDATEKIT_V2_BOARD_
+#if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
 
 	// Set PIO0_3
 	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 3, (IOCON_FUNC0 | IOCON_MODE_INACT | (1L<<7)));				// P0.0-3; 6-10; 17-21);
@@ -120,7 +120,7 @@ void Init_GPIO(void)
 	//Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_Y_GPIO_PORT, LED_Y_GPIO_PIN);
 
 
-#endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
+#endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || (_HOT_SPRING_BOARD_V2_)
 
 //	GPIOGoup0_Int = false;
 

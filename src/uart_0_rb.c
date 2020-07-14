@@ -56,7 +56,7 @@ static uint8_t rxbuff[UART_RRB_SIZE], txbuff[UART_SRB_SIZE];
  ****************************************************************************/
 static void Init_UART_PinMux(void)
 {
-#ifdef _REAL_UPDATEKIT_V2_BOARD_
+#if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
 
 	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 18, (IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_DIGMODE_EN));
 	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 19, (IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_DIGMODE_EN));
@@ -73,7 +73,7 @@ static void Init_UART_PinMux(void)
 #else
 #error "No UART setup defined"
 #endif
-#endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
+#endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || (_HOT_SPRING_BOARD_V2_)
 }
 
 /*****************************************************************************

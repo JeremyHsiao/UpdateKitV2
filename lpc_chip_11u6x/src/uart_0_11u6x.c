@@ -154,7 +154,7 @@ uint32_t Chip_UART0_SetBaud(LPC_USART0_T *pUART, uint32_t baudrate)
 	Chip_UART0_SetDivisorLatches(pUART, divl, divh);
 	Chip_UART0_DisableDivisorAccess(pUART);
 
-#ifdef _REAL_UPDATEKIT_V2_BOARD_
+#if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
 	if(baudrate>=115200)
 	{
 		/* Set best fractional divider */
@@ -177,7 +177,7 @@ uint32_t Chip_UART0_SetBaud(LPC_USART0_T *pUART, uint32_t baudrate)
 #else
 	/* Fractional FDR already setup for 1 in UART init */
 	return clkin / (div * 16);
-#endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
+#endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || (_HOT_SPRING_BOARD_V2_)
 
 }
 

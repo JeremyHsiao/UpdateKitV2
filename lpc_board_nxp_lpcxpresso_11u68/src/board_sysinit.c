@@ -43,7 +43,7 @@
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
-#ifdef _REAL_UPDATEKIT_V2_BOARD_
+#if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
 STATIC const PINMUX_GRP_T pinmuxing[] = {
 	/* LPCXpresso pin			- Base board function		- Mapped function */
 	/* RESET-PIO0_0				- PIO/RESET (pin 4)			- Reset */
@@ -266,7 +266,7 @@ STATIC const PINMUX_GRP_T pinmuxing[] = {
 	/* PIO2_22					-                           - GPIO */
 	/* PIO2_23					-                           - GPIO */
 };
-#endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
+#endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || (_HOT_SPRING_BOARD_V2_)
 
 /*****************************************************************************
  * Private functions
@@ -294,11 +294,11 @@ void Board_SetupClocking(void)
 /* Set up and initialize hardware prior to call to main */
 void Board_SystemInit(void)
 {
-#ifdef _REAL_UPDATEKIT_V2_BOARD_
+#if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
 	Board_SetupMuxing();/* Muxing first as it sets up ext oscillator pins */
 #else
 	/* Setup system clocking and muxing */
 	Board_SetupMuxing();/* Muxing first as it sets up ext oscillator pins */
 	Board_SetupClocking();
-#endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
+#endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || (_HOT_SPRING_BOARD_V2_)
 }

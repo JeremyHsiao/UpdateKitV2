@@ -10,7 +10,7 @@
 
 #define WRITE_4BITS
 
-#ifdef _REAL_UPDATEKIT_V2_BOARD_
+#if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
 
 #define LCD_GPIO_RS_PORT	(0)
 #define LCD_GPIO_RS_PIN		(23)
@@ -58,7 +58,7 @@
 #define	LCD_DB7_PIN_IO_FUNC	(IOCON_FUNC0)
 #define HIGH_NIBBLE_MASK	((1L<<DB7_PIN)|(1L<<DB6_PIN)|(1L<<DB5_PIN)|(1L<<DB4_PIN))
 
-#endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
+#endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || (_HOT_SPRING_BOARD_V2_)
 
 #define LONGER_DELAY_US		(2000)
 #define SHORTER_DELAY_US	(1000)

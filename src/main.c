@@ -68,7 +68,20 @@ int main(void)
 	Board_Init();
 	Init_UART0();
 
-#ifndef _REAL_UPDATEKIT_V2_BOARD_
+#if	defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
+
+	Init_GPIO();
+
+#if	defined (_HOT_SPRING_BOARD_V2_)
+	// Init TPIC6B595 IC
+	Init_Shift_Register_GPIO();
+	Enable_Shift_Register_Output(false);
+	Clear_Register_Byte();
+	Clear_Shiftout_log();
+	// init value
+	//Enable_Shift_Register_Output(true);
+#endif //
+#else
 	// Setup Virtual Serial com-port and UART0
 	// To be updated later: UART0 uses P1_26 & P1_27 and needs to update after final board is available
 
@@ -80,16 +93,6 @@ int main(void)
 	Clear_Register_Byte();
 	Clear_Shiftout_log();
 #endif // ! _REAL_UPDATEKIT_V2_BOARD_
-
-	Init_GPIO();
-
-	// Init TPIC6B595 IC
-	Init_Shift_Register_GPIO();
-	Enable_Shift_Register_Output(false);
-	Clear_Register_Byte();
-	Clear_Shiftout_log();
-	// init value
-	//Enable_Shift_Register_Output(true);
 
 	Init_LCD_Module_GPIO();
 	// This is used for (1) software delay within lcm_sw_init() (2) regular content update lcm_auto_display_refresh_task() in main loop
@@ -113,11 +116,11 @@ int main(void)
 	EVENT_Button_pressed_debounced = false;
 	Countdown_Once(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S),TIMER_S);
 
-#ifndef _REAL_UPDATEKIT_V2_BOARD_
+#if	defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
+	Countdown_Once(WELCOME_MESSAGE_IN_S,WELCOME_MESSAGE_DISPLAY_TIME_IN_S,TIMER_S); // Read_and_Clear_SW_TIMER_Reload_Flag
+#else
 	while(vcom_connected()==0); // wait until virtual com connected.
 	Countdown_Once(WELCOME_MESSAGE_IN_S,vcom_start_to_work_in_sec,TIMER_S); // Read_and_Clear_SW_TIMER_Reload_Flag
-#else
-	Countdown_Once(WELCOME_MESSAGE_IN_S,WELCOME_MESSAGE_DISPLAY_TIME_IN_S,TIMER_S); // Read_and_Clear_SW_TIMER_Reload_Flag
 #endif // #ifndef _REAL_UPDATEKIT_V2_BOARD_
 
 	// Endless loop at the moment
@@ -125,7 +128,8 @@ int main(void)
 	{
 		static uint32_t		led = LED_STATUS_G;
 		uint8_t 			temp;
-#ifndef _REAL_UPDATEKIT_V2_BOARD_
+#if	defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
+#else
 		int 				rdCnt = 0, txCnt = 0;
 		uint8_t				shift_register_state;
 		uint32_t			shift_out_data_log;
@@ -133,7 +137,7 @@ int main(void)
 
 		LED_Status_Set_Value(led);
 
-#ifdef _REAL_UPDATEKIT_V2_BOARD_
+#if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
 
 		//
 		// UART/ADC Input data processing section
@@ -213,7 +217,7 @@ int main(void)
 				CDC_OutputHexValue_with_newline(shift_out_data_log);
 			}
 		}
-#endif // #ifndef _REAL_UPDATEKIT_V2_BOARD_
+#endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || (_HOT_SPRING_BOARD_V2_)
 
 
 		if((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))		// Returns 1 if the SysTick timer counted to 0 since the last read of this register
@@ -229,7 +233,7 @@ int main(void)
 				// Display welcome message until time-out or button-pressed
 				if(Read_and_Clear_SW_TIMER_Reload_Flag(WELCOME_MESSAGE_IN_S) || If_any_button_pressed())
 				{
-#ifdef BOARD_DEBUG_SW
+#ifdef _BOARD_DEBUG_SW_
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_2N_VALUE);
 					lcm_force_to_display_page(LCM_ALL_SET_2N_VALUE);
 					usb_cdc_welcome_message_shown = true;
@@ -239,7 +243,7 @@ int main(void)
 					lcm_force_to_display_page(LCM_ALL_VR_DISPLAY);
 					usb_cdc_welcome_message_shown = true;
 					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,1,TIMER_100MS);
-#endif // BOARD_DEBUG_SW
+#endif // _BOARD_DEBUG_SW_
 				}
 			}
 

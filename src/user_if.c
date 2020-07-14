@@ -16,8 +16,6 @@
 #include "user_if.h"
 #include "lcd_module.h"
 
-#ifdef _REAL_UPDATEKIT_V2_BOARD_
-
 #define BUTTON_SRC_PORT		BLUE_KEY_GPIO_PORT
 #define BUTTON_SRC_PIN		BLUE_KEY_GPIO_PIN
 #define BUTTON_SEL_PORT		YELLOW_KEY_GPIO_PORT
@@ -28,21 +26,6 @@
 #define BUTTON_DEC_PIN		RED_KEY_GPIO_PIN
 #define BUTTON_ISP_PORT		SWITCH_KEY_GPIO_PORT
 #define BUTTON_ISP_PIN		SWITCH_KEY_GPIO_PIN
-
-#else
-
-#define BUTTON_SRC_PORT		BLUE_KEY_GPIO_PORT
-#define BUTTON_SRC_PIN		BLUE_KEY_GPIO_PIN
-#define BUTTON_DEC_PORT		YELLOW_KEY_GPIO_PORT
-#define BUTTON_DEC_PIN		YELLOW_KEY_GPIO_PIN
-#define BUTTON_INC_PORT		GREEN_KEY_GPIO_PORT
-#define BUTTON_INC_PIN		GREEN_KEY_GPIO_PIN
-#define BUTTON_SEL_PORT		RED_KEY_GPIO_PORT
-#define BUTTON_SEL_PIN		RED_KEY_GPIO_PIN
-#define BUTTON_ISP_PORT		SWITCH_KEY_GPIO_PORT
-#define BUTTON_ISP_PIN		SWITCH_KEY_GPIO_PIN
-
-#endif // #ifdef _REAL_UPDATEKIT_V2_BOARD_
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -610,11 +593,11 @@ void UI_Version_02(void)
 	int                 Unit4=10000;
 	int                 Unit5=100000;
 	static uint32_t		res_step[3] = { 1, 1, 1 };
-#ifdef BOARD_DEBUG_SW
+#ifdef _BOARD_DEBUG_SW_
 	static uint8_t		res_index = 4;		// default at Value-R menu
 #else
 	static uint8_t		res_index = 3;		// default at Value-R menu
-#endif // #ifdef BOARD_DEBUG_SW
+#endif // #ifdef _BOARD_DEBUG_SW_
 
 	if(	State_Proc_Button(BUTTON_SRC_ID) )
 	{

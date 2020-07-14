@@ -134,14 +134,14 @@ void Calc_Relay_Value(uint32_t *Resistor, uint64_t *Relay)
 	uint64_t	Relay_Value;
 	uint8_t		resistor_index;
 
-#ifdef BOARD_DEBUG_SW
+#ifdef _BOARD_DEBUG_SW_
 	if(Resistor[0]==~0UL)
 	{
 		// RELAY-A/B/C is high to cut off short-path
 		*Relay = (7ULL<<60);
 		return;
 	}
-#endif // #ifdef BOARD_DEBUG_SW
+#endif // #ifdef _BOARD_DEBUG_SW_
 
 	Relay_Value = 0;
 	resistor_index = 2; // RC->RB->RA
