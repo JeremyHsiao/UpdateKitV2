@@ -91,6 +91,10 @@ char  *FineTuneResistorMsg[] = {
 	  "RL61 R66/126/186",
 	  "RL20/41  524288\xf4",		// power(2,19)
 	  "RL62 R67/127/187",
+	  "PRELAY-ABC    0\xf4",		// 0ohm - only relay 0/1/2/3
+	  "connected       ",
+	  "PRELAY-ABC    0\xf4",		// 0ohm - all relay
+	  "disconnected    ",
 };
 
 /*****************************************************************************
@@ -589,6 +593,7 @@ void UI_V2_Update_after_change(uint8_t res_id, uint32_t new_value, char* temp_te
 #define RES_SEL_INDEX_NO	(6)
 
 static uint32_t		res_value[3] = { 1, 1, 1 };
+static uint16_t		res_2_power_N = 0;
 
 uint32_t *GetResistorValue(void)
 {
@@ -607,10 +612,8 @@ void UI_Version_02(void)
 	static uint32_t		res_step[3] = { 1, 1, 1 };
 #ifdef BOARD_DEBUG_SW
 	static uint8_t		res_index = 4;		// default at Value-R menu
-	static uint16_t		res_2_power_N = 0;
 #else
 	static uint8_t		res_index = 3;		// default at Value-R menu
-	//static uint16_t		res_2_power_N = 0;
 #endif // #ifdef BOARD_DEBUG_SW
 
 	if(	State_Proc_Button(BUTTON_SRC_ID) )
@@ -1021,7 +1024,7 @@ void UI_Version_02(void)
 		if(	State_Proc_Button(BUTTON_INC_ID) )
 		{
 			++res_2_power_N;
-			if(res_2_power_N>=20)
+			if(res_2_power_N>=20+2)
 			{
 				res_2_power_N = 0;
 			}
@@ -1029,13 +1032,24 @@ void UI_Version_02(void)
 			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   0,0, update_str, LCM_DISPLAY_COL);
 			update_str = FineTuneResistorMsg[res_2_power_N*2+1];
 			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   1,0, update_str, LCM_DISPLAY_COL);
-			res_value[0] = res_value[1] = res_value[2] = 1UL<<(res_2_power_N);
+			if(res_2_power_N<=19)
+			{
+				res_value[0] = res_value[1] = res_value[2] = 1UL<<(res_2_power_N);
+			}
+			else if(res_2_power_N==20)
+			{
+				res_value[0] = res_value[1] = res_value[2] = 0;
+			}
+			else
+			{
+				res_value[0] = res_value[1] = res_value[2] = ~0UL;
+			}
 		}
 		if(	State_Proc_Button(BUTTON_DEC_ID) )
 		{
 			if(res_2_power_N==0)
 			{
-				res_2_power_N = (20-1);
+				res_2_power_N = (20-1)+2;
 			}
 			else
 			{
@@ -1045,7 +1059,18 @@ void UI_Version_02(void)
 			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   0,0, update_str, LCM_DISPLAY_COL);
 			update_str = FineTuneResistorMsg[res_2_power_N*2+1];
 			lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   1,0, update_str, LCM_DISPLAY_COL);
-			res_value[0] = res_value[1] = res_value[2] = 1UL<<(res_2_power_N);
+			if(res_2_power_N<=19)
+			{
+				res_value[0] = res_value[1] = res_value[2] = 1UL<<(res_2_power_N);
+			}
+			else if(res_2_power_N==20)
+			{
+				res_value[0] = res_value[1] = res_value[2] = 0;
+			}
+			else
+			{
+				res_value[0] = res_value[1] = res_value[2] = ~0UL;
+			}
 		}
 	}
 
