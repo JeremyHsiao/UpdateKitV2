@@ -119,9 +119,9 @@ int main(void)
 		static uint32_t		led = LED_STATUS_G;
 		uint8_t 			temp;
 
-		LED_Status_Set_Value(led);
-
 #if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
+
+		LED_Status_Set_Value(led);
 
 		//
 		// UART/ADC Input data processing section
