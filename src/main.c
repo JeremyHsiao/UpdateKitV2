@@ -16,6 +16,7 @@
 #include "lcd_module.h"
 #include "tpic6b595.h"
 #include "cdc_vcom.h"
+#include "cdc_main.h"
 #include "user_opt.h"
 
 /*****************************************************************************
@@ -33,10 +34,6 @@ uint8_t		*UART_Rx_ptr=UART_Rx_log;
 uint16_t	UART_TX_LOG_Index = 0;
 #endif // #ifdef DEBUG_RX_LOG
 
-uint8_t g_rxBuff[VCOM_RX_BUF_SZ];
-uint8_t g_txBuff[VCOM_RX_BUF_SZ];
-extern int cdc_main(void);
-
 uint8_t			vcom_start_to_work_in_sec = 2;
 bool			usb_cdc_welcome_message_shown = false;
 
@@ -44,6 +41,11 @@ bool			usb_cdc_welcome_message_shown = false;
  * Public types/enumerations/variables
  ****************************************************************************/
 uint64_t	relay_value;		// public for debug purpose
+
+// for debugging usb-cdc
+uint32_t prompt = 0, rdCnt = 0;
+static uint8_t g_rxBuff[256];
+//
 
 /*****************************************************************************
  * Private functions
@@ -109,7 +111,6 @@ int main(void)
 #else
 	// Setup Virtual Serial com-port
 	cdc_main();
-	while(vcom_connected()==0); // wait until virtual com connected.
 #endif // ! _REAL_UPDATEKIT_V2_BOARD_
 
 	// Endless loop at the moment
@@ -150,20 +151,21 @@ int main(void)
 
 
 #if defined (_HOT_SPRING_BOARD_V2_)
-		if(vcom_connected())
+		if (Check_USB_IsConfigured())
 		{
-			int rdCnt = 0, txCnt = 0;
-			rdCnt = vcom_bread(&g_rxBuff[0], VCOM_RX_BUF_SZ);
-			if (rdCnt)
-			{
-				uint32_t push_cdc_cnt = rdCnt, push_cdc_index = 0;
-				do
-				{
-					txCnt = vcom_write(g_rxBuff+push_cdc_index, push_cdc_cnt);
-					push_cdc_index += txCnt;
-					push_cdc_cnt -= txCnt;
+			/* If VCOM port is opened echo whatever we receive back to host. */
+			if (prompt) {
+				rdCnt = vcom_bread(&g_rxBuff[0], 256);
+				if (rdCnt) {
+					vcom_write(&g_rxBuff[0], rdCnt);
 				}
-				while(push_cdc_cnt>0);
+			}
+			else
+			{
+				/* Check if host has connected and opened the VCOM port */
+				if ((vcom_connected() != 0) && (prompt == 0)) {
+					prompt = vcom_write("Hello World!!\r\n", 15);
+				}
 			}
 		}
 #endif // defined (_HOT_SPRING_BOARD_V2_)
@@ -252,38 +254,20 @@ int main(void)
 		}
 
 #else
-
-		if(usb_cdc_welcome_message_shown)
+		if (Check_USB_IsConfigured())
 		{
 			/* If VCOM port is opened echo whatever we receive back to host. */
-			rdCnt = vcom_bread(&g_rxBuff[0], VCOM_RX_BUF_SZ);
-			if (rdCnt)
-			{
-				uint32_t push_uart_cnt = rdCnt, push_uart_index = 0;
-				do
-				{
-					uint32_t out_cnt;
-					out_cnt = OutputData(g_rxBuff+push_uart_index, push_uart_cnt);
-					push_uart_index += out_cnt;
-					push_uart_cnt -= out_cnt;
+			if (prompt) {
+				rdCnt = vcom_bread(&g_rxBuff[0], 256);
+				if (rdCnt) {
+					vcom_write(&g_rxBuff[0], rdCnt);
 				}
-				while(push_uart_cnt>0);
 			}
-
-			if(vcom_write_precheck())		// if pre-check ok then proceed -- to avoid some waiting delay due to vcom_write is not available.
+			else
 			{
-				txCnt = UART0_GetData(&g_txBuff[0],VCOM_RX_BUF_SZ);
-				if (txCnt)
-				{
-					uint32_t push_cdc_cnt = txCnt, push_cdc_index = 0;
-					do
-					{
-						uint32_t out_cnt;
-						out_cnt = vcom_write(g_txBuff+push_cdc_index, push_cdc_cnt);
-						push_cdc_index += out_cnt;
-						push_cdc_cnt -= out_cnt;
-					}
-					while(push_cdc_cnt>0);
+				/* Check if host has connected and opened the VCOM port */
+				if ((vcom_connected() != 0) && (prompt == 0)) {
+					prompt = vcom_write("Hello World!!\r\n", 15);
 				}
 			}
 		}

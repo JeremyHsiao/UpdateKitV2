@@ -102,6 +102,11 @@ USB_INTERFACE_DESCRIPTOR *find_IntfDesc(const uint8_t *pDesc, uint32_t intfClass
 	return pIntfDesc;
 }
 
+bool Check_USB_IsConfigured(void)
+{
+	return USB_IsConfigured(g_hUsb);
+}
+
 /**
  * @brief	main routine for blinky example
  * @return	Function should not exit.
@@ -111,7 +116,6 @@ int cdc_main(void)
 	USBD_API_INIT_PARAM_T usb_param;
 	USB_CORE_DESCS_T desc;
 	ErrorCode_t ret = LPC_OK;
-//	uint32_t prompt = 0, rdCnt = 0;
 
 //	SystemCoreClockUpdate();
 //	/* Initialize board and chip */
@@ -170,4 +174,32 @@ int cdc_main(void)
 
 	}
 	return 0;
+
+//	while (!USB_IsConfigured(g_hUsb));
+//
+//	DEBUGSTR("USB CDC class based virtual Comm port example!\r\n");
+//	{
+//		static uint8_t g_rxBuff[256];
+//		uint32_t prompt = 0, rdCnt = 0;
+//
+//		while (1) {
+//			/* If VCOM port is opened echo whatever we receive back to host. */
+//			if (prompt) {
+//				rdCnt = vcom_bread(&g_rxBuff[0], 256);
+//				if (rdCnt) {
+//					vcom_write(&g_rxBuff[0], rdCnt);
+//				}
+//			}
+//			else
+//			{
+//				/* Check if host has connected and opened the VCOM port */
+//				if ((vcom_connected() != 0) && (prompt == 0)) {
+//					prompt = vcom_write("Hello World!!\r\n", 15);
+//				}
+//			}
+//			/* Sleep until next IRQ happens */
+//			__WFI();
+//		}
+//	}
+
 }
