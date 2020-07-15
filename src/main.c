@@ -73,6 +73,7 @@ int main(void)
 
 	Init_GPIO();
 
+	// Hot Spring Board only
 #if	defined (_HOT_SPRING_BOARD_V2_)
 	cdc_main();
 	// Init TPIC6B595 IC
@@ -83,19 +84,6 @@ int main(void)
 	// init value
 	//Enable_Shift_Register_Output(true);
 #endif //
-#else
-	// Setup Virtual Serial com-port and UART0
-	// To be updated later: UART0 uses P1_26 & P1_27 and needs to update after final board is available
-
-	cdc_main();
-
-	// Init TPIC6B595 IC
-	Init_Shift_Register_GPIO();
-	Enable_Shift_Register_Output(false);
-	Clear_Register_Byte();
-	Clear_Shiftout_log();
-#endif // ! _REAL_UPDATEKIT_V2_BOARD_
-
 	Init_LCD_Module_GPIO();
 	// This is used for (1) software delay within lcm_sw_init() (2) regular content update lcm_auto_display_refresh_task() in main loop
 	Repeat_DownCounter(LCD_MODULE_INTERNAL_DELAY_IN_MS,(LONGER_DELAY_US/1000)+1,TIMER_MS);	// Take longer delay for more tolerance of all possible LCM usages.
@@ -118,24 +106,17 @@ int main(void)
 	EVENT_Button_pressed_debounced = false;
 	Countdown_Once(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S),TIMER_S);
 
-#if	defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
-	Countdown_Once(WELCOME_MESSAGE_IN_S,WELCOME_MESSAGE_DISPLAY_TIME_IN_S,TIMER_S); // Read_and_Clear_SW_TIMER_Reload_Flag
 #else
+	// Setup Virtual Serial com-port
+	cdc_main();
 	while(vcom_connected()==0); // wait until virtual com connected.
-	Countdown_Once(WELCOME_MESSAGE_IN_S,vcom_start_to_work_in_sec,TIMER_S); // Read_and_Clear_SW_TIMER_Reload_Flag
-#endif // #ifndef _REAL_UPDATEKIT_V2_BOARD_
+#endif // ! _REAL_UPDATEKIT_V2_BOARD_
 
 	// Endless loop at the moment
 	while (1)
 	{
 		static uint32_t		led = LED_STATUS_G;
 		uint8_t 			temp;
-#if	defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
-#else
-		int 				rdCnt = 0, txCnt = 0;
-		uint8_t				shift_register_state;
-		uint32_t			shift_out_data_log;
-#endif // #ifndef _REAL_UPDATEKIT_V2_BOARD_
 
 		LED_Status_Set_Value(led);
 
@@ -167,59 +148,6 @@ int main(void)
 			while(--temp>0);
 		}
 
-#else
-		/* Check if host has connected and opened the VCOM port */
-		if((usb_cdc_welcome_message_shown!=true)&&(Read_and_Clear_SW_TIMER_Reload_Flag(WELCOME_MESSAGE_IN_S)))
-		{
-			txCnt = CDC_OutputString(inst1);
-			usb_cdc_welcome_message_shown = true;
-			Repeat_DownCounter(SHIFT_REGISTER_NEXT_SHIFT_TIMER_IN_S,(4-1),TIMER_S);
-			Clear_Register_Byte();
-			Clear_Shiftout_log();
-			Enable_Shift_Register_Output(true);
-		}
-
-		if(usb_cdc_welcome_message_shown)
-		{
-			/* If VCOM port is opened echo whatever we receive back to host. */
-			rdCnt = vcom_bread(&g_rxBuff[0], VCOM_RX_BUF_SZ);
-			if (rdCnt)
-			{
-				uint32_t push_uart_cnt = rdCnt, push_uart_index = 0;
-				do
-				{
-					uint32_t out_cnt;
-					out_cnt = OutputData(g_rxBuff+push_uart_index, push_uart_cnt);
-					push_uart_index += out_cnt;
-					push_uart_cnt -= out_cnt;
-				}
-				while(push_uart_cnt>0);
-			}
-
-			if(vcom_write_precheck())		// if pre-check ok then proceed -- to avoid some waiting delay due to vcom_write is not available.
-			{
-				txCnt = UART0_GetData(&g_txBuff[0],VCOM_RX_BUF_SZ);
-				if (txCnt)
-				{
-					uint32_t push_cdc_cnt = txCnt, push_cdc_index = 0;
-					do
-					{
-						uint32_t out_cnt;
-						out_cnt = vcom_write(g_txBuff+push_cdc_index, push_cdc_cnt);
-						push_cdc_index += out_cnt;
-						push_cdc_cnt -= out_cnt;
-					}
-					while(push_cdc_cnt>0);
-				}
-			}
-
-			if(Read_and_Clear_SW_TIMER_Reload_Flag(SHIFT_REGISTER_NEXT_SHIFT_TIMER_IN_S))
-			{
-				shift_out_data_log = Test_Shift_Register(shift_register_state++);
-				CDC_OutputHexValue_with_newline(shift_out_data_log);
-			}
-		}
-#endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || (_HOT_SPRING_BOARD_V2_)
 
 #if defined (_HOT_SPRING_BOARD_V2_)
 		if(vcom_connected())
@@ -285,6 +213,7 @@ int main(void)
 				}
 			}
 
+#if defined (_HOT_SPRING_BOARD_V2_)
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS))
 			{
 				uint32_t	*resistor_ptr;
@@ -308,6 +237,7 @@ int main(void)
 				Latch_Register_Byte_to_Output();
 				Enable_Shift_Register_Output(true);// to be removed?
 			}
+#endif // #if defined (_HOT_SPRING_BOARD_V2_)
 
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(EEPROM_UPDATE_TIMER_IN_S))
 			{
@@ -320,6 +250,45 @@ int main(void)
 			// End of Output UI section
 			//
 		}
+
+#else
+
+		if(usb_cdc_welcome_message_shown)
+		{
+			/* If VCOM port is opened echo whatever we receive back to host. */
+			rdCnt = vcom_bread(&g_rxBuff[0], VCOM_RX_BUF_SZ);
+			if (rdCnt)
+			{
+				uint32_t push_uart_cnt = rdCnt, push_uart_index = 0;
+				do
+				{
+					uint32_t out_cnt;
+					out_cnt = OutputData(g_rxBuff+push_uart_index, push_uart_cnt);
+					push_uart_index += out_cnt;
+					push_uart_cnt -= out_cnt;
+				}
+				while(push_uart_cnt>0);
+			}
+
+			if(vcom_write_precheck())		// if pre-check ok then proceed -- to avoid some waiting delay due to vcom_write is not available.
+			{
+				txCnt = UART0_GetData(&g_txBuff[0],VCOM_RX_BUF_SZ);
+				if (txCnt)
+				{
+					uint32_t push_cdc_cnt = txCnt, push_cdc_index = 0;
+					do
+					{
+						uint32_t out_cnt;
+						out_cnt = vcom_write(g_txBuff+push_cdc_index, push_cdc_cnt);
+						push_cdc_index += out_cnt;
+						push_cdc_cnt -= out_cnt;
+					}
+					while(push_cdc_cnt>0);
+				}
+			}
+		}
+#endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || (_HOT_SPRING_BOARD_V2_)
+
 	}
 
 	/* DeInitialize peripherals before ending */
