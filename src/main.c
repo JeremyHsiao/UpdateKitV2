@@ -74,6 +74,7 @@ int main(void)
 	Init_GPIO();
 
 #if	defined (_HOT_SPRING_BOARD_V2_)
+	cdc_main();
 	// Init TPIC6B595 IC
 	Init_Shift_Register_GPIO();
 	Enable_Shift_Register_Output(false);
@@ -220,6 +221,24 @@ int main(void)
 		}
 #endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || (_HOT_SPRING_BOARD_V2_)
 
+#if defined (_HOT_SPRING_BOARD_V2_)
+		if(vcom_connected())
+		{
+			int rdCnt = 0, txCnt = 0;
+			rdCnt = vcom_bread(&g_rxBuff[0], VCOM_RX_BUF_SZ);
+			if (rdCnt)
+			{
+				uint32_t push_cdc_cnt = rdCnt, push_cdc_index = 0;
+				do
+				{
+					txCnt = vcom_write(g_rxBuff+push_cdc_index, push_cdc_cnt);
+					push_cdc_index += txCnt;
+					push_cdc_cnt -= txCnt;
+				}
+				while(push_cdc_cnt>0);
+			}
+		}
+#endif // defined (_HOT_SPRING_BOARD_V2_)
 
 		if((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))		// Returns 1 if the SysTick timer counted to 0 since the last read of this register
 		{

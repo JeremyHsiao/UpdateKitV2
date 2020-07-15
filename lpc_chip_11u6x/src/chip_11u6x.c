@@ -61,7 +61,11 @@ void SystemCoreClockUpdate(void)
 void Chip_USB_Init(void)
 {
 	/* Set USB PLL input to main oscillator */
-	Chip_Clock_SetUSBPLLSource(SYSCTL_USBPLLCLKSRC_MAINOSC);
+#if	defined (_HOT_SPRING_BOARD_V2_)
+	Chip_Clock_SetUSBPLLSource(SYSCTL_USBPLLCLKSRC_IRC); // SYSCTL_USBPLLCLKSRC_IRC
+#else
+	Chip_Clock_SetUSBPLLSource(SYSCTL_USBPLLCLKSRC_MAINOSC); // SYSCTL_USBPLLCLKSRC_IRC
+#endif // #if	defined (_HOT_SPRING_BOARD_V2_)
 	/* Setup USB PLL  (FCLKIN = 12MHz) * 4 = 48MHz
 	   MSEL = 3 (this is pre-decremented), PSEL = 1 (for P = 2)
 	   FCLKOUT = FCLKIN * (MSEL + 1) = 12MHz * 4 = 48MHz
