@@ -77,7 +77,6 @@ int main(void)
 
 	// Hot Spring Board only
 #if	defined (_HOT_SPRING_BOARD_V2_)
-	cdc_main();
 	// Init TPIC6B595 IC
 	Init_Shift_Register_GPIO();
 	Enable_Shift_Register_Output(false);
@@ -107,6 +106,10 @@ int main(void)
 	// Clear events if we want to check it at this state
 	EVENT_Button_pressed_debounced = false;
 	Countdown_Once(WELCOME_MESSAGE_IN_S,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S),TIMER_S);
+
+#if	defined (_HOT_SPRING_BOARD_V2_)
+	cdc_main();
+#endif //
 
 #else
 	// Setup Virtual Serial com-port
