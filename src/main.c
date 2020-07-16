@@ -106,7 +106,7 @@ int main(void)
 
 	// Clear events if we want to check it at this state
 	EVENT_Button_pressed_debounced = false;
-	Countdown_Once(SYSTEM_STATE_PROC_TIMER,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S),TIMER_S);
+	Countdown_Once(WELCOME_MESSAGE_IN_S,(WELCOME_MESSAGE_DISPLAY_TIME_IN_S),TIMER_S);
 
 #else
 	// Setup Virtual Serial com-port
