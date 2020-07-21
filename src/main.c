@@ -46,7 +46,8 @@ uint64_t	relay_value;		// public for debug purpose
 
 // for debugging usb-cdc
 uint32_t prompt = 0, rdCnt = 0;
-static uint8_t g_rxBuff[256];
+#define MAX_USB_RX_BUFF_SIZE	(256)
+static uint8_t g_rxBuff[MAX_USB_RX_BUFF_SIZE+1];
 //
 
 /*****************************************************************************
@@ -170,13 +171,14 @@ int main(void)
 		if (Check_USB_IsConfigured())
 		{
 			char 				*command_string_usb, *return_string_ptr_usb;
-			uint8_t 			*cmd_ptr_usb;
+			uint8_t 			*cmd_ptr_usb, *remaining_string_usb;
 			CmdExecutionPacket 	cmd_exe_packet_usb;
 
 			rdCnt = vcom_bread(&g_rxBuff[0], 256);
 			if (rdCnt)
 			{
-				cmd_ptr_usb = g_rxBuff;
+				g_rxBuff[rdCnt] = '\0';		// Insert a null char at the end of input string
+				cmd_ptr_usb = remaining_string_usb = g_rxBuff;
 				do
 				{
 					command_string_usb = serial_gets(*cmd_ptr_usb);
@@ -186,7 +188,9 @@ int main(void)
 						// echoing input command
 						if(CheckEchoEnableStatus())
 						{
-							CDC_OutputString(command_string_usb);
+							vcom_write(remaining_string_usb, (uint32_t)(cmd_ptr_usb-remaining_string_usb));
+							CDC_OutputString_with_newline("");
+							remaining_string_usb = cmd_ptr_usb;
 						}
 
 						// Check if command is valid
@@ -195,20 +199,24 @@ int main(void)
 							// Execute if valid
 							if(CommandExecution(cmd_exe_packet_usb, &return_string_ptr_usb))
 							{
-
+								CDC_OutputString_with_newline(return_string_ptr_usb);	// returning message
 							}
 							else
 							{
-								 CDC_OutputString(return_string_ptr_usb);  // error message
+								CDC_OutputString_with_newline(return_string_ptr_usb);  // error message
 							}
 						}
 						else
 						{
-							CDC_OutputString("Input is invalid!");  // error message
+							CDC_OutputString_with_newline("ERROR: Input command is invalid!");  // error message
 						}
 					}
 				}
 				while(--rdCnt>0);
+				if(CheckEchoEnableStatus())
+				{
+					CDC_OutputString((char*)remaining_string_usb);
+				}
 			}
 
 //			/* If VCOM port is opened echo whatever we receive back to host. */
