@@ -124,6 +124,7 @@ void Init_UART0(void)
 void DeInit_UART0(void)
 {
     NVIC_DisableIRQ(USART0_IRQn);
+    Chip_UART0_IntDisable(LPC_USART0, (UART0_IER_RBRINT | UART0_IER_RLSINT));
     Chip_UART0_DeInit(LPC_USART0);
 }
 

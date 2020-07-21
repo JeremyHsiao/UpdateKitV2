@@ -14,6 +14,7 @@
 #include "build_defs.h"
 #include "fw_version.h"
 #include "cmd_interpreter.h"
+#include "cdc_main.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -71,6 +72,7 @@ enum
 	CMD_OBJECT_PWM_DUTY_RANGE,
 	CMD_OBJECT_PWM_FREQ_VALUE,
 	CMD_OBJECT_PWM_FREQ_RANGE,
+	CMD_OBJECT_ENTER_ISP,
 	CMD_OBJECT_MAX_NO,
 };
 
@@ -86,7 +88,8 @@ static const char *command_object_list[CMD_OBJECT_MAX_NO-1] =
 	"pwm_duty_value",
 	"pwm_duty_range",
 	"pwm_freq_value",
-	"pwm_freq_range"
+	"pwm_freq_range",
+	"enter_isp"
 };
 
 #define CMD_DEFINE_PACK_CMD(cmd)				( CmdCodeBitMask  & (((CmdExecutionPacket)cmd)    << CmdCodeBitPos ) )
@@ -124,6 +127,8 @@ typedef enum {
 	//  No SET
 	GET_ECHO 				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_ECHO),				// get echo status
 	SET_ECHO 				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_ECHO),				// set echo status
+	//  No GET
+	SET_ENTER_ISP			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_ENTER_ISP),			// enter isp mode from user code
 } CMD_LIST;
 
 char *error_parameter  = "Parameter error.";
@@ -370,6 +375,15 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			*return_string_ptr = message_ok;
 			ret_value = true;
 			break;
+		case SET_ENTER_ISP:
+			DeInit_UART0();
+			while((Check_USB_IsConfigured()));
+			for(int i=0; i<100000; i++){}
+			Chip_IAP_ReinvokeISP();
+			*return_string_ptr = message_ok;
+			ret_value = true;
+			break;
+
 		case GET_PWM_DUTY_VALUE:
 		case SET_PWM_DUTY_VALUE:
 		case GET_PWM_DUTY_RANGE:
