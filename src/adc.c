@@ -155,28 +155,29 @@ void DeInit_ADC(void)
 
 uint32_t Read_ADC_Voltage(void)
 {
-//	uint16_t	ADC0_value, ADC1_value;
+	//	uint16_t	ADC0_value, ADC1_value;
 
 	// Is an ADC conversion overflow/underflow?
 	//if (thresholdCrossed) {
 	//	thresholdCrossed = false;
 	//}
 
-		uint32_t rawSample, temp_value = ~0UL;
+	uint32_t rawSample, temp_value = ~0UL;
 
-		/* Get raw sample data for channels 6 */
-		rawSample = Chip_ADC_GetDataReg(LPC_ADC, ADC_CH_VOLTAGE);
-		/* Show some ADC data */
-		if ((rawSample & (ADC_SEQ_GDAT_DATAVALID)) != 0)
-		{
-//			ADC0_value = ADC_DR_RESULT(rawSample);
-//			temp_value = ADC0_value;
-//			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 1024 / ADC_VREFP_DIVIDER; // use 0.001V as unit == (adc/4096) * (343/100) * (4) * 1000
-			temp_value = ADC_DR_RESULT(rawSample) * (ADC_VREFP_VALUE*1000/ADC_VREFP_DIVIDER) / 1024;
-		}
-		else
-		{
-//			ADC0_value = ADC_SAMPLE_ERROR_VALUE;
-		}
-		return (temp_value);
+	/* Get raw sample data for channels 6 */
+	rawSample = Chip_ADC_GetDataReg(LPC_ADC, ADC_CH_VOLTAGE);
+	/* Show some ADC data */
+	if ((rawSample & (ADC_SEQ_GDAT_DATAVALID)) != 0)
+	{
+		//			ADC0_value = ADC_DR_RESULT(rawSample);
+		//			temp_value = ADC0_value;
+		//			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 1024 / ADC_VREFP_DIVIDER; // use 0.001V as unit == (adc/4096) * (343/100) * (4) * 1000
+		temp_value = ADC_DR_RESULT(rawSample) * (ADC_VREFP_VALUE*1000/ADC_VREFP_DIVIDER) / 1024;
+	}
+	else
+	{
+		//			ADC0_value = ADC_SAMPLE_ERROR_VALUE;
+		temp_value = ~0UL;
+	}
+	return (temp_value);
 }
