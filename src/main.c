@@ -19,6 +19,7 @@
 #include "cdc_main.h"
 #include "user_opt.h"
 #include "adc.h"
+#include "cmd_interpreter.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -119,12 +120,14 @@ int main(void)
 #if	defined (_HOT_SPRING_BOARD_V2_)
 	cdc_main();
 	Init_ADC();
+	init_cmd_interpreter();
 #endif //
 
 #else
 	// Setup Virtual Serial com-port
 	cdc_main();
 	Init_ADC();
+	init_cmd_interpreter();
 #endif // ! _REAL_UPDATEKIT_V2_BOARD_
 
 	// Endless loop at the moment
@@ -163,24 +166,65 @@ int main(void)
 			while(--temp>0);
 		}
 
-
 #if defined (_HOT_SPRING_BOARD_V2_)
 		if (Check_USB_IsConfigured())
 		{
-			/* If VCOM port is opened echo whatever we receive back to host. */
-			if (prompt) {
-				rdCnt = vcom_bread(&g_rxBuff[0], 256);
-				if (rdCnt) {
-					vcom_write(&g_rxBuff[0], rdCnt);
-				}
-			}
-			else
+			char 				*command_string_usb, *return_string_ptr_usb;
+			uint8_t 			*cmd_ptr_usb;
+			CmdExecutionPacket 	cmd_exe_packet_usb;
+
+			rdCnt = vcom_bread(&g_rxBuff[0], 256);
+			if (rdCnt)
 			{
-				/* Check if host has connected and opened the VCOM port */
-				if ((vcom_connected() != 0) && (prompt == 0)) {
-					prompt = vcom_write("Hello World!!\r\n", 15);
+				cmd_ptr_usb = g_rxBuff;
+				do
+				{
+					command_string_usb = serial_gets(*cmd_ptr_usb);
+					cmd_ptr_usb++;
+					if ((command_string_usb!=(char*)NULL)&&(*command_string_usb!='\0'))
+					{
+						// echoing input command
+						if(CheckEchoEnableStatus())
+						{
+							CDC_OutputString(command_string_usb);
+						}
+
+						// Check if command is valid
+						if(CommandInterpreter(command_string_usb,&cmd_exe_packet_usb))
+						{
+							// Execute if valid
+							if(CommandExecution(cmd_exe_packet_usb, &return_string_ptr_usb))
+							{
+
+							}
+							else
+							{
+								 CDC_OutputString(return_string_ptr_usb);  // error message
+							}
+						}
+						else
+						{
+							CDC_OutputString("Input is invalid!");  // error message
+						}
+					}
 				}
+				while(--rdCnt>0);
 			}
+
+//			/* If VCOM port is opened echo whatever we receive back to host. */
+//			if (prompt) {
+//				rdCnt = vcom_bread(&g_rxBuff[0], 256);
+//				if (rdCnt) {
+//					vcom_write(&g_rxBuff[0], rdCnt);
+//				}
+//			}
+//			else
+//			{
+//				/* Check if host has connected and opened the VCOM port */
+//				if ((vcom_connected() != 0) && (prompt == 0)) {
+//					prompt = vcom_write("Hello World!!\r\n", 15);
+//				}
+//			}
 		}
 #endif // defined (_HOT_SPRING_BOARD_V2_)
 
