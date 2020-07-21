@@ -437,6 +437,28 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 				ret_value = true;
 			}
 			break;
+		case SET_RB:
+			{
+				uint32_t	*resistor_ptr = GetResistorValue();
+				if(Check_if_Resistor_in_Range(param))
+				{
+					resistor_ptr[1] = param;
+				}
+				*return_string_ptr = message_ok;
+				ret_value = true;
+			}
+			break;
+		case SET_RC:
+			{
+				uint32_t	*resistor_ptr = GetResistorValue();
+				if(Check_if_Resistor_in_Range(param))
+				{
+					resistor_ptr[2] = param;
+				}
+				*return_string_ptr = message_ok;
+				ret_value = true;
+			}
+			break;
 
 		case GET_PWM_DUTY_VALUE:
 		case SET_PWM_DUTY_VALUE:
@@ -445,8 +467,6 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 		case SET_PWM_FREQ:
 		case GET_PWM_FREQ_RANGE:
 		case GET_R2N:
-		case SET_RB:
-		case SET_RC:
 		case SET_R2N:
 			*return_string_ptr = error_developing;	// To be implemented
 			break;
