@@ -66,15 +66,8 @@ enum
 {
 	CMD_OBJECT_NONE_OBJECT = 0,
 	CMD_OBJECT_USERMODE,
-	CMD_OBJECT_PWM_DUTY_PERCENTAGE,
-	CMD_OBJECT_PWM_OUTPUT,
-	CMD_OBJECT_PWM_USE_TABLE,
 	CMD_OBJECT_ECHO,
 	CMD_OBJECT_FW_VER,
-	CMD_OBJECT_PWM_DUTY_VALUE,
-	CMD_OBJECT_PWM_DUTY_RANGE,
-	CMD_OBJECT_PWM_FREQ_VALUE,
-	CMD_OBJECT_PWM_FREQ_RANGE,
 	CMD_OBJECT_ENTER_ISP,
 	CMD_OBJECT_RESISTOR_A,
 	CMD_OBJECT_RESISTOR_B,
@@ -87,15 +80,8 @@ static const char *command_object_list[CMD_OBJECT_MAX_NO-1] =
 {
 	// not checking non-object--> so the enum number is +1 larger than the sequence of command_object_list
 	"user_mode",
-	"pwm_percent",
-	"pwm_output",
-	"pwm_use_table",
 	"echo",
 	"fw_ver",
-	"pwm_duty_value",
-	"pwm_duty_range",
-	"pwm_freq_value",
-	"pwm_freq_range",
 	"enter_isp",
 	"RA",
 	"RB",
@@ -120,20 +106,6 @@ typedef enum {
 	DEFAULT_NON_CMD			= 0,
 	//  No GET
 	SET_USER_MODE 			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_USERMODE),			// Enter/Leave user control mode
-	GET_PWM_DUTY_VALUE		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_VALUE),		// get duty cycle value
-	SET_PWM_DUTY_VALUE		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_VALUE),		// set duty cycle value
-	GET_PWM_DUTY_PERCENTAGE	= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_PERCENTAGE),	// get duty cycle value
-	SET_PWM_DUTY_PERCENTAGE	= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_PERCENTAGE),	// set duty cycle value
-	GET_PWM_DUTY_RANGE		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_DUTY_RANGE),		// get duty cycle range
-	//  No SET
-	GET_PWM_FREQ 			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_FREQ_VALUE),		// get duty cycle value
-	SET_PWM_FREQ 			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_FREQ_VALUE),		// set duty cycle value
-	GET_PWM_FREQ_RANGE		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_FREQ_RANGE),		// get frequency range
-	//  No SET
-	GET_PWM_OUTPUT 			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PWM_OUTPUT),			// get if pwm output is enabled
-	SET_PWM_OUTPUT 			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_OUTPUT),			// set pwm output enable
-	//  No GET
-	SET_PWM_USE_TABLE		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PWM_USE_TABLE),		// use table value in code as output value
 	GET_FW_VERSION			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_FW_VER),				// get FW version
 	//  No SET
 	GET_ECHO 				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_ECHO),				// get echo status
@@ -150,12 +122,13 @@ typedef enum {
 	SET_R2N	 				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_2N),			// set resistor R2N value
 } CMD_LIST;
 
-char *error_parameter  = "Parameter error.";
-char *error_command    = "Command error.";
-char *error_developing = "Under development";
-char *message_ok       = "OK";
-char *message_On       = "ON";
-char *message_Off      = "OFF";
+char *error_parameter  		= "Parameter error.";
+char *error_out_of_range  	= "Parameter error.";
+char *error_command    		= "Command error.";
+char *error_developing 		= "Under development";
+char *message_ok       		= "OK";
+char *message_On       		= "ON";
+char *message_Off      		= "OFF";
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -356,23 +329,6 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			*return_string_ptr = message_ok;
 			ret_value = true;
 			break;
-		case SET_PWM_DUTY_PERCENTAGE:
-			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
-			break;
-		case GET_PWM_DUTY_PERCENTAGE:
-			{
-				*return_string_ptr = error_developing;	// To be implemented -- return current duty value
-			}
-			break;
-		case GET_PWM_OUTPUT:
-			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
-			break;
-		case SET_PWM_OUTPUT:
-			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
-			break;
-		case SET_PWM_USE_TABLE:
-			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
-			break;
 		case GET_FW_VERSION:
 			{
 				const char voltage_output_welcome_message_line2[] =
@@ -432,8 +388,12 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 				if(Check_if_Resistor_in_Range(param))
 				{
 					resistor_ptr[0] = param;
+					*return_string_ptr = message_ok;
 				}
-				*return_string_ptr = message_ok;
+				else
+				{
+					*return_string_ptr = error_out_of_range;
+				}
 				ret_value = true;
 			}
 			break;
@@ -443,8 +403,12 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 				if(Check_if_Resistor_in_Range(param))
 				{
 					resistor_ptr[1] = param;
+					*return_string_ptr = message_ok;
 				}
-				*return_string_ptr = message_ok;
+				else
+				{
+					*return_string_ptr = error_out_of_range;
+				}
 				ret_value = true;
 			}
 			break;
@@ -454,18 +418,16 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 				if(Check_if_Resistor_in_Range(param))
 				{
 					resistor_ptr[2] = param;
+					*return_string_ptr = message_ok;
 				}
-				*return_string_ptr = message_ok;
+				else
+				{
+					*return_string_ptr = error_out_of_range;
+				}
 				ret_value = true;
 			}
 			break;
 
-		case GET_PWM_DUTY_VALUE:
-		case SET_PWM_DUTY_VALUE:
-		case GET_PWM_DUTY_RANGE:
-		case GET_PWM_FREQ:
-		case SET_PWM_FREQ:
-		case GET_PWM_FREQ_RANGE:
 		case GET_R2N:
 		case SET_R2N:
 			*return_string_ptr = error_developing;	// To be implemented
