@@ -1,0 +1,182 @@
+/*
+ * @brief LPC11u6x ADC example
+ *
+ * @note
+ * Copyright(C) NXP Semiconductors, 2013
+ * All rights reserved.
+ *
+ * @par
+ * Software that is described herein is for illustrative purposes only
+ * which provides customers with programming information regarding the
+ * LPC products.  This software is supplied "AS IS" without any warranties of
+ * any kind, and NXP Semiconductors and its licensor disclaim any and
+ * all warranties, express or implied, including all implied warranties of
+ * merchantability, fitness for a particular purpose and non-infringement of
+ * intellectual property rights.  NXP Semiconductors assumes no responsibility
+ * or liability for the use of the software, conveys no license or rights under any
+ * patent, copyright, mask work right, or any other intellectual property rights in
+ * or to any products. NXP Semiconductors reserves the right to make changes
+ * in the software without notification. NXP Semiconductors also makes no
+ * representation or warranty that such application will be suitable for the
+ * specified use without further testing or modification.
+ *
+ * @par
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation is hereby granted, under NXP Semiconductors' and its
+ * licensor's relevant copyrights in the software, without fee, provided that it
+ * is used in conjunction with NXP Semiconductors microcontrollers.  This
+ * copyright, permission, and disclaimer notice must appear in all copies of
+ * this code.
+ */
+
+#include "board.h"
+#include "string.h"
+#include "uart_0_rb.h"
+#include "adc.h"
+
+/*****************************************************************************
+ * Private types/enumerations/variables
+ ****************************************************************************/
+#define ADC_CH_VOLTAGE		(6)
+//#define ADC_CH_CURRENT		(8)
+
+/*****************************************************************************
+ * Public types/enumerations/variables
+ ****************************************************************************/
+//bool sequenceComplete, thresholdCrossed;
+bool sequenceComplete;
+
+/*****************************************************************************
+ * Private functions
+ ****************************************************************************/
+
+/*****************************************************************************
+ * Public functions
+ ****************************************************************************/
+
+/**
+ * @brief	Handle interrupt from ADC sequencer A
+ * @return	Nothing
+ */
+void ADCA_IRQHandler(void)
+{
+	uint32_t pending;
+
+	pending = Chip_ADC_GetFlags(LPC_ADC);
+
+	/* Sequence A completion interrupt */
+	if (pending & ADC_FLAGS_SEQA_INT_MASK) {
+		sequenceComplete = true;
+	}
+
+//	/* Threshold crossing interrupt on ADC input channel */
+//	if (pending & ADC_FLAGS_THCMP_MASK(BOARD_ADC_CH)) {
+//		thresholdCrossed = true;
+//	}
+
+	/* Clear any pending interrupts */
+	Chip_ADC_ClearFlags(LPC_ADC, pending);
+}
+
+void Init_ADC(void)
+{
+	/* ADC input 8 is on PIO0_12 mapped to FUNC2 */
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 12, (IOCON_FUNC2 | IOCON_MODE_INACT | IOCON_ADMODE_EN));
+	/* ADC input 6 is on PIO0_14 mapped to FUNC2 */
+	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 14, (IOCON_FUNC2 | IOCON_MODE_INACT | IOCON_ADMODE_EN));
+
+	//	sequenceComplete = thresholdCrossed = false;
+	sequenceComplete = false;
+
+	/* Setup ADC for 12-bit mode and low power mode */
+	Chip_ADC_Init(LPC_ADC, ADC_CR_LPWRMODEBIT);
+
+	/* Need to do a calibration after initialization and trim */
+	Chip_ADC_StartCalibration(LPC_ADC);
+
+	/* Setup for maximum ADC clock rate using sycnchronous clocking */
+//	Chip_ADC_SetClockRate(LPC_ADC, ADC_MAX_CLOCK_RATE);
+	Chip_ADC_SetClockRate(LPC_ADC, Chip_Clock_GetSystemClockRate() / 200 );
+	// Slower ADC is sufficient because our current main-loop is not fast enough so that ADC is already sampled after each loop
+	
+	/* Optionally, you can setup the ADC to use asycnchronous clocking mode.
+	   To enable this, mode use 'LPC_ADC->CTRL |= ADC_CR_ASYNMODE;'.
+	   In asycnchronous clocking mode mode, the following functions are
+	   used to set and determine ADC rates:
+	   Chip_Clock_SetADCASYNCSource();
+	   Chip_Clock_SetADCASYNCClockDiv();
+	   Chip_Clock_GetADCASYNCRate();
+	   clkRate = Chip_Clock_GetADCASYNCRate() / Chip_Clock_GetADCASYNCClockDiv; */
+
+	/* Setup sequencer A for ADC channel 0, EOS interrupt */
+
+	/* Setup a sequencer to do the following:
+	   Perform ADC conversion of ADC channels 6/8 */
+	Chip_ADC_DisableSequencer(LPC_ADC, ADC_SEQA_IDX);		// Make sure it is disabled before setting other bits
+	Chip_ADC_SetupSequencer(LPC_ADC, ADC_SEQA_IDX,(ADC_SEQ_CTRL_CHANSEL(ADC_CH_VOLTAGE) |
+							ADC_SEQ_CTRL_MODE_EOS | ADC_SEQ_CTRL_HWTRIG_POLPOS | ADC_SEQ_CTRL_HWTRIG_ARM_TXEV));
+
+	/* ADC input 0 is on PIO1_9 mapped to FUNC3 */
+	//Chip_IOCON_PinMuxSet(LPC_IOCON, 1, 9, (IOCON_FUNC3 | IOCON_MODE_INACT | IOCON_ADMODE_EN));
+
+	/* Use higher voltage trim */
+	Chip_ADC_SetTrim(LPC_ADC, ADC_TRIM_VRANGE_HIGHV);
+
+	/* Setup threshold 0 low and high values to about 25% and 75% of max */
+//	Chip_ADC_SetThrLowValue(LPC_ADC, 0, ((1 * 0xFFF) / 4));
+//	Chip_ADC_SetThrHighValue(LPC_ADC, 0, ((3 * 0xFFF) / 4));
+//	Chip_ADC_SetThrLowValue(LPC_ADC, 0, ((0 * 0xFFF) / 4));
+//	Chip_ADC_SetThrHighValue(LPC_ADC, 0, ((4 * 0xFFF) / 4));
+
+	/* Clear all pending interrupts */
+	Chip_ADC_ClearFlags(LPC_ADC, Chip_ADC_GetFlags(LPC_ADC));
+
+	/* Enable ADC overrun and sequence A completion interrupts */
+//	Chip_ADC_EnableInt(LPC_ADC, (ADC_INTEN_SEQA_ENABLE | ADC_INTEN_OVRRUN_ENABLE));
+	Chip_ADC_EnableInt(LPC_ADC, (ADC_INTEN_SEQA_ENABLE));
+
+	/* Use threshold 0 for ADC channel and enable threshold interrupt mode for
+	   channel as crossing */
+//	Chip_ADC_SelectTH0Channels(LPC_ADC, ADC_THRSEL_CHAN_SEL_THR1(BOARD_ADC_CH));
+//	Chip_ADC_SetThresholdInt(LPC_ADC, BOARD_ADC_CH, ADC_INTEN_THCMP_CROSSING);
+
+	/* Enable ADC NVIC interrupt */
+	NVIC_EnableIRQ(ADC_A_IRQn);
+
+//	/* Enable sequencer */
+	Chip_ADC_EnableSequencer(LPC_ADC, ADC_SEQA_IDX);
+}
+
+void DeInit_ADC(void)
+{
+	NVIC_EnableIRQ(ADC_A_IRQn);
+	Chip_ADC_DeInit(LPC_ADC);
+}
+
+uint32_t Read_ADC_Voltage(void)
+{
+//	uint16_t	ADC0_value, ADC1_value;
+
+	// Is an ADC conversion overflow/underflow?
+	//if (thresholdCrossed) {
+	//	thresholdCrossed = false;
+	//}
+
+		uint32_t rawSample, temp_value = ~0UL;
+
+		/* Get raw sample data for channels 6 */
+		rawSample = Chip_ADC_GetDataReg(LPC_ADC, ADC_CH_VOLTAGE);
+		/* Show some ADC data */
+		if ((rawSample & (ADC_SEQ_GDAT_DATAVALID)) != 0)
+		{
+//			ADC0_value = ADC_DR_RESULT(rawSample);
+//			temp_value = ADC0_value;
+//			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 1024 / ADC_VREFP_DIVIDER; // use 0.001V as unit == (adc/4096) * (343/100) * (4) * 1000
+			temp_value = ADC_DR_RESULT(rawSample) * (ADC_VREFP_VALUE*1000/ADC_VREFP_DIVIDER) / 1024;
+		}
+		else
+		{
+//			ADC0_value = ADC_SAMPLE_ERROR_VALUE;
+		}
+		return (temp_value);
+}
