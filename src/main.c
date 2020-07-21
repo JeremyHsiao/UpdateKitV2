@@ -18,13 +18,14 @@
 #include "cdc_vcom.h"
 #include "cdc_main.h"
 #include "user_opt.h"
+#include "adc.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
-const char inst1[] = "HotSpring Board";
-const char inst2[] = "HW: V2.0";
-const char inst3[] = "FW: "__DATE__ " " __TIME__;
+//const char inst1[] = "HotSpring Board";
+//const char inst2[] = "HW: V2.0";
+//const char inst3[] = "FW: "__DATE__ " " __TIME__;
 
 //#define DEBUG_RX_LOG
 #ifdef DEBUG_RX_LOG
@@ -93,6 +94,14 @@ int main(void)
 	lcm_auto_display_init();
 	lcm_content_init();
 
+	if(Read_ADC_Voltage()>6000)
+	{
+		// voltage too-high, trapped endlessly
+		// please switch to over-voltage page
+		lcd_module_display_enable_page(LCM_WELCOME_PAGE);
+		lcm_force_to_display_page(LCM_WELCOME_PAGE);
+	}
+
 	// V01
 	// lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
 	//V02
@@ -109,11 +118,13 @@ int main(void)
 
 #if	defined (_HOT_SPRING_BOARD_V2_)
 	cdc_main();
+	Init_ADC();
 #endif //
 
 #else
 	// Setup Virtual Serial com-port
 	cdc_main();
+	Init_ADC();
 #endif // ! _REAL_UPDATEKIT_V2_BOARD_
 
 	// Endless loop at the moment
@@ -219,28 +230,31 @@ int main(void)
 			}
 
 #if defined (_HOT_SPRING_BOARD_V2_)
-			if(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS))
+			if(Read_ADC_Voltage()<=6000)
 			{
-				uint32_t	*resistor_ptr;
-				//uint64_t	relay_value;
-				uint32_t	readout_high, readout_low;
-				uint32_t	relay_high, relay_low;
-
-				resistor_ptr = GetResistorValue();
-				Calc_Relay_Value(resistor_ptr,&relay_value);
-				relay_high = (uint32_t)((relay_value>>32)&~(0UL));
-				relay_low  = (uint32_t)(relay_value&~(0UL));
-				Setup_Shift_Register_32it(relay_high);
-				Setup_Shift_Register_32it(relay_low);
-				readout_high = Setup_Shift_Register_32it(relay_high);
-				readout_low = Setup_Shift_Register_32it(relay_low);
-				if((readout_high!=relay_high)||(readout_low!=relay_low))
+				if(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS))
 				{
-					relay_low = relay_high; // dummy line for breakpoint
-					// need to debug
+					uint32_t	*resistor_ptr;
+					//uint64_t	relay_value;
+					uint32_t	readout_high, readout_low;
+					uint32_t	relay_high, relay_low;
+
+					resistor_ptr = GetResistorValue();
+					Calc_Relay_Value(resistor_ptr,&relay_value);
+					relay_high = (uint32_t)((relay_value>>32)&~(0UL));
+					relay_low  = (uint32_t)(relay_value&~(0UL));
+					Setup_Shift_Register_32it(relay_high);
+					Setup_Shift_Register_32it(relay_low);
+					readout_high = Setup_Shift_Register_32it(relay_high);
+					readout_low = Setup_Shift_Register_32it(relay_low);
+					if((readout_high!=relay_high)||(readout_low!=relay_low))
+					{
+						relay_low = relay_high; // dummy line for breakpoint
+						// need to debug
+					}
+					Latch_Register_Byte_to_Output();
+					Enable_Shift_Register_Output(true);// to be removed?
 				}
-				Latch_Register_Byte_to_Output();
-				Enable_Shift_Register_Output(true);// to be removed?
 			}
 #endif // #if defined (_HOT_SPRING_BOARD_V2_)
 
