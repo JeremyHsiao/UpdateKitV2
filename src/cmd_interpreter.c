@@ -15,6 +15,9 @@
 #include "fw_version.h"
 #include "cmd_interpreter.h"
 #include "cdc_main.h"
+#include "res_state.h"
+#include "sw_timer.h"
+#include "user_if.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -73,6 +76,10 @@ enum
 	CMD_OBJECT_PWM_FREQ_VALUE,
 	CMD_OBJECT_PWM_FREQ_RANGE,
 	CMD_OBJECT_ENTER_ISP,
+	CMD_OBJECT_RESISTOR_A,
+	CMD_OBJECT_RESISTOR_B,
+	CMD_OBJECT_RESISTOR_C,
+	CMD_OBJECT_RESISTOR_2N,
 	CMD_OBJECT_MAX_NO,
 };
 
@@ -89,7 +96,11 @@ static const char *command_object_list[CMD_OBJECT_MAX_NO-1] =
 	"pwm_duty_range",
 	"pwm_freq_value",
 	"pwm_freq_range",
-	"enter_isp"
+	"enter_isp",
+	"RA",
+	"RB",
+	"RC",
+	"R2N",
 };
 
 #define CMD_DEFINE_PACK_CMD(cmd)				( CmdCodeBitMask  & (((CmdExecutionPacket)cmd)    << CmdCodeBitPos ) )
@@ -129,6 +140,14 @@ typedef enum {
 	SET_ECHO 				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_ECHO),				// set echo status
 	//  No GET
 	SET_ENTER_ISP			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_ENTER_ISP),			// enter isp mode from user code
+	GET_RA 					= CMD_GET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_A),			// get resistor A value
+	SET_RA	 				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_A),			// set resistor A value
+	GET_RB 					= CMD_GET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_B),			// get resistor B value
+	SET_RB	 				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_B),			// set resistor B value
+	GET_RC 					= CMD_GET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_C),			// get resistor C value
+	SET_RC	 				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_C),			// set resistor C value
+	GET_R2N 				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_2N),			// get resistor R2N value
+	SET_R2N	 				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_2N),			// set resistor R2N value
 } CMD_LIST;
 
 char *error_parameter  = "Parameter error.";
@@ -383,6 +402,41 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			*return_string_ptr = message_ok;
 			ret_value = true;
 			break;
+		case GET_RA:
+			{
+				uint32_t	*resistor_ptr = GetResistorValue();
+				itoa_10(resistor_ptr[0], command_return_string);
+				*return_string_ptr = command_return_string;
+				ret_value = true;
+			}
+			break;
+		case GET_RB:
+			{
+				uint32_t	*resistor_ptr = GetResistorValue();
+				itoa_10(resistor_ptr[1], command_return_string);
+				*return_string_ptr = command_return_string;
+				ret_value = true;
+			}
+			break;
+		case GET_RC:
+			{
+				uint32_t	*resistor_ptr = GetResistorValue();
+				itoa_10(resistor_ptr[2], command_return_string);
+				*return_string_ptr = command_return_string;
+				ret_value = true;
+			}
+			break;
+		case SET_RA:
+			{
+				uint32_t	*resistor_ptr = GetResistorValue();
+				if(Check_if_Resistor_in_Range(param))
+				{
+					resistor_ptr[0] = param;
+				}
+				*return_string_ptr = message_ok;
+				ret_value = true;
+			}
+			break;
 
 		case GET_PWM_DUTY_VALUE:
 		case SET_PWM_DUTY_VALUE:
@@ -390,7 +444,11 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 		case GET_PWM_FREQ:
 		case SET_PWM_FREQ:
 		case GET_PWM_FREQ_RANGE:
-			*return_string_ptr = error_developing;	// To be implemented -- return current duty value
+		case GET_R2N:
+		case SET_RB:
+		case SET_RC:
+		case SET_R2N:
+			*return_string_ptr = error_developing;	// To be implemented
 			break;
 		default:
 			// command error

@@ -182,5 +182,6 @@ extern void UI_Version_02(void);
 extern uint32_t *GetResistorValue(void);
 extern uint32_t *Get_2PowerN_Value(void);
 extern bool If_value_has_been_changed(void);
+extern bool Check_if_Resistor_in_Range(uint32_t res);
 
 #endif // _USER_IF_H_
