@@ -73,6 +73,8 @@ int main(void)
 
 	Init_UpdateKitV2_variables();
 	Board_Init();
+	Init_ADC();
+	Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
 	Init_UART0();
 
 #if	defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
@@ -97,14 +99,18 @@ int main(void)
 	lcm_auto_display_init();
 	lcm_content_init();
 
-	adc_voltage = Read_ADC_Voltage();
-	if((adc_voltage>6000)||(adc_voltage<4000))
-	{
-		// voltage too-high, trapped endlessly
-		// please switch to over-voltage page
-		lcd_module_display_enable_page(LCM_WELCOME_PAGE);
-		lcm_force_to_display_page(LCM_WELCOME_PAGE);
-	}
+//	while(sequenceComplete);
+//	sequenceComplete = false;
+//	adc_voltage = Read_ADC_Voltage();
+//	OutputHexValue_with_newline(adc_voltage);
+//	if((adc_voltage>6000)||(adc_voltage<4000))
+//	{
+//		// voltage too-high, trapped endlessly
+//		// please switch to over-voltage page
+//		lcd_module_display_enable_page(LCM_WELCOME_PAGE);
+//		lcm_force_to_display_page(LCM_WELCOME_PAGE);
+//		while(1);
+//	}
 
 	// V01
 	// lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;
@@ -122,7 +128,6 @@ int main(void)
 
 #if	defined (_HOT_SPRING_BOARD_V2_)
 	cdc_main();
-	Init_ADC();
 	init_cmd_interpreter();
 #endif //
 
@@ -138,6 +143,48 @@ int main(void)
 	{
 		static uint32_t		led = LED_STATUS_G;
 		uint8_t 			temp;
+
+#if defined (_HOT_SPRING_BOARD_V2_)
+			if (sequenceComplete)
+			{
+				sequenceComplete = false;
+				adc_voltage = Read_ADC_Voltage();
+				//OutputHexValue_with_newline(adc_voltage);
+				Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
+				if((adc_voltage<=6000)&&(adc_voltage>=4000))
+				{
+					if(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS))
+					{
+						uint32_t	*resistor_ptr;
+						//uint64_t	relay_value;
+						uint32_t	readout_high, readout_low;
+						uint32_t	relay_high, relay_low;
+
+						resistor_ptr = GetResistorValue();
+						Calc_Relay_Value(resistor_ptr,&relay_value);
+						relay_high = (uint32_t)((relay_value>>32)&~(0UL));
+						relay_low  = (uint32_t)(relay_value&~(0UL));
+						Setup_Shift_Register_32it(relay_high);
+						Setup_Shift_Register_32it(relay_low);
+						readout_high = Setup_Shift_Register_32it(relay_high);
+						readout_low = Setup_Shift_Register_32it(relay_low);
+						if((readout_high!=relay_high)||(readout_low!=relay_low))
+						{
+							relay_low = relay_high; // dummy line for breakpoint
+							// need to debug
+						}
+						Latch_Register_Byte_to_Output();
+						Enable_Shift_Register_Output(true);// to be removed?
+					}
+				}
+				else
+				{
+					// switch to error message page
+				}
+			}
+
+#endif // #if defined (_HOT_SPRING_BOARD_V2_)
+
 
 #if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
 
@@ -282,36 +329,6 @@ int main(void)
 					LED_Status_Set_Value(led);
 				}
 			}
-
-#if defined (_HOT_SPRING_BOARD_V2_)
-			adc_voltage = Read_ADC_Voltage();
-			if((adc_voltage<=6000)&&(adc_voltage>=4000))
-			{
-				if(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS))
-				{
-					uint32_t	*resistor_ptr;
-					//uint64_t	relay_value;
-					uint32_t	readout_high, readout_low;
-					uint32_t	relay_high, relay_low;
-
-					resistor_ptr = GetResistorValue();
-					Calc_Relay_Value(resistor_ptr,&relay_value);
-					relay_high = (uint32_t)((relay_value>>32)&~(0UL));
-					relay_low  = (uint32_t)(relay_value&~(0UL));
-					Setup_Shift_Register_32it(relay_high);
-					Setup_Shift_Register_32it(relay_low);
-					readout_high = Setup_Shift_Register_32it(relay_high);
-					readout_low = Setup_Shift_Register_32it(relay_low);
-					if((readout_high!=relay_high)||(readout_low!=relay_low))
-					{
-						relay_low = relay_high; // dummy line for breakpoint
-						// need to debug
-					}
-					Latch_Register_Byte_to_Output();
-					Enable_Shift_Register_Output(true);// to be removed?
-				}
-			}
-#endif // #if defined (_HOT_SPRING_BOARD_V2_)
 
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(EEPROM_UPDATE_TIMER_IN_S))
 			{
