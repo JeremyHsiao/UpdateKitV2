@@ -43,6 +43,7 @@ bool			usb_cdc_welcome_message_shown = false;
  * Public types/enumerations/variables
  ****************************************************************************/
 uint64_t	relay_value;		// public for debug purpose
+uint32_t	adc_voltage;
 
 // for debugging usb-cdc
 uint32_t prompt = 0, rdCnt = 0;
@@ -96,7 +97,8 @@ int main(void)
 	lcm_auto_display_init();
 	lcm_content_init();
 
-	if(Read_ADC_Voltage()>6000)
+	adc_voltage = Read_ADC_Voltage();
+	if((adc_voltage>6000)||(adc_voltage<4000))
 	{
 		// voltage too-high, trapped endlessly
 		// please switch to over-voltage page
@@ -193,7 +195,7 @@ int main(void)
 							remaining_string_usb = cmd_ptr_usb;
 						}
 
-						// Check if command is valid
+						// Check if command+paramemter is valid
 						if(CommandInterpreter(command_string_usb,&cmd_exe_packet_usb))
 						{
 							// Execute if valid
@@ -282,7 +284,8 @@ int main(void)
 			}
 
 #if defined (_HOT_SPRING_BOARD_V2_)
-			if(Read_ADC_Voltage()<=6000)
+			adc_voltage = Read_ADC_Voltage();
+			if((adc_voltage<=6000)&&(adc_voltage>=4000))
 			{
 				if(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS))
 				{
