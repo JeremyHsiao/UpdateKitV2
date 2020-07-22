@@ -12,7 +12,7 @@ extern bool sequenceComplete, thresholdCrossed;
 
 #define BOARD_ADC_CH 0
 #define	ADC_SAMPLE_ERROR_VALUE		(0xffff)	// length is 16 bits
-#define	ADC_VREFP_VALUE				(343)
+#define	ADC_VREFP_VALUE				(332)
 #define ADC_VREFP_DIVIDER			(100)
 
 extern void Init_ADC(void);
