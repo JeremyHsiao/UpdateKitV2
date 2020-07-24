@@ -97,7 +97,7 @@ uint8_t			lcm_page_change_duration_in_sec;
  ****************************************************************************/
 bool Check_if_Resistor_in_Range(uint32_t res)
 {
-	if((res<(1UL<<20))||(res>0))
+	if((res<(1UL<<20))&&(res>0))
 	{
 		return true;
 	}
