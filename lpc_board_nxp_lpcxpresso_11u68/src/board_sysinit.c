@@ -73,9 +73,9 @@ STATIC const PINMUX_GRP_T pinmuxing[] = {
 	/* PIO0_16-WAKEUP			-                           - GPIO input */
 	/* PIO0_17					- PIO (pin 12)				- GPIO */
 	/* TO_MUX_PIO0_18-ISP_RX	- PIO/RXD (pin 10)			- UART0 RX */
-	//{0, 18, (IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_DIGMODE_EN)},
+	{0, 18, (IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_DIGMODE_EN)},
 	/* PIO0_19-ISP_TX			- PIO/TXD (pin 9)			- UART0 TX */
-	//{0, 19, (IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_DIGMODE_EN)},
+	{0, 19, (IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_DIGMODE_EN)},
 	/* PIO0_20					- PIO (pin 13)				- GPIO */
 	/* PIO0_21					- PIO (pin 14)				- GPIO */
 	/* PIO0_22					- PIO (pin 21)				- GPIO */
