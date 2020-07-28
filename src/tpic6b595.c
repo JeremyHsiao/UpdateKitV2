@@ -137,7 +137,7 @@ void Calc_Relay_Value(uint32_t *Resistor, uint64_t *Relay)
 #ifdef _BOARD_DEBUG_SW_
 	if(Resistor[0]==~0UL)
 	{
-		// RELAY-A/B/C is high to cut off short-path
+		// RELAY-A/B/C is high to disconnect shortcut to small value Relay (default is to connect)
 		*Relay = (7ULL<<60);
 		return;
 	}
