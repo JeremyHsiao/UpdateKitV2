@@ -74,10 +74,10 @@ char  *FineTuneResistorMsg[] = {
 	  "RL61 R66/126/186",
 	  "RL20/41  524288\xf4",		// power(2,19)
 	  "RL62 R67/127/187",
-	  "PRELAY-ABC    0\xf4",		// 0ohm - only relay 0/1/2/3
-	  "connected       ",
-	  "PRELAY-ABC    0\xf4",		// 0ohm - all relay
-	  "disconnected    ",
+	  "PRELAY-ABC    0\xf4",		// 0ohm - only relay 1-4 & RL21
+	  "shortcut is ON  ",
+	  "PRELAY-ABC    0\xf4",		// 0ohm - all relay 1-21
+	  "Shortcut is OFF ",
 };
 
 /*****************************************************************************
