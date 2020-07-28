@@ -125,9 +125,11 @@ static void inline Delay125ns(void)
 	__NOP();
 }
 
-#define RESISTOR_MSB_INDEX		(19)
-#define RESISTOR_MSB			(1UL<<RESISTOR_MSB_INDEX)
-#define SMALL_RESISITOR_VALUE	(1UL<<4)
+#define RESISTOR_BIT_LEN			(20)
+#define RESISTOR_MSB_INDEX			(RESISTOR_BIT_LEN-1)
+#define RESISTOR_MSB				(1UL<<RESISTOR_MSB_INDEX)
+#define SMALL_RESISITOR_LEN      	(4)
+#define SMALL_RESISITOR_BOUND		(1UL<<SMALL_RESISITOR_LEN)
 
 void Calc_Relay_Value(uint32_t *Resistor, uint64_t *Relay)
 {
@@ -164,20 +166,46 @@ void Calc_Relay_Value(uint32_t *Resistor, uint64_t *Relay)
 	while (resistor_index-->0);
 
 	// Shortcut for small resistor value
-	if(Resistor[2]>=SMALL_RESISITOR_VALUE)
+	if(Resistor[2]>=SMALL_RESISITOR_BOUND)
 	{
 		Relay_Value |= (1ULL<<62);
 	}
-	if(Resistor[1]>=SMALL_RESISITOR_VALUE)
+	if(Resistor[1]>=SMALL_RESISITOR_BOUND)
 	{
 		Relay_Value |= (1ULL<<61);
 	}
-	if(Resistor[0]>=SMALL_RESISITOR_VALUE)
+	if(Resistor[0]>=SMALL_RESISITOR_BOUND)
 	{
 		Relay_Value |= (1ULL<<60);
 	}
 
 	// Return relay value
+	*Relay = Relay_Value;
+}
+
+// 0-19 is for 2N ohm
+// 20 is for 0ohm with shortcut (RL21/42/63 low)
+// 21 is for 0phm without shortcut (RL21/42/63 high)
+void Calc_Relay_Value_2N(uint32_t Value_2N, uint64_t *Relay)
+{
+	uint64_t	Relay_Value;
+
+	if (Value_2N<SMALL_RESISITOR_LEN)
+	{
+		Relay_Value = (7ULL<<60) | (((1ULL<<0)|(1ULL<<RESISTOR_BIT_LEN)|(1ULL<<(RESISTOR_BIT_LEN*2)))<<Value_2N);
+	}
+	else if (Value_2N<RESISTOR_BIT_LEN)
+	{
+		Relay_Value = (((1ULL<<0)|(1ULL<<RESISTOR_BIT_LEN)|(1ULL<<(RESISTOR_BIT_LEN*2)))<<Value_2N);
+	}
+	else if (Value_2N==20)
+	{
+		Relay_Value = 0;				// the shortest path
+	}
+	else
+	{
+		Relay_Value = (7ULL<<60);
+	}
 	*Relay = Relay_Value;
 }
 
