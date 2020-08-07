@@ -149,6 +149,18 @@ void lcm_content_init(void)
 	lcm_text_buffer_cpy(LCM_WELCOME_PAGE,0,0,welcome_message_line1,LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_WELCOME_PAGE,1,0,welcome_message_line2,LCM_DISPLAY_COL);
 
+	lcm_text_buffer_cpy(LCM_5V_PROTECTION_DISPLAY,0,0,    "     VOLT:      ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_5V_PROTECTION_DISPLAY,1,0,    "NEED 5V POWER   ",LCM_DISPLAY_COL);
+
+	lcm_text_buffer_cpy(LCM_INPUT_HIGH_BLINKING,0,0,    "HIGH VOLT:      ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_INPUT_HIGH_BLINKING,1,0,    "NEED 5V POWER   ",LCM_DISPLAY_COL);
+
+	lcm_text_buffer_cpy(LCM_INPUT_LOW_BLINKING,0,0,    "LOW  VOLT:      ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_INPUT_LOW_BLINKING,1,0,    "NEED 5V POWER   ",LCM_DISPLAY_COL);
+
+	lcm_text_buffer_cpy(LCM_SHIFT_REGISTER_DISPLAY,0,0,    "TPIC6B595 ERROR ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_SHIFT_REGISTER_DISPLAY,1,0,    "PLEASE FIX HW   ",LCM_DISPLAY_COL);
+
 //	//                      			 1234567890123456
 //	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ", LCM_DISPLAY_COL);
 //	lcm_text_buffer_cpy(LCM_PC_MODE,1,0,"button to change", LCM_DISPLAY_COL);
@@ -157,20 +169,20 @@ void lcm_content_init(void)
 	lcm_text_buffer_cpy(LCM_SINGLE_VR_DISPLAY,1,0,"button to change",LCM_DISPLAY_COL);
 
 	//	//                      			 	      1234567890123456
-	lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,0,0,      "Value-R  A:    1", LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,1,0,      "B:    1  C:    1", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,0,0,      "Value-R  A:    2", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,1,0,      "B:    2  C:    2", LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,0,    "Set RA   A:    1", LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,1,0,    "B:    1  C:    1", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,0,    "Set RA   A:    2", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,1,0,    "B:    2  C:    2", LCM_DISPLAY_COL);
 
 	lcm_text_buffer_cpy(LCM_ALL_SET_R0_BLINKING,0,0, "         A:     ", LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_ALL_SET_R0_BLINKING,1,0, "B:    1  C:    1", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_R0_BLINKING,1,0, "B:    2  C:    2", LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,0,0, "         A:    1", LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,1,0, "B:       C:    1", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,0,0, "         A:    2", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_R1_BLINKING,1,0, "B:       C:    2", LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,0,0, "         A:    1", LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,1,0, "B:    1  C:     ", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,0,0, "         A:    2", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SET_R2_BLINKING,1,0, "B:    2  C:     ", LCM_DISPLAY_COL);
 
 	lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   0,0, FineTuneResistorMsg[0], LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_ALL_SET_2N_VALUE,   1,0, FineTuneResistorMsg[1], LCM_DISPLAY_COL);
@@ -188,7 +200,7 @@ void lcm_content_init(void)
 	//lcm_text_buffer_cpy(LCM_SEL_SET_R2_DISPLAY,1,0,    "Value:       1 \xf4", LCM_DISPLAY_COL);
 
 	lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,0,0,    "UNIT:\x2B\x2D      1  ", LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,0,    "RA:          1 \xf4", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,0,    "RA:          2 \xf4", LCM_DISPLAY_COL);
 
 	//lcm_text_buffer_cpy(LCM_SEL_R1_DISPLAY,0,0,    "                ", LCM_DISPLAY_COL);
 	//lcm_text_buffer_cpy(LCM_SEL_R1_DISPLAY,1,0,    "RB:          1 \xf4", LCM_DISPLAY_COL);
@@ -197,7 +209,7 @@ void lcm_content_init(void)
 	//lcm_text_buffer_cpy(LCM_SEL_R2_DISPLAY,1,0,    "RC:          1 \xf4", LCM_DISPLAY_COL);
 
 	lcm_text_buffer_cpy(LCM_SEL_UNIT_0_DISPLAY,0,0,    "UNIT:\x2B\x2D      1  ", LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_SEL_UNIT_0_DISPLAY,1,0,    "RA:          1 \xf4", LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_SEL_UNIT_0_DISPLAY,1,0,    "RA:          2 \xf4", LCM_DISPLAY_COL);
 
 	lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,0,0,    "UNIT:\x2B\x2D     10  ", LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,0,    "RA:            \xf4", LCM_DISPLAY_COL);
@@ -468,12 +480,48 @@ uint32_t Update_Resistor_Value_after_button(uint32_t previous_value, uint32_t st
 	{
 		temp_value = (1UL<<20)-1;
 	}
-	else if (temp_value<1)
+	else if (temp_value<2)
 	{
-		temp_value = 1;
+		temp_value = 2;
 	}
 
 	return (uint32_t) temp_value;
+}
+
+int Show_ADC_Voltage_3_Digits(uint32_t value, char* result)
+{
+    int return_value;
+
+    if (value<(10000))
+    {
+    	// rounding and remove latest digit (so only 3 digit left)
+    	value = (value + (10/2)) / (10);
+    	itoa_10_fixed_position(value, result, 3);
+    	result[5] = '\0';
+    	result[4] = 'V';
+    	result[3] = result[2];
+    	result[2] = result[1];
+    	result[1] = '.';
+    	return_value = 5;
+    }
+    else if (value<(100000))
+    {
+    	// rounding and remove latest-2 digit (so only 3 digit left)
+    	value = (value + (100/2)) / (100);
+    	itoa_10_fixed_position(value, result, 3);
+    	result[5] = '\0';
+    	result[4] = 'V';
+    	result[3] = result[2];
+    	result[2] = '.';
+    	return_value = 5;
+    }
+    else
+    {
+    	result[0] = '\0';
+		return_value = 0;
+    }
+
+    return return_value;
 }
 
 void UI_Version_01(void)
@@ -647,6 +695,12 @@ void UI_Version_02(void)
 					lcd_module_display_enable_page(LCM_ALL_SET_R2_BLINKING);
 					break;
 				case 3:			// Value-R menu
+					temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);
+					temp_len = Show_Resistor_3_Digits(res_value[1],temp_text);
+					UI_V2_Update_after_change(1,res_value[1],temp_text,temp_len);
+					temp_len = Show_Resistor_3_Digits(res_value[2],temp_text);
+					UI_V2_Update_after_change(2,res_value[2],temp_text,temp_len);
 					lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
 					break;
 				case 4:			// Value-R menu
@@ -835,7 +889,14 @@ void UI_Version_02(void)
 				lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
 				res_index=7;
 				break;
-
+			case 3: // Mode1_change to RA on VR menu
+				temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+				UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);
+				lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
+				lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+				lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
+				res_index=0;
+				break;
 			case 5:
 				lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,1,"A",1);
 				temp_len = itoa_10_fixed_position(res_value[res_index-5],temp_text,8);
@@ -997,6 +1058,9 @@ void UI_Version_02(void)
 			*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, true);
 			temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
 			UI_V2_Update_after_change(res_index,*res_ptr,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,0,9+2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,1,2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,1,9+2,temp_text,temp_len);
 			lcm_force_to_display_page(LCM_ALL_SET_BLINKING);
 			// update fine-tune value
 			temp_len = itoa_10_fixed_position(*res_ptr,temp_text,8);
@@ -1011,6 +1075,9 @@ void UI_Version_02(void)
 			*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr,false);
 			temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
 			UI_V2_Update_after_change(res_index,*res_ptr,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,0,9+2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,1,2,temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,1,9+2,temp_text,temp_len);
 			lcm_force_to_display_page(LCM_ALL_SET_BLINKING);
 			// update fine-tune value
 			temp_len = itoa_10_fixed_position(*res_ptr,temp_text,8);
@@ -1018,6 +1085,29 @@ void UI_Version_02(void)
 			Value_has_been_changed=true;
 		}
 	}
+
+	if (res_index == 3) //Mode1_change to RA menu
+	{
+		if(	State_Proc_Button(BUTTON_INC_ID) )
+		{
+			temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+			UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
+			lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+			lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
+			res_index=0;
+		}
+		if(	State_Proc_Button(BUTTON_DEC_ID) )
+		{
+			temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+			UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
+			lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
+			lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
+			res_index=0;
+		}
+	}
+
 	if (res_index == 4)
 	{
 		char *update_str;
@@ -1106,13 +1196,13 @@ void UI_Version_02(void)
 			//uint32_t	*res_ptr = res_value[res_index-5] + res_index-5,   // // res_value[res_index-5]
 						//*step_ptr = res_step + res_index-5;
 
-			if (res_value[res_index-5]>1)			// // res_value[res_index-5]>1  res_value[res_index-5]--
+			if (res_value[res_index-5]>2)			// // res_value[res_index-5]>1  res_value[res_index-5]--
 			{
 				res_value[res_index-5]--;
 			}
 			else
 			{
-				res_value[res_index-5]=1;
+				res_value[res_index-5]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1159,7 +1249,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-8]=1;
+				res_value[res_index-8]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1205,7 +1295,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-9]=1;
+				res_value[res_index-9]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1251,7 +1341,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-10]=1;
+				res_value[res_index-10]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1297,7 +1387,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-11]=1;
+				res_value[res_index-11]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1343,7 +1433,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-12]=1;
+				res_value[res_index-12]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1389,7 +1479,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-12]=1;
+				res_value[res_index-12]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1435,7 +1525,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-13]=1;
+				res_value[res_index-13]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1481,7 +1571,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-14]=1;
+				res_value[res_index-14]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1527,7 +1617,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-15]=1;
+				res_value[res_index-15]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1573,7 +1663,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-16]=1;
+				res_value[res_index-16]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1619,7 +1709,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-16]=1;
+				res_value[res_index-16]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1665,7 +1755,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-17]=1;
+				res_value[res_index-17]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1711,7 +1801,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-18]=1;
+				res_value[res_index-18]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1757,7 +1847,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-19]=1;
+				res_value[res_index-19]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);
@@ -1803,7 +1893,7 @@ void UI_Version_02(void)
 			}
 			else
 			{
-				res_value[res_index-20]=1;
+				res_value[res_index-20]=2;
 			}
 
 			//*res_ptr = Update_Resistor_Value_after_button(*res_ptr,*step_ptr, false);

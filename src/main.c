@@ -43,7 +43,7 @@ bool			usb_cdc_welcome_message_shown = false;
  * Public types/enumerations/variables
  ****************************************************************************/
 uint64_t	relay_value;		// public for debug purpose
-uint32_t	adc_voltage;
+uint32_t	adc_voltage = 0;
 
 // for debugging usb-cdc
 uint32_t prompt = 0, rdCnt = 0;
@@ -79,6 +79,15 @@ int main(void)
 
 #if	defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
 
+	Init_LCD_Module_GPIO();
+	// This is used for (1) software delay within lcm_sw_init() (2) regular content update lcm_auto_display_refresh_task() in main loop
+	Repeat_DownCounter(LCD_MODULE_INTERNAL_DELAY_IN_MS,(LONGER_DELAY_US/1000)+1,TIMER_MS);	// Take longer delay for more tolerance of all possible LCM usages.
+	lcm_sw_init();
+
+	lcm_auto_display_init();
+	lcm_content_init();
+	Update_VR_Page_value_at_beginig();
+
 	Init_GPIO();
 
 	// Hot Spring Board only
@@ -91,13 +100,6 @@ int main(void)
 	// init value
 	//Enable_Shift_Register_Output(true);
 #endif //
-	Init_LCD_Module_GPIO();
-	// This is used for (1) software delay within lcm_sw_init() (2) regular content update lcm_auto_display_refresh_task() in main loop
-	Repeat_DownCounter(LCD_MODULE_INTERNAL_DELAY_IN_MS,(LONGER_DELAY_US/1000)+1,TIMER_MS);	// Take longer delay for more tolerance of all possible LCM usages.
-	lcm_sw_init();
-
-	lcm_auto_display_init();
-	lcm_content_init();
 
 //	while(sequenceComplete);
 //	sequenceComplete = false;
@@ -142,148 +144,163 @@ int main(void)
 	while (1)
 	{
 		static uint32_t		led = LED_STATUS_G;
+		static bool			show_5v_protection_page = false;
 		uint8_t 			temp;
+		char 				temp_text[10];
+		int 				temp_len;
 
 #if defined (_HOT_SPRING_BOARD_V2_)
-			if (sequenceComplete)
-			{
-				sequenceComplete = false;
-				adc_voltage = Read_ADC_Voltage();
-				//OutputHexValue_with_newline(adc_voltage);
-				Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
-				if((adc_voltage<=6000)&&(adc_voltage>=4000))
-				{
-					if(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS))
-					{
-						uint32_t	*resistor_ptr;
-						//uint64_t	relay_value;
-						uint32_t	readout_high, readout_low;
-						uint32_t	relay_high, relay_low;
+		if (sequenceComplete)
+		{
+			sequenceComplete = false;
+			adc_voltage = Read_ADC_Voltage();
+			//OutputHexValue_with_newline(adc_voltage);
+			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
 
-						resistor_ptr = GetResistorValue();
-						Calc_Relay_Value(resistor_ptr,&relay_value);
-						relay_high = (uint32_t)((relay_value>>32)&~(0UL));
-						relay_low  = (uint32_t)(relay_value&~(0UL));
-						Setup_Shift_Register_32it(relay_high);
-						Setup_Shift_Register_32it(relay_low);
-						readout_high = Setup_Shift_Register_32it(relay_high);
-						readout_low = Setup_Shift_Register_32it(relay_low);
-						if((readout_high!=relay_high)||(readout_low!=relay_low))
-						{
-							relay_low = relay_high; // dummy line for breakpoint
-							// need to debug
-						}
-						Latch_Register_Byte_to_Output();
-						Enable_Shift_Register_Output(true);// to be removed?
-					}
-				}
-				else
+			if((adc_voltage<=6000)&&(adc_voltage>=4000))
+			{
+				// CHECK PAGE
+				if(show_5v_protection_page)
 				{
-					// switch to error message page
+					show_5v_protection_page = false;
+					lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
+					lcm_force_to_display_page(LCM_ALL_VR_DISPLAY);
+				}
+
+				if(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS))
+				{
+					uint32_t	*resistor_ptr;
+					//uint64_t	relay_value;
+					uint32_t	readout_high, readout_low;
+					uint32_t	relay_high, relay_low;
+
+					resistor_ptr = GetResistorValue();
+					Calc_Relay_Value(resistor_ptr,&relay_value);
+					relay_high = (uint32_t)((relay_value>>32)&~(0UL));
+					relay_low  = (uint32_t)(relay_value&~(0UL));
+					Setup_Shift_Register_32it(relay_high);
+					Setup_Shift_Register_32it(relay_low);
+					readout_high = Setup_Shift_Register_32it(relay_high);
+					readout_low = Setup_Shift_Register_32it(relay_low);
+					if((readout_high!=relay_high)||(readout_low!=relay_low))
+					{
+						relay_low = relay_high; // dummy line for breakpoint
+						// need to debug
+					}
+					Latch_Register_Byte_to_Output();
+					Enable_Shift_Register_Output(true);// to be removed?
 				}
 			}
+			else if(adc_voltage>=6000)
+			{
+				// switch PAGE
+				lcm_auto_disable_all_page();
+				temp_len = Show_ADC_Voltage_3_Digits(adc_voltage,temp_text);
+				lcm_text_buffer_cpy(LCM_INPUT_HIGH_BLINKING,0,10,temp_text,temp_len);
+				lcd_module_display_enable_page(LCM_INPUT_HIGH_BLINKING);
+				lcd_module_display_enable_page(LCM_5V_PROTECTION_DISPLAY);
+				Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS);
+				show_5v_protection_page = true;
+			}
 
+			else if(adc_voltage<=4000)
+			{
+				lcm_auto_disable_all_page();
+				temp_len = Show_ADC_Voltage_3_Digits(adc_voltage,temp_text);
+				lcm_text_buffer_cpy(LCM_INPUT_LOW_BLINKING,0,10,temp_text,temp_len);
+				lcd_module_display_enable_page(LCM_INPUT_LOW_BLINKING);
+				lcd_module_display_enable_page(LCM_5V_PROTECTION_DISPLAY);
+				Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS);
+				show_5v_protection_page = true;
+			}
+		}
 #endif // #if defined (_HOT_SPRING_BOARD_V2_)
 
-
 #if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
-
 		LED_Status_Set_Value(led);
 
-		//
-		// UART/ADC Input data processing section
-		//
-		if(UART_Check_InputBuffer_IsEmpty()==false)
+		if((adc_voltage<=6000)&&(adc_voltage>=4000))
 		{
-			led ^= LED_STATUS_G;
-
-			// Processing chars according to sys_tick -> faster tick means fewer char for each loop
-			temp = ((115200/8)/SYSTICK_PER_SECOND)+1;
-			do
+			//
+			// UART/ADC Input data processing section
+			//
+			if(UART_Check_InputBuffer_IsEmpty()==false)
 			{
-				uint8_t	key, bytes;
+				led ^= LED_STATUS_G;
 
-				bytes = UART0_GetChar(&key);
-				if (bytes > 0)
-				{
-					UART0_PutChar(key);
-				}
-				else
-				{
-					break;
-				}
-			}
-			while(--temp>0);
-		}
-
-#if defined (_HOT_SPRING_BOARD_V2_)
-		if (Check_USB_IsConfigured())
-		{
-			char 				*command_string_usb, *return_string_ptr_usb;
-			uint8_t 			*cmd_ptr_usb, *remaining_string_usb;
-			CmdExecutionPacket 	cmd_exe_packet_usb;
-
-			rdCnt = vcom_bread(&g_rxBuff[0], 256);
-			if (rdCnt)
-			{
-				g_rxBuff[rdCnt] = '\0';		// Insert a null char at the end of input string
-				cmd_ptr_usb = remaining_string_usb = g_rxBuff;
+				// Processing chars according to sys_tick -> faster tick means fewer char for each loop
+				temp = ((115200/8)/SYSTICK_PER_SECOND)+1;
 				do
 				{
-					command_string_usb = serial_gets(*cmd_ptr_usb);
-					cmd_ptr_usb++;
-					if ((command_string_usb!=(char*)NULL)&&(*command_string_usb!='\0'))
-					{
-						// echoing input command
-						if(CheckEchoEnableStatus())
-						{
-							vcom_write(remaining_string_usb, (uint32_t)(cmd_ptr_usb-remaining_string_usb));
-							CDC_OutputString_with_newline("");
-							remaining_string_usb = cmd_ptr_usb;
-						}
+					uint8_t	key, bytes;
 
-						// Check if command+paramemter is valid
-						if(CommandInterpreter(command_string_usb,&cmd_exe_packet_usb))
+					bytes = UART0_GetChar(&key);
+					if (bytes > 0)
+					{
+						UART0_PutChar(key);
+					}
+					else
+					{
+						break;
+					}
+				}
+				while(--temp>0);
+			}
+
+#if defined (_HOT_SPRING_BOARD_V2_)
+			if (Check_USB_IsConfigured())
+			{
+				char 				*command_string_usb, *return_string_ptr_usb;
+				uint8_t 			*cmd_ptr_usb, *remaining_string_usb;
+				CmdExecutionPacket 	cmd_exe_packet_usb;
+
+				rdCnt = vcom_bread(&g_rxBuff[0], 256);
+				if (rdCnt)
+				{
+					g_rxBuff[rdCnt] = '\0';		// Insert a null char at the end of input string
+					cmd_ptr_usb = remaining_string_usb = g_rxBuff;
+					do
+					{
+						command_string_usb = serial_gets(*cmd_ptr_usb);
+						cmd_ptr_usb++;
+						if ((command_string_usb!=(char*)NULL)&&(*command_string_usb!='\0'))
 						{
-							// Execute if valid
-							if(CommandExecution(cmd_exe_packet_usb, &return_string_ptr_usb))
+							// echoing input command
+							if(CheckEchoEnableStatus())
 							{
-								CDC_OutputString_with_newline(return_string_ptr_usb);	// returning message
+								vcom_write(remaining_string_usb, (uint32_t)(cmd_ptr_usb-remaining_string_usb));
+								CDC_OutputString_with_newline("");
+								remaining_string_usb = cmd_ptr_usb;
+							}
+
+							// Check if command+paramemter is valid
+							if(CommandInterpreter(command_string_usb,&cmd_exe_packet_usb))
+							{
+								// Execute if valid
+								if(CommandExecution(cmd_exe_packet_usb, &return_string_ptr_usb))
+								{
+									CDC_OutputString_with_newline(return_string_ptr_usb);	// returning message
+								}
+								else
+								{
+									CDC_OutputString_with_newline(return_string_ptr_usb);  // error message
+								}
 							}
 							else
 							{
-								CDC_OutputString_with_newline(return_string_ptr_usb);  // error message
+								CDC_OutputString_with_newline("ERROR: Input command is invalid!");  // error message
 							}
 						}
-						else
-						{
-							CDC_OutputString_with_newline("ERROR: Input command is invalid!");  // error message
-						}
+					}
+					while(--rdCnt>0);
+					if(CheckEchoEnableStatus())
+					{
+						CDC_OutputString((char*)remaining_string_usb);
 					}
 				}
-				while(--rdCnt>0);
-				if(CheckEchoEnableStatus())
-				{
-					CDC_OutputString((char*)remaining_string_usb);
-				}
 			}
-
-//			/* If VCOM port is opened echo whatever we receive back to host. */
-//			if (prompt) {
-//				rdCnt = vcom_bread(&g_rxBuff[0], 256);
-//				if (rdCnt) {
-//					vcom_write(&g_rxBuff[0], rdCnt);
-//				}
-//			}
-//			else
-//			{
-//				/* Check if host has connected and opened the VCOM port */
-//				if ((vcom_connected() != 0) && (prompt == 0)) {
-//					prompt = vcom_write("Hello World!!\r\n", 15);
-//				}
-//			}
-		}
 #endif // defined (_HOT_SPRING_BOARD_V2_)
+		}
 
 		if((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))		// Returns 1 if the SysTick timer counted to 0 since the last read of this register
 		{
@@ -291,7 +308,10 @@ int main(void)
 
 			if (usb_cdc_welcome_message_shown==true)
 			{
-				UI_Version_02();
+				if(!show_5v_protection_page)
+				{
+					UI_Version_02();
+				}
 				if(If_value_has_been_changed())
 				{
 					Countdown_Once(EEPROM_UPDATE_TIMER_IN_S,5,TIMER_S);
@@ -316,6 +336,14 @@ int main(void)
 				}
 			}
 
+			if(Read_and_Clear_SW_TIMER_Reload_Flag(EEPROM_UPDATE_TIMER_IN_S))
+			{
+				if(Check_if_Resistor_different_from_last_ReadWrite()==true)
+				{
+					Save_Resistor_Value();
+				}
+			}
+
 			// Update LCD module display after each lcm command delay (currently about 3ms)
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_INTERNAL_DELAY_IN_MS))
 			{
@@ -329,18 +357,11 @@ int main(void)
 					LED_Status_Set_Value(led);
 				}
 			}
-
-			if(Read_and_Clear_SW_TIMER_Reload_Flag(EEPROM_UPDATE_TIMER_IN_S))
-			{
-				if(Check_if_Resistor_different_from_last_ReadWrite()==true)
-				{
-					Save_Resistor_Value();
-				}
-			}
-			//
-			// End of Output UI section
-			//
 		}
+
+		//
+		// End of Output UI section
+		//
 
 #else
 		if (Check_USB_IsConfigured())

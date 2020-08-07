@@ -140,6 +140,10 @@ typedef enum
 	LCM_SEL_UNIT_4_DISPLAY,
 	LCM_SEL_UNIT_5_DISPLAY,
 	LCM_SEL_UNIT_6_DISPLAY,
+	LCM_5V_PROTECTION_DISPLAY,
+	LCM_INPUT_HIGH_BLINKING,
+	LCM_INPUT_LOW_BLINKING,
+	LCM_SHIFT_REGISTER_DISPLAY,
 	LCM_MAX_PAGE_NO,
 } LCM_PAGE_ID;
 
@@ -168,6 +172,7 @@ typedef enum
 
 extern Button_Data const button_data[5];
 
+
 extern void lcm_content_init(void);
 extern bool lcm_text_buffer_cpy(LCM_PAGE_ID page_id, uint8_t row, uint8_t col, const void * restrict __s2, size_t len);
 
@@ -182,6 +187,8 @@ extern void UI_Version_02(void);
 extern uint32_t *GetResistorValue(void);
 extern uint32_t *Get_2PowerN_Value(void);
 extern bool If_value_has_been_changed(void);
+extern void UI_V2_Update_after_change(uint8_t res_id, uint32_t new_value, char* temp_text, int temp_len );
 extern bool Check_if_Resistor_in_Range(uint32_t res);
+extern int Show_ADC_Voltage_3_Digits(uint32_t value, char* result);
 
 #endif // _USER_IF_H_
