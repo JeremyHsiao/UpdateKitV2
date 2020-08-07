@@ -67,7 +67,7 @@
 //
 
 extern void Init_Value_From_EEPROM(void);
-extern void Init_UpdateKitV2_variables(void);
+extern void Init_HotSpringBoard_variables(void);
 extern void lcm_content_init(void);
 
 #define	WELCOME_MESSAGE_DISPLAY_TIME_IN_S			(3)

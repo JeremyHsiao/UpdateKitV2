@@ -112,7 +112,7 @@ void Init_Value_From_EEPROM(void)
 	Load_Resistor_Value();
 }
 
-void Init_UpdateKitV2_variables(void)
+void Init_HotSpringBoard_variables(void)
 {
 	current_system_proc_state = US_SYSTEM_BOOTUP_STATE;
 	lcm_page_change_duration_in_sec = DEFAULT_LCM_PAGE_CHANGE_S_WELCOME;

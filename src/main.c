@@ -1,6 +1,6 @@
 /*
 
-	UpdateKitV2 main code
+	HotSpringBoard main code
 
  */
 
@@ -60,7 +60,7 @@ static uint8_t g_rxBuff[MAX_USB_RX_BUFF_SIZE+1];
  ****************************************************************************/
 
 /**
- * @brief	Main UpdateKitV2 program body
+ * @brief	Main HotSpringBoard program body
  * @return	Always returns 1
  */
 int main(void)
@@ -71,7 +71,7 @@ int main(void)
 	/* Enable and setup SysTick Timer at a periodic rate */
 	SysTick_Config(SystemCoreClock / SYSTICK_PER_SECOND);
 
-	Init_UpdateKitV2_variables();
+	Init_HotSpringBoard_variables();
 	Board_Init();
 	Init_ADC();
 	Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
