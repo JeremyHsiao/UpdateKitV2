@@ -268,3 +268,19 @@ bool Save_Resistor_Value(void)
 	}
 }
 
+void Update_VR_Page_value_at_beginig()
+{
+
+	uint32_t *res_ptr = GetResistorValue();
+	int	temp_len;
+	char temp_text[10];
+
+	temp_len = Show_Resistor_3_Digits(res_ptr[0],temp_text);
+	UI_V2_Update_after_change(0,res_ptr[0],temp_text,temp_len);
+	temp_len = Show_Resistor_3_Digits(res_ptr[1],temp_text);
+	UI_V2_Update_after_change(1,res_ptr[1],temp_text,temp_len);
+	temp_len = Show_Resistor_3_Digits(res_ptr[2],temp_text);
+	UI_V2_Update_after_change(2,res_ptr[2],temp_text,temp_len);
+
+}
+
