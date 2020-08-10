@@ -136,7 +136,7 @@ static void inline Delay125ns(void)
 void Calc_Relay_Value(uint32_t *Resistor, uint64_t *Relay)
 {
 	uint64_t	Relay_Value;
-	uint8_t		resistor_index;
+//	uint8_t		resistor_index;
 
 #ifdef _BOARD_DEBUG_SW_
 	if(Resistor[0]==~0UL)
@@ -378,6 +378,52 @@ uint32_t Test_Shift_Register(uint8_t test_value)
 	Latch_Register_Byte_to_Output();
 
 	return Read_Shiftout_log();
+}
+
+bool SelfTest_Shift_Register(void)
+{
+	uint32_t	high, low, readout_high, readout_low;
+	bool		bRet=false;
+
+	high = 0x55aa55aa;
+	low  = 0xff00ff00;
+	Setup_Shift_Register_32it(high);
+	Setup_Shift_Register_32it(low);
+	readout_high = Setup_Shift_Register_32it(high);
+	readout_low = Setup_Shift_Register_32it(low);
+	if((readout_high==high)&&(readout_low==low))
+	{
+		bRet = true;
+	}
+	return bRet;
+}
+
+bool Setup_Shift_Register_and_Test_64bit(uint64_t value)
+{
+	uint32_t	high, low, readout_high, readout_low;
+	bool		bRet=false;
+
+	high = (uint32_t)((value>>32)&~(0UL));
+	low  = (uint32_t)(value&~(0UL));
+	Setup_Shift_Register_32it(high);
+	Setup_Shift_Register_32it(low);
+	readout_high = Setup_Shift_Register_32it(high);
+	readout_low = Setup_Shift_Register_32it(low);
+	if((readout_high==high)&&(readout_low==low))
+	{
+		bRet = true;
+	}
+	return bRet;
+}
+
+void Setup_Shift_Register_64bit(uint64_t value)
+{
+	uint32_t	high, low;
+
+	high = (uint32_t)((value>>32)&~(0UL));
+	low  = (uint32_t)(value&~(0UL));
+	Setup_Shift_Register_32it(high);
+	Setup_Shift_Register_32it(low);
 }
 
 /*
