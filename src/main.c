@@ -65,6 +65,8 @@ static uint8_t g_rxBuff[MAX_USB_RX_BUFF_SIZE+1];
  */
 int main(void)
 {
+	static bool			show_tpic6b595_error = false;
+
 	SystemCoreClockUpdate();
 	Init_Value_From_EEPROM();
 
@@ -119,7 +121,7 @@ int main(void)
 	lcd_module_display_enable_page(LCM_WELCOME_PAGE);
 //	lcd_module_display_enable_page(LCM_PC_MODE);
 //	lcd_module_display_enable_page(LCM_ALL_VR_DISPLAY);
-	lcm_force_to_display_page(LCM_WELCOME_PAGE);
+//	lcm_force_to_display_page(LCM_WELCOME_PAGE);
 
 	// Clear events if we want to check it at this state
 	EVENT_Button_pressed_debounced = false;
@@ -128,6 +130,19 @@ int main(void)
 #if	defined (_HOT_SPRING_BOARD_V2_)
 	cdc_main();
 	init_cmd_interpreter();
+
+	if(SelfTest_Shift_Register())
+	{
+		Clear_Register_Byte();
+		Clear_Shiftout_log();
+		// init value
+		//Enable_Shift_Register_Output(true);
+	}
+	else
+	{
+		show_tpic6b595_error = true;
+		lcd_module_display_enable_only_one_page(LCM_SHIFT_REGISTER_DISPLAY);
+	}
 #endif //
 
 #else
@@ -161,52 +176,46 @@ int main(void)
 				{
 					show_5v_protection_page = false;
 					lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
-					lcm_force_to_display_page(LCM_ALL_VR_DISPLAY);
+					//lcm_force_to_display_page(LCM_ALL_VR_DISPLAY);
 				}
 
-				if(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS))
+				if((!show_tpic6b595_error)&&(Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS)))
 				{
 					uint32_t	*resistor_ptr;
-					//uint64_t	relay_value;
-					uint32_t	readout_high, readout_low;
-					uint32_t	relay_high, relay_low;
 
 					resistor_ptr = GetResistorValue();
 					Calc_Relay_Value(resistor_ptr,&relay_value);
-					relay_high = (uint32_t)((relay_value>>32)&~(0UL));
-					relay_low  = (uint32_t)(relay_value&~(0UL));
-					Setup_Shift_Register_32it(relay_high);
-					Setup_Shift_Register_32it(relay_low);
-					readout_high = Setup_Shift_Register_32it(relay_high);
-					readout_low = Setup_Shift_Register_32it(relay_low);
-					if((readout_high!=relay_high)||(readout_low!=relay_low))
+					if(Setup_Shift_Register_and_Test_64bit(relay_value))
 					{
-						relay_low = relay_high; // dummy line for breakpoint
-						// need to debug
+						Latch_Register_Byte_to_Output();
+						Enable_Shift_Register_Output(true);// to be removed?
 					}
-					Latch_Register_Byte_to_Output();
-					Enable_Shift_Register_Output(true);// to be removed?
+					else
+					{
+						show_tpic6b595_error = true;
+						lcd_module_display_enable_only_one_page(LCM_SHIFT_REGISTER_DISPLAY);
+					}
 				}
 			}
 			else if(adc_voltage>=6000)
 			{
 				// switch PAGE
-				lcm_auto_disable_all_page();
+				//lcm_auto_disable_all_page();
 				temp_len = Show_ADC_Voltage_3_Digits(adc_voltage,temp_text);
 				lcm_text_buffer_cpy(LCM_INPUT_HIGH_BLINKING,0,10,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_5V_PROTECTION_DISPLAY);
 				lcd_module_display_enable_page(LCM_INPUT_HIGH_BLINKING);
-				lcd_module_display_enable_page(LCM_5V_PROTECTION_DISPLAY);
 				Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS);
 				show_5v_protection_page = true;
 			}
 
 			else if(adc_voltage<=4000)
 			{
-				lcm_auto_disable_all_page();
+				//lcm_auto_disable_all_page();
 				temp_len = Show_ADC_Voltage_3_Digits(adc_voltage,temp_text);
 				lcm_text_buffer_cpy(LCM_INPUT_LOW_BLINKING,0,10,temp_text,temp_len);
+				lcd_module_display_enable_only_one_page(LCM_5V_PROTECTION_DISPLAY);
 				lcd_module_display_enable_page(LCM_INPUT_LOW_BLINKING);
-				lcd_module_display_enable_page(LCM_5V_PROTECTION_DISPLAY);
 				Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS);
 				show_5v_protection_page = true;
 			}
@@ -305,7 +314,7 @@ int main(void)
 
 			if (usb_cdc_welcome_message_shown==true)
 			{
-				if(!show_5v_protection_page)
+				if((!show_5v_protection_page)&&(!show_tpic6b595_error))
 				{
 					UI_Version_02();
 				}
@@ -321,12 +330,12 @@ int main(void)
 				{
 #ifdef _BOARD_DEBUG_SW_
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_2N_VALUE);
-					lcm_force_to_display_page(LCM_ALL_SET_2N_VALUE);
+//					lcm_force_to_display_page(LCM_ALL_SET_2N_VALUE);
 					usb_cdc_welcome_message_shown = true;
 					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,5,TIMER_100MS);
 #else
 					lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
-					lcm_force_to_display_page(LCM_ALL_VR_DISPLAY);
+//					lcm_force_to_display_page(LCM_ALL_VR_DISPLAY);
 					usb_cdc_welcome_message_shown = true;
 					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,5,TIMER_100MS);
 #endif // _BOARD_DEBUG_SW_

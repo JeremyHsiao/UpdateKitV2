@@ -158,8 +158,8 @@ void lcm_content_init(void)
 	lcm_text_buffer_cpy(LCM_INPUT_LOW_BLINKING,0,0,    "LOW  VOLT:      ",LCM_DISPLAY_COL);
 	lcm_text_buffer_cpy(LCM_INPUT_LOW_BLINKING,1,0,    "NEED 5V POWER   ",LCM_DISPLAY_COL);
 
-	lcm_text_buffer_cpy(LCM_SHIFT_REGISTER_DISPLAY,0,0,    "TPIC6B595 ERROR ",LCM_DISPLAY_COL);
-	lcm_text_buffer_cpy(LCM_SHIFT_REGISTER_DISPLAY,1,0,    "PLEASE FIX HW   ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_SHIFT_REGISTER_DISPLAY,0,0,"TPIC6B595 ERROR ",LCM_DISPLAY_COL);
+	lcm_text_buffer_cpy(LCM_SHIFT_REGISTER_DISPLAY,1,0,"PLEASE FIX BOARD",LCM_DISPLAY_COL);
 
 //	//                      			 1234567890123456
 //	lcm_text_buffer_cpy(LCM_PC_MODE,0,0,"PC Mode: Press  ", LCM_DISPLAY_COL);
