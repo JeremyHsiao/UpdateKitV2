@@ -73,6 +73,16 @@ int main(void)
 
 	Init_HotSpringBoard_variables();
 	Board_Init();
+	Init_GPIO();
+#if	defined (_HOT_SPRING_BOARD_V2_)
+	// Init TPIC6B595 IC
+	Init_Shift_Register_GPIO();
+	Enable_Shift_Register_Output(false);
+	Clear_Register_Byte();
+	Clear_Shiftout_log();
+	// init value
+	//Enable_Shift_Register_Output(true);
+#endif // defined (_HOT_SPRING_BOARD_V2_)
 	Init_ADC();
 	Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
 	Init_UART0();
@@ -86,20 +96,7 @@ int main(void)
 
 	lcm_auto_display_init();
 	lcm_content_init();
-	Update_VR_Page_value_at_beginig();
-
-	Init_GPIO();
-
-	// Hot Spring Board only
-#if	defined (_HOT_SPRING_BOARD_V2_)
-	// Init TPIC6B595 IC
-	Init_Shift_Register_GPIO();
-	Enable_Shift_Register_Output(false);
-	Clear_Register_Byte();
-	Clear_Shiftout_log();
-	// init value
-	//Enable_Shift_Register_Output(true);
-#endif //
+	Update_VR_Page_value_at_beginning();
 
 //	while(sequenceComplete);
 //	sequenceComplete = false;

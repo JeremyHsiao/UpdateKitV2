@@ -268,7 +268,7 @@ bool Save_Resistor_Value(void)
 	}
 }
 
-void Update_VR_Page_value_at_beginig()
+void Update_VR_Page_value_at_beginning()
 {
 
 	uint32_t *res_ptr = GetResistorValue();

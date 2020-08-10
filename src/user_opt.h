@@ -11,6 +11,6 @@
 extern int Load_Resistor_Value(void);
 extern bool Check_if_Resistor_different_from_last_ReadWrite(void);
 extern bool Save_Resistor_Value(void);
-extern void Update_VR_Page_value_at_beginig();
+extern void Update_VR_Page_value_at_beginning();
 
 #endif /* USER_OPT_H_ */
