@@ -497,13 +497,8 @@ void lcd_module_display_disable_page(LCM_PAGE_ID enabled_page)
 
 void lcd_module_display_enable_only_one_page(LCM_PAGE_ID enabled_page)
 {
-	uint8_t	temp_page = LCM_MAX_PAGE_NO;
-	do
-	{
-		temp_page--;
-		lcd_module_display_enable[temp_page] = (enabled_page==temp_page)?1:0;
-	}
-	while(temp_page>0);
+	lcm_auto_disable_all_page();
+	lcd_module_display_enable[enabled_page]=1;
     lcm_force_to_display_page(enabled_page);
 }
 
