@@ -65,7 +65,7 @@ static uint8_t g_rxBuff[MAX_USB_RX_BUFF_SIZE+1];
  */
 int main(void)
 {
-	static bool			show_tpic6b595_error = false;
+	bool			show_tpic6b595_error = false;
 
 	SystemCoreClockUpdate();
 	Init_Value_From_EEPROM();
@@ -77,6 +77,7 @@ int main(void)
 	Board_Init();
 	Init_GPIO();
 #if	defined (_HOT_SPRING_BOARD_V2_)
+	show_tpic6b595_error = false;
 	// Init TPIC6B595 IC
 	Init_Shift_Register_GPIO();
 	Enable_Shift_Register_Output(false);
@@ -131,18 +132,18 @@ int main(void)
 	cdc_main();
 	init_cmd_interpreter();
 
-	if(SelfTest_Shift_Register())
-	{
-		Clear_Register_Byte();
-		Clear_Shiftout_log();
-		// init value
-		//Enable_Shift_Register_Output(true);
-	}
-	else
-	{
-		show_tpic6b595_error = true;
-		lcd_module_display_enable_only_one_page(LCM_SHIFT_REGISTER_DISPLAY);
-	}
+//	if(SelfTest_Shift_Register())
+//	{
+//		Clear_Register_Byte();
+//		Clear_Shiftout_log();
+//		// init value
+//		//Enable_Shift_Register_Output(true);
+//	}
+//	else
+//	{
+//		show_tpic6b595_error = true;
+//		lcd_module_display_enable_only_one_page(LCM_SHIFT_REGISTER_DISPLAY);
+//	}
 #endif //
 
 #else
@@ -192,6 +193,9 @@ int main(void)
 					}
 					else
 					{
+						Enable_Shift_Register_Output(false);
+						Clear_Register_Byte();
+						Clear_Shiftout_log();
 						show_tpic6b595_error = true;
 						lcd_module_display_enable_only_one_page(LCM_SHIFT_REGISTER_DISPLAY);
 					}
@@ -203,10 +207,13 @@ int main(void)
 				//lcm_auto_disable_all_page();
 				temp_len = Show_ADC_Voltage_3_Digits(adc_voltage,temp_text);
 				lcm_text_buffer_cpy(LCM_INPUT_HIGH_BLINKING,0,10,temp_text,temp_len);
-				lcd_module_display_enable_only_one_page(LCM_5V_PROTECTION_DISPLAY);
-				lcd_module_display_enable_page(LCM_INPUT_HIGH_BLINKING);
+				if(!show_5v_protection_page)
+				{
+					lcd_module_display_enable_only_one_page(LCM_INPUT_HIGH_BLINKING);
+					lcd_module_display_enable_page(LCM_5V_PROTECTION_DISPLAY);
+					show_5v_protection_page = true;
+				}
 				Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS);
-				show_5v_protection_page = true;
 			}
 
 			else if(adc_voltage<=4000)
@@ -214,10 +221,13 @@ int main(void)
 				//lcm_auto_disable_all_page();
 				temp_len = Show_ADC_Voltage_3_Digits(adc_voltage,temp_text);
 				lcm_text_buffer_cpy(LCM_INPUT_LOW_BLINKING,0,10,temp_text,temp_len);
-				lcd_module_display_enable_only_one_page(LCM_5V_PROTECTION_DISPLAY);
-				lcd_module_display_enable_page(LCM_INPUT_LOW_BLINKING);
+				if(!show_5v_protection_page)
+				{
+					lcd_module_display_enable_only_one_page(LCM_INPUT_LOW_BLINKING);
+					lcd_module_display_enable_page(LCM_5V_PROTECTION_DISPLAY);
+					show_5v_protection_page = true;
+				}
 				Read_and_Clear_SW_TIMER_Reload_Flag(RELAY_SETUP_HYSTERSIS_IN_100MS);
-				show_5v_protection_page = true;
 			}
 		}
 #endif // #if defined (_HOT_SPRING_BOARD_V2_)
@@ -326,7 +336,7 @@ int main(void)
 			else
 			{
 				// Display welcome message until time-out or button-pressed
-				if(Read_and_Clear_SW_TIMER_Reload_Flag(WELCOME_MESSAGE_IN_S) || If_any_button_pressed())
+				if((!show_5v_protection_page)&&(Read_and_Clear_SW_TIMER_Reload_Flag(WELCOME_MESSAGE_IN_S) || If_any_button_pressed()))
 				{
 #ifdef _BOARD_DEBUG_SW_
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_2N_VALUE);
