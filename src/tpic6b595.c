@@ -254,20 +254,20 @@ static uint32_t MCU_SERIN_log = 0;
 uint8_t const Shift_Register_GPIO_Initial_Matrix [] =
 {
 //		port				pin				output	init_high
+		MCU_G_port,			MCU_G_pin, 		true,	true,			// D12
+		MCU_SRCLR_port,		MCU_SRCLR_pin,  true,	true,			// D11
 		MCU_RCK_port, 		MCU_RCK_pin, 	true,	false,			// D8
 		MCU_SRCK_port,		MCU_SRCK_pin,	true,	false,			// D9
-		MCU_SRCLR_port,		MCU_SRCLR_pin,  true,	true,			// D11
-		MCU_G_port,			MCU_G_pin, 		true,	true,			// D12
 		MCU_SEROUT_port,	MCU_SEROUT_pin,	true,	true,			// D13
 		MCU_SERIN_port,		MCU_SERIN_pin,	false,	true,			// D10
 };
 
 uint32_t const Shift_Register_GPIO_Initial_Mux [] =
 {
+		MCU_G_mux,
+		MCU_SRCLR_mux,
 		MCU_RCK_mux,
 		MCU_SRCK_mux,
-		MCU_SRCLR_mux,
-		MCU_G_mux,
 		MCU_SEROUT_mux,
 		MCU_SERIN_mux,
 };
@@ -310,6 +310,7 @@ void Latch_Register_Byte_to_Output(void)
 	RCK_1();
 	Delay125ns();
 	Delay125ns();
+	Delay125ns();
 	RCK_0();
 }
 
@@ -325,18 +326,23 @@ void Shift_and_Set_Register_Bit(bool set_bit_data)
 	// Setup 595_SERIN pin
 	SEROUT_SetValue(set_bit_data);
 	Delay125ns();
+	Delay125ns();
+	Delay125ns();
 
 	// SRCK high-pulse to shift register byte and set register data bit
 	SRCK_1();
 	Delay125ns();
 	Delay125ns();
+	Delay125ns();
 	SRCK_0();
+	Delay125ns();
 }
 
 void Clear_Register_Byte(void)
 {
 	// _SRCLR low-pulse to clear shift register
 	SRCLR_0();
+	Delay125ns();
 	Delay125ns();
 	Delay125ns();
 	SRCLR_1();
