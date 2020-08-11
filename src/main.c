@@ -325,6 +325,11 @@ int main(void)
 		{
 			// Entering here means SysTick handler has been processed so we could check timeout-event now.
 
+			if(get_tpic6b595_selftest_On())
+			{
+				SelfTest_Shift_Register();
+			}
+
 			if (usb_cdc_welcome_message_shown==true)
 			{
 				if((!show_5v_protection_page)&&(!show_tpic6b595_error))

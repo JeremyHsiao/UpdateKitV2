@@ -22,4 +22,11 @@ extern void Setup_Shift_Register_64bit(uint64_t value);
 extern bool SelfTest_Shift_Register(void);
 extern void Calc_Relay_Value(uint32_t *Resistor, uint64_t *Relay);
 
+extern bool get_disable_relay_control(void);
+extern void set_disable_relay_control(bool set_disable);
+extern bool get_tpic6b595_selftest_On(void);
+extern void set_tpic6b595_selftest_On(bool OnOff);
+extern uint32_t get_tpic6b595_selftest_Total_Count(void);
+extern uint32_t get_tpic6b595_selftest_OK_Count(void);
+
 #endif /* TPIC6B595_H_ */

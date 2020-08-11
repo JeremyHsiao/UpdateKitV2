@@ -18,6 +18,7 @@
 #include "res_state.h"
 #include "sw_timer.h"
 #include "user_if.h"
+#include "tpic6b595.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -25,7 +26,7 @@
 char 			*ptr_str;
 bool 			EchoEnabled;
 char 			serial_gets_return_string[MAX_SERIAL_GETS_LEN+1];	// Extra one is for '\0'
-char 			command_return_string[17];
+char 			command_return_string[MAX_SERIAL_GETS_LEN+1];
 
 // internal structure for execution: 24-bit value + 6-bit object + 2-bit cmd
 // get obj
@@ -77,6 +78,7 @@ enum
 	CMD_OBJECT_NOP,
 	CMD_OBJECT_BUTTON_IO,
 	CMD_OBJECT_INPUT_VOLTAGE,
+	CMD_OBJECT_DISABLE_RELAY_CONTROL,
 	CMD_OBJECT_MAX_NO,
 };
 
@@ -95,6 +97,7 @@ static const char *command_object_list[CMD_OBJECT_MAX_NO - 1] =
 	"nop",
 	"button_io",
 	"input_voltage",
+	"disable_relay_control"
 //	// JP5 & JP3
 //	"PIO2_0",
 //	"PIO2_1",
@@ -171,6 +174,9 @@ typedef enum {
 	// No SET
 	GET_INPUT_VOLTAGE		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_INPUT_VOLTAGE),
 	// No SET
+	GET_RELAY_CONTROL		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_DISABLE_RELAY_CONTROL),
+	SET_RELAY_CONTROL		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_DISABLE_RELAY_CONTROL),
+	//
 } CMD_LIST;
 
 char *error_parameter  		= "Parameter error.";
@@ -491,8 +497,49 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			ret_value = true;
 			break;
 
+		case GET_RELAY_CONTROL:
+			itoa_10(get_disable_relay_control(), command_return_string);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
+		case SET_RELAY_CONTROL:
+			if(param)
+			{
+				set_disable_relay_control(true);
+				*return_string_ptr = message_ok;
+			}
+			else
+			{
+				set_disable_relay_control(false);
+				*return_string_ptr = message_ok;
+			}
+			ret_value = true;
+			break;
+
 		case GET_6B595_SELFTEST:
+			{
+				int ch_index;
+				ch_index = itoa_10(get_tpic6b595_selftest_OK_Count(), command_return_string);
+				command_return_string[ch_index++] = '/';
+				itoa_10(get_tpic6b595_selftest_Total_Count(), command_return_string+ch_index);
+				*return_string_ptr = command_return_string;
+				ret_value = true;
+			}
+			break;
 		case SET_6B595_SELFTEST:
+			if(param)
+			{
+				set_tpic6b595_selftest_On(true);
+				*return_string_ptr = message_ok;
+			}
+			else
+			{
+				set_tpic6b595_selftest_On(false);
+				*return_string_ptr = message_ok;
+			}
+			ret_value = true;
+			break;
+
 		case GET_INPUT_VOLTAGE:
 		case GET_R2N:
 		case SET_R2N:

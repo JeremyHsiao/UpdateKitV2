@@ -133,6 +133,43 @@ static void inline Delay125ns(void)
 
 #define RESISTOR_BIT_MASK			((1UL<<RESISTOR_BIT_LEN)-1)
 
+bool 		disable_relay_control = false, selftest_is_on = false;
+uint32_t	selftest_total_count = 0, selftest_ok_count = 0;
+
+bool get_disable_relay_control(void)
+{
+	return disable_relay_control;
+}
+
+void set_disable_relay_control(bool set_disable)
+{
+	disable_relay_control = set_disable;
+}
+
+uint32_t get_tpic6b595_selftest_On(void)
+{
+	return selftest_is_on;
+}
+
+void set_tpic6b595_selftest_On(bool OnOff)
+{
+	selftest_is_on = OnOff;
+	if(selftest_is_on)
+	{
+		selftest_total_count = selftest_ok_count = 0;
+	}
+}
+
+uint32_t get_tpic6b595_selftest_Total_Count(void)
+{
+	return selftest_total_count;
+}
+
+uint32_t get_tpic6b595_selftest_OK_Count(void)
+{
+	return selftest_ok_count;
+}
+
 void Calc_Relay_Value(uint32_t *Resistor, uint64_t *Relay)
 {
 	uint64_t	Relay_Value;
@@ -306,6 +343,9 @@ void Enable_Shift_Register_Output(bool enable_true)
 
 void Latch_Register_Byte_to_Output(void)
 {
+	if(disable_relay_control)
+		return;
+
 	// an RCK high-pulse to latch value to output
 	RCK_1();
 	Delay125ns();
@@ -376,15 +416,15 @@ uint32_t Setup_Shift_Register_32it(uint32_t value)
 	return Read_Shiftout_log();;
 }
 
-uint32_t Test_Shift_Register(uint8_t test_value)
-{
-	// Setup bit1 then bit0
-	Shift_and_Set_Register_Bit(((test_value&0x2)!=0)?1:0);
-	Shift_and_Set_Register_Bit(test_value & 0x1);
-	Latch_Register_Byte_to_Output();
-
-	return Read_Shiftout_log();
-}
+//uint32_t Test_Shift_Register(uint8_t test_value)
+//{
+//	// Setup bit1 then bit0
+//	Shift_and_Set_Register_Bit(((test_value&0x2)!=0)?1:0);
+//	Shift_and_Set_Register_Bit(test_value & 0x1);
+//	Latch_Register_Byte_to_Output();
+//
+//	return Read_Shiftout_log();
+//}
 
 bool SelfTest_Shift_Register(void)
 {
@@ -393,14 +433,16 @@ bool SelfTest_Shift_Register(void)
 
 	high = 0x55aa55aa;
 	low  = 0xff00ff00;
-	Setup_Shift_Register_32it(high);
-	Setup_Shift_Register_32it(low);
 	readout_high = Setup_Shift_Register_32it(high);
 	readout_low = Setup_Shift_Register_32it(low);
+	readout_high = Setup_Shift_Register_32it(readout_high);
+	readout_low = Setup_Shift_Register_32it(readout_low);
 	if((readout_high==high)&&(readout_low==low))
 	{
 		bRet = true;
+		selftest_ok_count++;
 	}
+	selftest_total_count++;
 	return bRet;
 }
 
