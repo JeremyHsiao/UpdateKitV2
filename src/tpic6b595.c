@@ -147,7 +147,7 @@ void set_disable_relay_control(bool set_disable)
 	disable_relay_control = set_disable;
 }
 
-uint32_t get_tpic6b595_selftest_On(void)
+bool get_tpic6b595_selftest_On(void)
 {
 	return selftest_is_on;
 }
