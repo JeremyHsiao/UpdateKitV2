@@ -366,11 +366,11 @@ void Shift_and_Set_Register_Bit(bool set_bit_data)
 
 	// Setup 595_SERIN pin
 	SEROUT_SetValue(set_bit_data);
-	Short_Delay();
+//	Short_Delay();
 
 	// SRCK high-pulse to shift register byte and set register data bit
 	SRCK_1();
-	Short_Delay();
+//	Short_Delay();
 	SRCK_0();
 }
 
