@@ -115,14 +115,15 @@
 #define SEROUT_SetValue(x)	Chip_GPIO_SetPinState(LPC_GPIO,MCU_SEROUT_port,MCU_SEROUT_pin,x)
 #define SERIN_GetValue()	Chip_GPIO_GetPinState(LPC_GPIO,MCU_SERIN_port,MCU_SERIN_pin)
 
-static void inline Delay125ns(void)
+static void inline Short_Delay(void)
 {
+	// estimated 41.667 ns
 	__NOP();
 	__NOP();
-	__NOP();
-	__NOP();
-	__NOP();
-	__NOP();
+//	// estimated 62.5ns
+//	__NOP();
+//	__NOP();
+//	__NOP();
 }
 
 #define RESISTOR_BIT_LEN			(20)
@@ -348,9 +349,7 @@ void Latch_Register_Byte_to_Output(void)
 
 	// an RCK high-pulse to latch value to output
 	RCK_1();
-	Delay125ns();
-	Delay125ns();
-	Delay125ns();
+	Short_Delay();
 	RCK_0();
 }
 
@@ -365,26 +364,19 @@ void Shift_and_Set_Register_Bit(bool set_bit_data)
 
 	// Setup 595_SERIN pin
 	SEROUT_SetValue(set_bit_data);
-	Delay125ns();
-	Delay125ns();
-	Delay125ns();
+	Short_Delay();
 
 	// SRCK high-pulse to shift register byte and set register data bit
 	SRCK_1();
-	Delay125ns();
-	Delay125ns();
-	Delay125ns();
+	Short_Delay();
 	SRCK_0();
-	Delay125ns();
 }
 
 void Clear_Register_Byte(void)
 {
 	// _SRCLR low-pulse to clear shift register
 	SRCLR_0();
-	Delay125ns();
-	Delay125ns();
-	Delay125ns();
+	Short_Delay();
 	SRCLR_1();
 }
 
