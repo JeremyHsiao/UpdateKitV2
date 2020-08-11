@@ -249,13 +249,13 @@ uint8_t Get_Button_IO_Value(void)
 {
 	uint8_t	ret_value=0;
 
-	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_SRC_PORT, BUTTON_SRC_PIN))	// SRC
+	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_SRC_PORT, BUTTON_SRC_PIN))	// SRC -- BLUE
 		ret_value =(1<<3);
-	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_SEL_PORT, BUTTON_SEL_PIN))	// SEL
+	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_SEL_PORT, BUTTON_SEL_PIN))	// SEL -- GREEN
 		ret_value|=(1<<2);
-	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_DEC_PORT, BUTTON_DEC_PIN))	// DEC
+	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_INC_PORT, BUTTON_INC_PIN))	// INC -- YELLOW
 		ret_value|=(1<<1);
-	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_INC_PORT, BUTTON_INC_PIN))	// INC
+	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_DEC_PORT, BUTTON_DEC_PIN))	// DEC -- RED
 		ret_value|=(1<<0);
 
 	return ret_value;
