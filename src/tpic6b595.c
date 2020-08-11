@@ -117,9 +117,11 @@
 
 static void inline Short_Delay(void)
 {
-	// estimated 41.667 ns
+	// estimated 20.883 ns
 	__NOP();
-	__NOP();
+//	// estimated 41.667 ns
+//	__NOP();
+//	__NOP();
 //	// estimated 62.5ns
 //	__NOP();
 //	__NOP();
