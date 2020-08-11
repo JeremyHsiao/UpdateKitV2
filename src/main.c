@@ -376,14 +376,12 @@ int main(void)
 					LED_Status_Set_Value(led);
 				}
 			}
-			else
-			{
+
 				// add self-test here so that it won't affect refreshing rate.
 				if(get_tpic6b595_selftest_On())
 				{
 					SelfTest_Shift_Register();
 				}
-			}
 		}
 
 		//
