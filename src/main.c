@@ -325,11 +325,6 @@ int main(void)
 		{
 			// Entering here means SysTick handler has been processed so we could check timeout-event now.
 
-			if(get_tpic6b595_selftest_On())
-			{
-				SelfTest_Shift_Register();
-			}
-
 			if (usb_cdc_welcome_message_shown==true)
 			{
 				if((!show_5v_protection_page)&&(!show_tpic6b595_error))
@@ -355,7 +350,7 @@ int main(void)
 					lcd_module_display_enable_only_one_page(LCM_ALL_VR_DISPLAY);
 //					lcm_force_to_display_page(LCM_ALL_VR_DISPLAY);
 					usb_cdc_welcome_message_shown = true;
-					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,5,TIMER_100MS);
+					Repeat_DownCounter(RELAY_SETUP_HYSTERSIS_IN_100MS,3,TIMER_100MS);
 #endif // _BOARD_DEBUG_SW_
 				}
 			}
@@ -379,6 +374,14 @@ int main(void)
 					lcd_module_display_find_next_enabled_page();
 					led ^= LED_STATUS_R;
 					LED_Status_Set_Value(led);
+				}
+			}
+			else
+			{
+				// add self-test here so that it won't affect refreshing rate.
+				if(get_tpic6b595_selftest_On())
+				{
+					SelfTest_Shift_Register();
 				}
 			}
 		}
