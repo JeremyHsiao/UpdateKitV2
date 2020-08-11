@@ -191,4 +191,6 @@ extern void UI_V2_Update_after_change(uint8_t res_id, uint32_t new_value, char* 
 extern bool Check_if_Resistor_in_Range(uint32_t res);
 extern int Show_ADC_Voltage_3_Digits(uint32_t value, char* result);
 
+extern uint8_t Get_Button_IO_Value(void);
+
 #endif // _USER_IF_H_

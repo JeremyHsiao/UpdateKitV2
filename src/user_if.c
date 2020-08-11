@@ -245,6 +245,23 @@ Button_Data const button_data[5] =
 
 BUTTON_STATE button_state[4] = { BUTTON_UP_STATE, BUTTON_UP_STATE, BUTTON_UP_STATE, BUTTON_UP_STATE };
 
+uint8_t Get_Button_IO_Value(void)
+{
+	uint8_t	ret_value=0;
+
+	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_SRC_PORT, BUTTON_SRC_PIN))	// SRC
+		ret_value =(1<<3);
+	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_SEL_PORT, BUTTON_SEL_PIN))	// SEL
+		ret_value|=(1<<2);
+	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_DEC_PORT, BUTTON_DEC_PIN))	// DEC
+		ret_value|=(1<<1);
+	if(!Chip_GPIO_GetPinState(LPC_GPIO, BUTTON_INC_PORT, BUTTON_INC_PIN))	// INC
+		ret_value|=(1<<0);
+
+	return ret_value;
+
+}
+
 uint32_t next_state_10ms_lut[] =
 {
 		(4),	// BUTTON_UP_STATE = 0,					time before end of debounce == debounce-time
