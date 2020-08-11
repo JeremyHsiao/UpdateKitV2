@@ -52,7 +52,7 @@ enum
 	CMD_CODE_MAX_NO
 };
 
-static const char *command_code_list[CMD_CODE_MAX_NO-1] =
+static const char *command_code_list[CMD_CODE_MAX_NO - 1] =
 {
 		// not checking non-command --> so the enum number is +1 larger than the sequence of command_code_list
 		"get",
@@ -73,10 +73,14 @@ enum
 	CMD_OBJECT_RESISTOR_B,
 	CMD_OBJECT_RESISTOR_C,
 	CMD_OBJECT_RESISTOR_2N,
+	CMD_OBJECT_6B595_SELFTEST,
+	CMD_OBJECT_NOP,
+	CMD_OBJECT_BUTTON_IO,
+	CMD_OBJECT_INPUT_VOLTAGE,
 	CMD_OBJECT_MAX_NO,
 };
 
-static const char *command_object_list[CMD_OBJECT_MAX_NO-1] =
+static const char *command_object_list[CMD_OBJECT_MAX_NO - 1] =
 {
 	// not checking non-object--> so the enum number is +1 larger than the sequence of command_object_list
 	"user_mode",
@@ -87,6 +91,45 @@ static const char *command_object_list[CMD_OBJECT_MAX_NO-1] =
 	"RB",
 	"RC",
 	"R2N",
+	"6B595_selftest",
+	"nop",
+	"button_io",
+	"input_voltage",
+//	// JP5 & JP3
+//	"PIO2_0",
+//	"PIO2_1",
+//	"PIO2_5",
+//	"PIO0_20",
+//	"PIO0_2",
+//	"PIO2_2",
+//	"PIO0_5",
+//	"PIO0_21",
+//	"PIO1_23",
+//	"PIO2_7",
+//	"PIO1_24",
+//	"PIO0_22",
+//	"PIO0_11",
+//	"PIO0_12",
+//	"PIO0_13",
+//	"PIO0_14",
+//	"PIO1_13",
+//	"PIO0_16",
+//	"PIO0_17",
+//	// JP4 - LCD module
+//	"PIO0_6",
+//	"PIO0_7",
+//	"PIO0_8",
+//	"PIO0_9",
+//	"PIO0_23",
+//	"PIO1_20",
+//	"PIO1_21",
+//	// JP2 - SWD interface & JP3 P0_1
+//	"PIO0_0",
+//	"PIO0_1",
+//	"PIO0_10",
+//	"PIO0_15",
+//	// Hidden
+//	"PIO0_4",
 };
 
 #define CMD_DEFINE_PACK_CMD(cmd)				( CmdCodeBitMask  & (((CmdExecutionPacket)cmd)    << CmdCodeBitPos ) )
@@ -120,6 +163,14 @@ typedef enum {
 	SET_RC	 				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_C),			// set resistor C value
 	GET_R2N 				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_2N),			// get resistor R2N value
 	SET_R2N	 				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_RESISTOR_2N),			// set resistor R2N value
+	GET_6B595_SELFTEST		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_6B595_SELFTEST),
+	SET_6B595_SELFTEST		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_6B595_SELFTEST),
+	GET_NOP					= CMD_GET_OBJECT_VALUE(CMD_OBJECT_NOP),
+	SET_NOP					= CMD_SET_OBJECT_VALUE(CMD_OBJECT_NOP),
+	GET_BUTTON_IO			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_BUTTON_IO),
+	// No SET
+	GET_INPUT_VOLTAGE		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_INPUT_VOLTAGE),
+	// No SET
 } CMD_LIST;
 
 char *error_parameter  		= "Parameter error.";
@@ -428,6 +479,21 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			}
 			break;
 
+		case GET_NOP:
+		case SET_NOP:
+			//*return_string_ptr = command_string_usb; // set in main.c
+			ret_value = true;
+			break;
+
+		case GET_BUTTON_IO:
+			itoa_10(Get_Button_IO_Value(), command_return_string);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
+
+		case GET_6B595_SELFTEST:
+		case SET_6B595_SELFTEST:
+		case GET_INPUT_VOLTAGE:
 		case GET_R2N:
 		case SET_R2N:
 			*return_string_ptr = error_developing;	// To be implemented
