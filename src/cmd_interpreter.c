@@ -492,9 +492,12 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			break;
 
 		case GET_BUTTON_IO:
-			itoa_10(Get_Button_IO_Value(), command_return_string);
-			*return_string_ptr = command_return_string;
-			ret_value = true;
+			{
+				strcpy(command_return_string,"button_io:");
+				itoa_10(Get_Button_IO_Value(), command_return_string+sizeof("button_io:")-1);
+				*return_string_ptr = command_return_string;
+				ret_value = true;
+			}
 			break;
 
 		case GET_RELAY_CONTROL:
