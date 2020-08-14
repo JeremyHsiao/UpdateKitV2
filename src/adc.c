@@ -39,12 +39,14 @@
  ****************************************************************************/
 #define ADC_CH_VOLTAGE		(6)
 //#define ADC_CH_CURRENT		(8)
+uint32_t	adc_vrefp = ADC_VREFP_VALUE_DEFAULT;
 
 /*****************************************************************************
  * Public types/enumerations/variables
  ****************************************************************************/
 //bool sequenceComplete, thresholdCrossed;
-bool sequenceComplete;
+bool 		sequenceComplete;
+uint32_t	adc_voltage = 0;
 
 /*****************************************************************************
  * Private functions
@@ -153,6 +155,16 @@ void DeInit_ADC(void)
 	Chip_ADC_DeInit(LPC_ADC);
 }
 
+void Set_ADC_VREFP(uint32_t vrefp_value)
+{
+	adc_vrefp = vrefp_value;
+}
+
+uint32_t Get_ADC_VREFP(void)
+{
+	return adc_vrefp;
+}
+
 uint32_t Read_ADC_Voltage(void)
 {
 	//	uint16_t	ADC0_value, ADC1_value;
@@ -162,7 +174,7 @@ uint32_t Read_ADC_Voltage(void)
 	//	thresholdCrossed = false;
 	//}
 
-	uint32_t rawSample, temp_value = ~0UL;
+	uint32_t rawSample, temp_value = ADC_SAMPLE_ERROR_VALUE;
 
 	/* Get raw sample data for channels 6 */
 	rawSample = Chip_ADC_GetDataReg(LPC_ADC, ADC_CH_VOLTAGE);
@@ -172,12 +184,12 @@ uint32_t Read_ADC_Voltage(void)
 		//			ADC0_value = ADC_DR_RESULT(rawSample);
 		//			temp_value = ADC0_value;
 		//			temp_value = (temp_value * ADC_VREFP_VALUE) * 1000 / 1024 / ADC_VREFP_DIVIDER; // use 0.001V as unit == (adc/4096) * (343/100) * (4) * 1000
-		temp_value = ADC_DR_RESULT(rawSample) * (ADC_VREFP_VALUE*1000/ADC_VREFP_DIVIDER) / 1024;
+		temp_value = ADC_DR_RESULT(rawSample) * adc_vrefp * (ADC_RESULT_VOLTAGE_MUL/ADC_VREFP_DIVIDER) / (1UL<<ADC_RESOLUTION_BIT);
 	}
 	else
 	{
 		//			ADC0_value = ADC_SAMPLE_ERROR_VALUE;
-		temp_value = ~0UL;
+		temp_value = ADC_SAMPLE_ERROR_VALUE;
 	}
 	return (temp_value);
 }

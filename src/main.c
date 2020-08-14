@@ -43,7 +43,6 @@ bool			usb_cdc_welcome_message_shown = false;
  * Public types/enumerations/variables
  ****************************************************************************/
 uint64_t	relay_value;		// public for debug purpose
-uint32_t	adc_voltage = 0;
 
 // for debugging usb-cdc
 uint32_t prompt = 0, rdCnt = 0;
@@ -158,7 +157,7 @@ int main(void)
 	{
 		static uint32_t		led = LED_STATUS_G;
 		static bool			show_5v_protection_page = false;
-		uint8_t 			temp;
+		uint32_t 			temp;
 		char 				temp_text[10];
 		int 				temp_len;
 
@@ -166,7 +165,11 @@ int main(void)
 		if (sequenceComplete)
 		{
 			sequenceComplete = false;
-			adc_voltage = Read_ADC_Voltage();
+			temp = Read_ADC_Voltage();
+			if(temp!=ADC_SAMPLE_ERROR_VALUE)
+			{
+				adc_voltage = temp;
+			}
 			//OutputHexValue_with_newline(adc_voltage);
 			Chip_ADC_StartSequencer(LPC_ADC, ADC_SEQA_IDX);
 
