@@ -370,6 +370,8 @@ int main(void)
 			if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_INTERNAL_DELAY_IN_MS))
 			{
 
+				update_resistor_value();
+
 				lcm_auto_display_refresh_task();
 
 				if(Read_and_Clear_SW_TIMER_Reload_Flag(LCD_MODULE_PAGE_CHANGE_TIMER_IN_S))

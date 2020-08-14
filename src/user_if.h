@@ -190,6 +190,7 @@ extern bool If_value_has_been_changed(void);
 extern void UI_V2_Update_after_change(uint8_t res_id, uint32_t new_value, char* temp_text, int temp_len );
 extern bool Check_if_Resistor_in_Range(uint32_t res);
 extern int Show_ADC_Voltage_3_Digits(uint32_t value, char* result);
+extern void update_resistor_value(void);
 
 extern uint8_t Get_Button_IO_Value(void);
 

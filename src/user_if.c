@@ -31,6 +31,12 @@
  * Private types/enumerations/variables
  ****************************************************************************/
 uint8_t				current_output_stage;
+#ifdef _BOARD_DEBUG_SW_
+	static uint8_t		res_index = 4;		// default at Value-R menu
+#else
+	static uint8_t		res_index = 3;		// default at Value-R menu
+#endif // #ifdef _BOARD_DEBUG_SW_
+
 
 char  *FineTuneResistorMsg[] = {
 	//"0123456789012345"
@@ -546,12 +552,12 @@ void UI_Version_01(void)
 	char 				temp_text[10];
 	int 				temp_len;
 	static uint32_t		res_value[3] = { 1, 1, 1 }, res_step[3] = { 1, 1, 1 };
-	static uint8_t		res_index = 0;
+	static uint8_t		res_index_01 = 0;
 
 	if(	State_Proc_Button(BUTTON_INC_ID) )
 	{
-		uint32_t	*res_ptr = res_value + res_index,
-					*step_ptr = res_step + res_index;
+		uint32_t	*res_ptr = res_value + res_index_01,
+					*step_ptr = res_step + res_index_01;
 
 		lcd_module_display_enable_only_one_page(LCM_SINGLE_VR_DISPLAY);
 
@@ -563,8 +569,8 @@ void UI_Version_01(void)
 
 	if(	State_Proc_Button(BUTTON_DEC_ID) )
 	{
-		uint32_t	*res_ptr = res_value + res_index,
-					*step_ptr = res_step + res_index;
+		uint32_t	*res_ptr = res_value + res_index_01,
+					*step_ptr = res_step + res_index_01;
 
 		lcd_module_display_enable_only_one_page(LCM_SINGLE_VR_DISPLAY);
 
@@ -582,13 +588,13 @@ void UI_Version_01(void)
 	if(	State_Proc_Button(BUTTON_SRC_ID) )
 	{
 		uint32_t	*res_ptr;
-		if(++res_index>=3)
+		if(++res_index_01>=3)
 		{
-			res_index = 0;
+			res_index_01 = 0;
 		}
 		temp_text[0] = '0'+ res_index;
 		lcm_text_buffer_cpy(LCM_SINGLE_VR_DISPLAY,0,1,temp_text,1);
-		res_ptr = res_value + res_index;
+		res_ptr = res_value + res_index_01;
 		temp_len = Show_Resistor_3_Digits(*res_ptr,temp_text);
 		lcm_text_buffer_cpy(LCM_SINGLE_VR_DISPLAY,0,3,temp_text,temp_len);
 	}
@@ -674,11 +680,6 @@ void UI_Version_02(void)
 	int                 Unit4=10000;
 	int                 Unit5=100000;
 	static uint32_t		res_step[3] = { 1, 1, 1 };
-#ifdef _BOARD_DEBUG_SW_
-	static uint8_t		res_index = 4;		// default at Value-R menu
-#else
-	static uint8_t		res_index = 3;		// default at Value-R menu
-#endif // #ifdef _BOARD_DEBUG_SW_
 
 	if(	State_Proc_Button(BUTTON_SRC_ID) )
 	{
@@ -692,7 +693,7 @@ void UI_Version_02(void)
 			{
 				case 0:			// changing RA under all VR menu
 					temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
-					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len); //above 2 line for update value form step to press source
+					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len); //above 2 line for update value from step to press source
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
@@ -732,7 +733,7 @@ void UI_Version_02(void)
 				case 5:			// changing RA under UNIT menu
 					res_index=0;
 					temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
-					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);//above 2 line for update value form step to press source
+					UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);//above 2 line for update value from step to press source
 					lcm_text_buffer_cpy(LCM_ALL_SET_BLINKING,0,5,"A",1);
 					lcd_module_display_enable_only_one_page(LCM_ALL_SET_BLINKING);
 					lcd_module_display_enable_page(LCM_ALL_SET_R0_BLINKING);
@@ -1953,6 +1954,180 @@ bool If_value_has_been_changed(void)
 
 }
 
+void update_resistor_value(void)
+{
+	char 				temp_text[10];
+	int 				temp_len;
+
+	switch(res_index)
+
+	{
+	    case 0:
+	    case 1:
+	    case 2:
+	    case 3:
+
+	    	temp_len = Show_Resistor_3_Digits(res_value[0],temp_text);
+	    	UI_V2_Update_after_change(0,res_value[0],temp_text,temp_len);
+	    	lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,0,9+2,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[1],temp_text);
+			UI_V2_Update_after_change(1,res_value[1],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,1,2,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[2],temp_text);
+			UI_V2_Update_after_change(2,res_value[2],temp_text,temp_len);
+  			lcm_text_buffer_cpy(LCM_ALL_VR_DISPLAY,1,9+2,temp_text,temp_len);
+			break;
+		case 5:
+			temp_len = itoa_10_fixed_position(res_value[res_index-5],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-5],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
+			// update RA/RB/RC
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-5],temp_text);
+			UI_V2_Update_after_change(res_index-5,res_value[res_index-5],temp_text,temp_len);
+			break;
+		case 6:
+			temp_len = itoa_10_fixed_position(res_value[res_index-5],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-5],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-5],temp_text);
+			UI_V2_Update_after_change(res_index-5,res_value[res_index-5],temp_text,temp_len);
+			break;
+		case 7:
+			temp_len = itoa_10_fixed_position(res_value[res_index-5],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-5],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_ALL_SEL_SET_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-5],temp_text);
+			UI_V2_Update_after_change(res_index-5,res_value[res_index-5],temp_text,temp_len);
+			break;
+		case 8:
+			temp_len = itoa_10_fixed_position(res_value[res_index-8],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-8],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-8],temp_text);
+			UI_V2_Update_after_change(res_index-8,res_value[res_index-8],temp_text,temp_len);
+			break;
+		case 9:
+			temp_len = itoa_10_fixed_position(res_value[res_index-9],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-9],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-9],temp_text);
+			UI_V2_Update_after_change(res_index-9,res_value[res_index-9],temp_text,temp_len);
+			break;
+		case 10:
+			temp_len = itoa_10_fixed_position(res_value[res_index-10],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-10],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-10],temp_text);
+			UI_V2_Update_after_change(res_index-10,res_value[res_index-10],temp_text,temp_len);
+			break;
+		case 11:
+			temp_len = itoa_10_fixed_position(res_value[res_index-11],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-11],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-11],temp_text);
+			UI_V2_Update_after_change(res_index-11,res_value[res_index-11],temp_text,temp_len);
+			break;
+		case 12:
+			temp_len = itoa_10_fixed_position(res_value[res_index-12],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-12],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-12],temp_text);
+			UI_V2_Update_after_change(res_index-12,res_value[res_index-12],temp_text,temp_len);
+			break;
+		case 13:
+			temp_len = itoa_10_fixed_position(res_value[res_index-12],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-12],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-12],temp_text);
+			UI_V2_Update_after_change(res_index-12,res_value[res_index-12],temp_text,temp_len);
+			break;
+		case 14:
+			temp_len = itoa_10_fixed_position(res_value[res_index-13],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-13],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-13],temp_text);
+			UI_V2_Update_after_change(res_index-13,res_value[res_index-13],temp_text,temp_len);
+			break;
+		case 15:
+			temp_len = itoa_10_fixed_position(res_value[res_index-14],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-14],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-14],temp_text);
+			UI_V2_Update_after_change(res_index-14,res_value[res_index-14],temp_text,temp_len);
+			break;
+		case 16:
+			temp_len = itoa_10_fixed_position(res_value[res_index-15],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-15],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-15],temp_text);
+			UI_V2_Update_after_change(res_index-15,res_value[res_index-15],temp_text,temp_len);
+			break;
+		case 17:
+			temp_len = itoa_10_fixed_position(res_value[res_index-16],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-16],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-16],temp_text);
+			UI_V2_Update_after_change(res_index-16,res_value[res_index-16],temp_text,temp_len);
+			break;
+		case 18:
+			temp_len = itoa_10_fixed_position(res_value[res_index-16],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-16],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_1_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-16],temp_text);
+			UI_V2_Update_after_change(res_index-16,res_value[res_index-16],temp_text,temp_len);
+			break;
+		case 19:
+			temp_len = itoa_10_fixed_position(res_value[res_index-17],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-17],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_2_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-17],temp_text);
+			UI_V2_Update_after_change(res_index-17,res_value[res_index-17],temp_text,temp_len);
+			break;
+		case 20:
+			temp_len = itoa_10_fixed_position(res_value[res_index-18],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-18],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_3_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-18],temp_text);
+			UI_V2_Update_after_change(res_index-18,res_value[res_index-18],temp_text,temp_len);
+			break;
+		case 21:
+			temp_len = itoa_10_fixed_position(res_value[res_index-19],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-19],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_4_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-19],temp_text);
+			UI_V2_Update_after_change(res_index-19,res_value[res_index-19],temp_text,temp_len);
+			break;
+		case 22:
+			temp_len = itoa_10_fixed_position(res_value[res_index-20],temp_text,8);
+			UI_V2_Update_after_change(res_index,res_value[res_index-20],temp_text,temp_len);
+			lcm_text_buffer_cpy(LCM_SEL_UNIT_5_DISPLAY,1,6,temp_text,temp_len);
+
+			temp_len = Show_Resistor_3_Digits(res_value[res_index-20],temp_text);
+			UI_V2_Update_after_change(res_index-20,res_value[res_index-20],temp_text,temp_len);
+			break;
+		default:
+			break;
+	}
+
+}
 ///
 ///
 ///
