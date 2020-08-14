@@ -19,6 +19,7 @@
 #include "sw_timer.h"
 #include "user_if.h"
 #include "tpic6b595.h"
+#include "adc.h"
 
 /*****************************************************************************
  * Private types/enumerations/variables
@@ -544,6 +545,14 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			break;
 
 		case GET_INPUT_VOLTAGE:
+			{
+				strcpy(command_return_string,"input_voltage:");
+				itoa_10(adc_voltage, command_return_string+sizeof("input_voltage:")-1);
+				*return_string_ptr = command_return_string;
+				ret_value = true;
+			}
+			break;
+
 		case GET_R2N:
 		case SET_R2N:
 			*return_string_ptr = error_developing;	// To be implemented
