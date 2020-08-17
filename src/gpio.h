@@ -131,6 +131,17 @@ extern void LED_Status_Set_Auto_Toggle(uint32_t LED_status_pin, uint8_t flashing
 extern void LED_Status_Clear_Auto_Toggle(uint32_t LED_status_pin);
 extern void LED_Status_Update_Process(void);
 
+extern void Set_GPIO_Dirction_Command(uint8_t port, uint32_t dir_value);
+extern uint32_t Get_GPIO_Direction_Command(uint8_t port);
+extern void Set_GPIO_Mask_Command(uint8_t port, uint32_t set_mask_value);
+extern uint32_t Get_GPIO_Mask_Command(uint8_t port);
+extern void Set_GPIO_PinMode_Command(uint32_t pin_mode);
+extern uint32_t Get_PinMode_Command(void);
+
+extern bool Get_GPIO_Pin_Command(uint8_t port, uint8_t pin);
+extern void Set_GPIO_Pin_Command(uint8_t port, uint8_t pin, bool pin_value);
+
+
 #define	LED_STATUS_G		(1L<<LED_G_GPIO_PIN)
 #define	LED_STATUS_Y		(1L<<LED_Y_GPIO_PIN)
 #define	LED_STATUS_R		(1L<<LED_R_GPIO_PIN)

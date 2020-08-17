@@ -38,7 +38,7 @@ char 			command_return_string[MAX_SERIAL_GETS_LEN+1];
 #define		CmdCodeBitPos		(0)
 #define     CmdCodeBitLen		(2)
 #define		CmdObjBitPos		(CmdCodeBitPos+CmdCodeBitLen)
-#define		CmdOjbBitLen		(6)
+#define		CmdOjbBitLen		(5)
 #define		CmdValueBitPos		(CmdObjBitPos+CmdOjbBitLen)
 #define		CmdValueBitLen		(CmdPacketLen-CmdOjbBitLen-CmdCodeBitLen)
 #define		CmdCodeBitMask		( ( ( ((CmdExecutionPacket)1UL) << (CmdCodeBitLen+1) )  - 1)  << CmdCodeBitPos )
@@ -80,6 +80,51 @@ enum
 	CMD_OBJECT_BUTTON_IO,
 	CMD_OBJECT_INPUT_VOLTAGE,
 	CMD_OBJECT_DISABLE_RELAY_CONTROL,
+	CMD_OBJECT_DIRECTION_GPIO0,
+	CMD_OBJECT_DIRECTION_GPIO1,
+	CMD_OBJECT_DIRECTION_GPIO2,
+	CMD_OBJECT_OUTPUT_GPIO0,
+	CMD_OBJECT_OUTPUT_GPIO1,
+	CMD_OBJECT_OUTPUT_GPIO2,
+	CMD_OBJECT_IUPUT_GPIO0,
+	CMD_OBJECT_IUPUT_GPIO1,
+	CMD_OBJECT_IUPUT_GPIO2,
+	CMD_OBJECT_PIN_GPIO0,
+	CMD_OBJECT_PIN_GPIO1,
+	CMD_OBJECT_PIN_GPIO2,
+	CMD_OBJECT_PIN_MODE,
+//	CMD_OBJECT_PIO0_0,
+//	CMD_OBJECT_PIO0_1,
+//	CMD_OBJECT_PIO0_2,
+//	CMD_OBJECT_PIO0_4,
+//	CMD_OBJECT_PIO0_5,
+//	CMD_OBJECT_PIO0_6,
+//	CMD_OBJECT_PIO0_7,
+//	CMD_OBJECT_PIO0_8,
+//	CMD_OBJECT_PIO0_9,
+//	CMD_OBJECT_PIO0_10,
+//	CMD_OBJECT_PIO0_11,
+//	CMD_OBJECT_PIO0_12,
+//	CMD_OBJECT_PIO0_13,
+//	CMD_OBJECT_PIO0_14,
+//	CMD_OBJECT_PIO0_15,
+//	CMD_OBJECT_PIO0_16,
+//	CMD_OBJECT_PIO0_17,
+//	CMD_OBJECT_PIO0_20,
+//	CMD_OBJECT_PIO0_21,
+//	CMD_OBJECT_PIO0_22,
+//	CMD_OBJECT_PIO0_23,
+//	CMD_OBJECT_PIO0_24,
+//	CMD_OBJECT_PIO1_13,
+//	CMD_OBJECT_PIO1_20,
+//	CMD_OBJECT_PIO1_21,
+//	CMD_OBJECT_PIO1_23,
+//	CMD_OBJECT_PIO1_24,
+//	CMD_OBJECT_PIO2_0,
+//	CMD_OBJECT_PIO2_1,
+//	CMD_OBJECT_PIO2_2,
+//	CMD_OBJECT_PIO2_5,
+//	CMD_OBJECT_PIO2_7,
 	CMD_OBJECT_MAX_NO,
 };
 
@@ -98,42 +143,51 @@ static const char *command_object_list[CMD_OBJECT_MAX_NO - 1] =
 	"nop",
 	"button_io",
 	"input_voltage",
-	"disable_relay_control"
-//	// JP5 & JP3
-//	"PIO2_0",
-//	"PIO2_1",
-//	"PIO2_5",
-//	"PIO0_20",
+	"disable_relay",
+	"gpio_dir_P0",
+	"gpio_dir_P1",
+	"gpio_dir_P2",
+	"gpio_out_P0",
+	"gpio_out_P1",
+	"gpio_out_P2",
+	"gpio_in_P0",
+	"gpio_in_P1",
+	"gpio_in_P2",
+	"gpio_pin_P0",
+	"gpio_pin_P1",
+	"gpio_pin_P2",
+	"gpio_pin_mode",
+//	"PIO0_0",
+//	"PIO0_1",
 //	"PIO0_2",
-//	"PIO2_2",
+//	"PIO0_4",
 //	"PIO0_5",
-//	"PIO0_21",
-//	"PIO1_23",
-//	"PIO2_7",
-//	"PIO1_24",
-//	"PIO0_22",
-//	"PIO0_11",
-//	"PIO0_12",
-//	"PIO0_13",
-//	"PIO0_14",
-//	"PIO1_13",
-//	"PIO0_16",
-//	"PIO0_17",
-//	// JP4 - LCD module
 //	"PIO0_6",
 //	"PIO0_7",
 //	"PIO0_8",
 //	"PIO0_9",
+//	"PIO0_10",
+//	"PIO0_11",
+//	"PIO0_12",
+//	"PIO0_13",
+//	"PIO0_14",
+//	"PIO0_15",
+//	"PIO0_16",
+//	"PIO0_17",
+//	"PIO0_20",
+//	"PIO0_21",
+//	"PIO0_22",
 //	"PIO0_23",
+//	"PIO1_13",
 //	"PIO1_20",
 //	"PIO1_21",
-//	// JP2 - SWD interface & JP3 P0_1
-//	"PIO0_0",
-//	"PIO0_1",
-//	"PIO0_10",
-//	"PIO0_15",
-//	// Hidden
-//	"PIO0_4",
+//	"PIO1_23",
+//	"PIO1_24",
+//	"PIO2_0",
+//	"PIO2_1",
+//	"PIO2_2",
+//	"PIO2_5",
+//	"PIO2_7",
 };
 
 #define CMD_DEFINE_PACK_CMD(cmd)				( CmdCodeBitMask  & (((CmdExecutionPacket)cmd)    << CmdCodeBitPos ) )
@@ -177,6 +231,97 @@ typedef enum {
 	// No SET
 	GET_RELAY_CONTROL		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_DISABLE_RELAY_CONTROL),
 	SET_RELAY_CONTROL		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_DISABLE_RELAY_CONTROL),
+
+	GET_DIR_GPIO0			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_DIRECTION_GPIO0),
+	SET_DIR_GPIO0			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_DIRECTION_GPIO0),
+	GET_DIR_GPIO1			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_DIRECTION_GPIO1),
+	SET_DIR_GPIO1			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_DIRECTION_GPIO1),
+	GET_DIR_GPIO2			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_DIRECTION_GPIO2),
+	SET_DIR_GPIO2			= CMD_SET_OBJECT_VALUE(CMD_OBJECT_DIRECTION_GPIO2),
+	//  No GET
+	SET_OUTPUT_GPIO0		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_OUTPUT_GPIO0),
+	//  No GET
+	SET_OUTPUT_GPIO1		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_OUTPUT_GPIO1),
+	//  No GET
+	SET_OUTPUT_GPIO2		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_OUTPUT_GPIO2),
+	GET_IUPUT_GPIO0			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_IUPUT_GPIO0),
+	// No SET
+	GET_IUPUT_GPIO1			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_IUPUT_GPIO1),
+	// No SET
+	GET_IUPUT_GPIO2			= CMD_GET_OBJECT_VALUE(CMD_OBJECT_IUPUT_GPIO2),
+	// No SET
+	GET_PINMASK_GPIO0		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIN_GPIO0),
+	SET_PINMASK_GPIO0		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIN_GPIO0),
+	GET_PINMASK_GPIO1		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIN_GPIO1),
+	SET_PINMASK_GPIO1		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIN_GPIO1),
+	GET_PINMASK_GPIO2		= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIN_GPIO2),
+	SET_PINMASK_GPIO2		= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIN_GPIO2),
+	GET_PINMODE				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIN_MODE),
+	SET_PINMODE				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIN_MODE),
+
+	// Reserved for alternative usage of GPIO
+//	GET_PIO0_0				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_0),
+//	SET_PIO0_0				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_0),
+//	GET_PIO0_1				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_1),
+//	SET_PIO0_1				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_1),
+//	GET_PIO0_2				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_2),
+//	SET_PIO0_2				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_2),
+//	GET_PIO0_4				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_4),
+//	SET_PIO0_4				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_4),
+//	GET_PIO0_5				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_5),
+//	SET_PIO0_5				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_5),
+//	GET_PIO0_6				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_6),
+//	SET_PIO0_6				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_6),
+//	GET_PIO0_7				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_7),
+//	SET_PIO0_7				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_7),
+//	GET_PIO0_8				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_8),
+//	SET_PIO0_8				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_8),
+//	GET_PIO0_9				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_9),
+//	SET_PIO0_9				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_9),
+//	GET_PIO0_10				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_10),
+//	SET_PIO0_10				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_10),
+//	GET_PIO0_11				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_11),
+//	SET_PIO0_11				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_11),
+//	GET_PIO0_12				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_12),
+//	SET_PIO0_12				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_12),
+//	GET_PIO0_13				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_13),
+//	SET_PIO0_13				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_13),
+//	GET_PIO0_14				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_14),
+//	SET_PIO0_14				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_14),
+//	GET_PIO0_15				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_15),
+//	SET_PIO0_15				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_15),
+//	GET_PIO0_16				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_16),
+//	SET_PIO0_16				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_16),
+//	GET_PIO0_17				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_17),
+//	SET_PIO0_17				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_17),
+//	GET_PIO0_20				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_20),
+//	SET_PIO0_20				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_20),
+//	GET_PIO0_21				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_21),
+//	SET_PIO0_21				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_21),
+//	GET_PIO0_23				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_23),
+//	SET_PIO0_23				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_23),
+//	GET_PIO0_24				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO0_24),
+//	SET_PIO0_24				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO0_24),
+//	GET_PIO1_13				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO1_13),
+//	SET_PIO1_13				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO1_13),
+//	GET_PIO1_20				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO1_20),
+//	SET_PIO1_20				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO1_20),
+//	GET_PIO1_21				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO1_21),
+//	SET_PIO1_21				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO1_21),
+//	GET_PIO1_23				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO1_23),
+//	SET_PIO1_23				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO1_23),
+//	GET_PIO1_24				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO1_24),
+//	SET_PIO1_24				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO1_24),
+//	GET_PIO2_0				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO2_0),
+//	SET_PIO2_0				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO2_0),
+//	GET_PIO2_1				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO2_1),
+//	SET_PIO2_1				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO2_1),
+//	GET_PIO2_2				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO2_2),
+//	SET_PIO2_2				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO2_2),
+//	GET_PIO2_5				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO2_5),
+//	SET_PIO2_5				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO2_5),
+//	GET_PIO2_7				= CMD_GET_OBJECT_VALUE(CMD_OBJECT_PIO2_7),
+//	SET_PIO2_7				= CMD_SET_OBJECT_VALUE(CMD_OBJECT_PIO2_7),
 	//
 } CMD_LIST;
 
@@ -506,6 +651,7 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			*return_string_ptr = command_return_string;
 			ret_value = true;
 			break;
+
 		case SET_RELAY_CONTROL:
 			if(param)
 			{
@@ -553,6 +699,159 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			}
 			break;
 
+		case SET_DIR_GPIO0:
+			Set_GPIO_Dirction_Command(0,param);
+			*return_string_ptr = message_ok;
+			ret_value = true;
+			break;
+		case SET_DIR_GPIO1:
+			Set_GPIO_Dirction_Command(1,param);
+			*return_string_ptr = message_ok;
+			ret_value = true;
+			break;
+		case SET_DIR_GPIO2:
+			Set_GPIO_Dirction_Command(2,param);
+			*return_string_ptr = message_ok;
+			ret_value = true;
+			break;
+		case GET_DIR_GPIO0:
+			strcpy(command_return_string,"gpio_dir_P0:");
+			itoa_10(Get_GPIO_Direction_Command(0), command_return_string+sizeof("gpio_dir_P0:")-1);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
+		case GET_DIR_GPIO1:
+			strcpy(command_return_string,"gpio_dir_P1:");
+			itoa_10(Get_GPIO_Direction_Command(1), command_return_string+sizeof("gpio_dir_P1:")-1);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
+		case GET_DIR_GPIO2:
+			strcpy(command_return_string,"gpio_dir_P2:");
+			itoa_10(Get_GPIO_Direction_Command(2), command_return_string+sizeof("gpio_dir_P2:")-1);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
+		case SET_PINMASK_GPIO0:
+			Set_GPIO_Mask_Command(0,param);
+			*return_string_ptr = message_ok;
+			ret_value = true;
+			break;
+		case SET_PINMASK_GPIO1:
+			Set_GPIO_Mask_Command(1,param);
+			*return_string_ptr = message_ok;
+			ret_value = true;
+			break;
+		case SET_PINMASK_GPIO2:
+			Set_GPIO_Mask_Command(2,param);
+			*return_string_ptr = message_ok;
+			ret_value = true;
+			break;
+		case GET_PINMASK_GPIO0:
+			strcpy(command_return_string,"gpio_mask_P0:");
+			itoa_10(Get_GPIO_Mask_Command(0), command_return_string+sizeof("gpio_mask_P0:")-1);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
+		case GET_PINMASK_GPIO1:
+			strcpy(command_return_string,"gpio_mask_P1:");
+			itoa_10(Get_GPIO_Mask_Command(1), command_return_string+sizeof("gpio_mask_P1:")-1);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
+		case GET_PINMASK_GPIO2:
+			strcpy(command_return_string,"gpio_mask_P2:");
+			itoa_10(Get_GPIO_Mask_Command(2), command_return_string+sizeof("gpio_mask_P2:")-1);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
+
+		case SET_PINMODE:
+			if(param<=1)
+			{
+				Set_GPIO_PinMode_Command(param);
+				*return_string_ptr = message_ok;
+			}
+			else
+			{
+				*return_string_ptr = error_out_of_range;
+			}
+			ret_value = true;
+			break;
+		case GET_PINMODE:
+			strcpy(command_return_string,"gpio_pin_mode:");
+			itoa_10(Get_PinMode_Command(), command_return_string+sizeof("gpio_pin_mode:")-1);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
+
+		case SET_OUTPUT_GPIO0:
+		case SET_OUTPUT_GPIO1:
+		case SET_OUTPUT_GPIO2:
+		case GET_IUPUT_GPIO0:
+		case GET_IUPUT_GPIO1:
+		case GET_IUPUT_GPIO2:
+		// Reserved for alternative GPIO usage
+//		case GET_PIO0_0:
+//		case SET_PIO0_0:
+//		case GET_PIO0_1:
+//		case SET_PIO0_1:
+//		case GET_PIO0_2:
+//		case SET_PIO0_2:
+//		case GET_PIO0_4:
+//		case SET_PIO0_4:
+//		case GET_PIO0_5:
+//		case SET_PIO0_5:
+//		case GET_PIO0_6:
+//		case SET_PIO0_6:
+//		case GET_PIO0_7:
+//		case SET_PIO0_7:
+//		case GET_PIO0_8:
+//		case SET_PIO0_8:
+//		case GET_PIO0_9:
+//		case SET_PIO0_9:
+//		case GET_PIO0_10:
+//		case SET_PIO0_10:
+//		case GET_PIO0_11:
+//		case SET_PIO0_11:
+//		case GET_PIO0_12:
+//		case SET_PIO0_12:
+//		case GET_PIO0_13:
+//		case SET_PIO0_13:
+//		case GET_PIO0_14:
+//		case SET_PIO0_14:
+//		case GET_PIO0_15:
+//		case SET_PIO0_15:
+//		case GET_PIO0_16:
+//		case SET_PIO0_16:
+//		case GET_PIO0_17:
+//		case SET_PIO0_17:
+//		case GET_PIO0_20:
+//		case SET_PIO0_20:
+//		case GET_PIO0_21:
+//		case SET_PIO0_21:
+//		case GET_PIO0_23:
+//		case SET_PIO0_23:
+//		case GET_PIO0_24:
+//		case SET_PIO0_24:
+//		case GET_PIO1_20:
+//		case SET_PIO1_20:
+//		case GET_PIO1_21:
+//		case SET_PIO1_21:
+//		case GET_PIO1_23:
+//		case SET_PIO1_23:
+//		case GET_PIO1_24:
+//		case SET_PIO1_24:
+//		case GET_PIO2_0:
+//		case SET_PIO2_0:
+//		case GET_PIO2_1:
+//		case SET_PIO2_1:
+//		case GET_PIO2_2:
+//		case SET_PIO2_2:
+//		case GET_PIO2_5:
+//		case SET_PIO2_5:
+//		case GET_PIO2_7:
+//		case SET_PIO2_7:
 		case GET_R2N:
 		case SET_R2N:
 			*return_string_ptr = error_developing;	// To be implemented

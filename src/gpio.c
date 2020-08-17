@@ -5,6 +5,7 @@
  *      Author: jeremy.hsiao
  */
 
+#include "chip.h"
 #include "board.h"
 #include "sw_timer.h"
 #include "gpio.h"
@@ -13,6 +14,42 @@
  * Private types/enumerations/variables
  ****************************************************************************/
 uint32_t LED_G_toggle_cnt, LED_R_toggle_cnt, LED_Y_toggle_cnt;
+
+// Direction Output is 1
+uint32_t GPIO_Pin_Mode = 0;
+uint32_t GPIO_dir[3] = { 0,0,0 };
+uint32_t GPIO_pin_mask[3] = {
+		// Available pin of GPIO_P0
+		((1UL<<4) | (1UL<<5) | (1UL<<11) | (1UL<<12) |
+		 (1UL<<13) | (1UL<<21) | (1UL<<22)),
+		// Available pin of GPIO_P1
+		((1UL<<13) | (1UL<<23) | (1UL<<24)),
+		// Available pin of GPIO_P2
+		0,
+};
+
+const uint32_t GPIO_pin_mask_by_mode[][3] = {
+	// HotSpring board mode
+	{
+		// Available pin of GPIO_P0
+		((1UL<<4) | (1UL<<5) | (1UL<<11) | (1UL<<12) |
+		 (1UL<<13) | (1UL<<21) | (1UL<<22)),
+		// Available pin of GPIO_P1
+		((1UL<<13) | (1UL<<23) | (1UL<<24)),
+		// Available pin of GPIO_P2
+		0
+	},
+	// All GPIO mode
+	{
+		// Available pin of GPIO_P0
+		((1UL<<0) | (1UL<<1) | (1UL<<2) | (1UL<<4) | (1UL<<5) | (1UL<<6) | (1UL<<7) | (1UL<<8) | (1UL<<9) | (1UL<<10) | (1UL<<11) | (1UL<<12) |
+		 (1UL<<13)| (1UL<<14) | (1UL<<15) | (1UL<<16) | (1UL<<17) | (1UL<<20) | (1UL<<21) | (1UL<<22) | (1UL<<23)),
+		// Available pin of GPIO_P1
+		((1UL<<13) | (1UL<<20) |(1UL<<21) | (1UL<<23) | (1UL<<24)),
+		// Available pin of GPIO_P2
+		((1UL<<0) | (1UL<<1) | (1UL<<2) | (1UL<<5) | (1UL<<7))
+	}
+};
 
 /*****************************************************************************
  * Public types/enumerations/variables
@@ -137,6 +174,96 @@ void Init_GPIO(void)
 //	NVIC_EnableIRQ(GINT0_IRQn);
 // Use SW debounce now
 
+}
+
+void Set_GPIO_Dirction_Command(uint8_t port, uint32_t dir_value)
+{
+	uint32_t out_pin, in_pin, mask;
+
+	mask = GPIO_pin_mask[port] & GPIO_pin_mask_by_mode[GPIO_Pin_Mode][port];
+	out_pin =  dir_value & mask;
+	Chip_GPIO_SetPortDIROutput(LPC_GPIO,port,out_pin);
+	in_pin  = ~dir_value & mask;
+	Chip_GPIO_SetPortDIRInput(LPC_GPIO,port,in_pin);
+}
+
+uint32_t Get_GPIO_Direction_Command(uint8_t port)
+{
+	uint32_t mask;
+
+	mask = GPIO_pin_mask[port] & GPIO_pin_mask_by_mode[GPIO_Pin_Mode][port];
+	return (Chip_GPIO_GetPortDIR(LPC_GPIO, port) & mask);
+}
+
+void Set_GPIO_Mask_Command(uint8_t port, uint32_t set_mask_value)
+{
+	uint32_t current_mask, pin_mask_by_mode;
+
+	pin_mask_by_mode = GPIO_pin_mask_by_mode[GPIO_Pin_Mode][port];
+	// (1) clear all mask-able pin so that it can be OR later
+	current_mask = GPIO_pin_mask[port] & ~pin_mask_by_mode;
+	// (2) set according to set_mask_value
+	current_mask |= set_mask_value & pin_mask_by_mode;
+	GPIO_pin_mask[port] = current_mask;
+}
+
+uint32_t Get_GPIO_Mask_Command(uint8_t port)
+{
+	uint32_t mask;
+
+	mask = GPIO_pin_mask[port] & GPIO_pin_mask_by_mode[GPIO_Pin_Mode][port];
+	return (mask);
+}
+
+void Set_GPIO_Output_Command(uint8_t port, uint32_t out_value)
+{
+	uint32_t mask;
+
+	mask = GPIO_pin_mask[port] & GPIO_pin_mask_by_mode[GPIO_Pin_Mode][port];
+	Chip_GPIO_SetPortMask(LPC_GPIO, port,mask);
+	Chip_GPIO_SetMaskedPortValue(LPC_GPIO,port,out_value);
+}
+
+uint32_t Get_Input_Command(uint8_t port)
+{
+	uint32_t mask;
+
+	mask = GPIO_pin_mask[port] & GPIO_pin_mask_by_mode[GPIO_Pin_Mode][port];
+	Chip_GPIO_SetPortMask(LPC_GPIO, port, mask);
+	return (Chip_GPIO_GetMaskedPortValue(LPC_GPIO, port));
+}
+
+void Set_GPIO_PinMode_Command(uint32_t pin_mode)
+{
+	if(pin_mode<=(sizeof(GPIO_pin_mask_by_mode)/sizeof(uint32_t)))
+	{
+		GPIO_Pin_Mode = pin_mode;
+		GPIO_pin_mask[0] &= GPIO_pin_mask_by_mode[GPIO_Pin_Mode][0];
+		GPIO_pin_mask[1] &= GPIO_pin_mask_by_mode[GPIO_Pin_Mode][1];
+		GPIO_pin_mask[2] &= GPIO_pin_mask_by_mode[GPIO_Pin_Mode][2];
+	}
+}
+
+uint32_t Get_PinMode_Command(void)
+{
+	return GPIO_Pin_Mode;
+}
+
+#define GPIO_INPUT_MUX		(IOCON_FUNC0 | IOCON_MODE_INACT | IOCON_DIGMODE_EN)
+#define GPIO_OUTPUT_MUX		(IOCON_FUNC0 | IOCON_MODE_PULLUP | IOCON_HYS_EN | IOCON_DIGMODE_EN)
+
+bool Get_GPIO_Pin_Command(uint8_t port, uint8_t pin)
+{
+	Chip_IOCON_PinMuxSet(LPC_IOCON, port, pin, GPIO_INPUT_MUX);
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO, port, pin);
+	return (Chip_GPIO_GetPinState(LPC_GPIO, port, pin));
+}
+
+void Set_GPIO_Pin_Command(uint8_t port, uint8_t pin, bool pin_value)
+{
+	Chip_IOCON_PinMuxSet(LPC_IOCON, port, pin, GPIO_OUTPUT_MUX);
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO, port, pin);
+	Chip_GPIO_SetPinState(LPC_GPIO, port, pin, pin_value);
 }
 
 bool Get_GPIO_Switch_Key(void)
