@@ -1,30 +1,39 @@
- x&Vht&GD
- set user_mode 1
- set pwm_percent 100
- set pwm_percent 50
- set pwm_percent 0
- set pwm_output 0
- set pwm_output 1
- get pwm_output
- set pwm_use_table 0
- set pwm_use_table 9
- set pwm_use_table 5
- set user_mode 0
- x&Vht&GD
- get fw_ver
- get echo
- set echo 0
- get fw_ver
- get echo
- set echo 1
- set user_mode 0
- get echo 0
- set user_mode 1
- x&Vht&GD
-   get fw_ver
- set user_mode 0
-
-
-
- 
+set gpio_pin_mode 0
+get gpio_pin_mode
+get gpio_pin_P0
+get gpio_pin_P1
+get gpio_pin_P2
+set gpio_dir_P0 0
+set gpio_dir_P1 0
+set gpio_dir_P2 0
+get gpio_dir_P0
+get gpio_dir_P1
+get gpio_dir_P2
+set gpio_dir_P0 33554431
+set gpio_dir_P1 33554431
+set gpio_dir_P2 33554431
+get gpio_dir_P0
+get gpio_dir_P1
+get gpio_dir_P2
+set gpio_pin_mode 1
+get gpio_pin_mode
+set gpio_pin_P0 6305888
+get gpio_pin_P0
+get gpio_pin_P1
+get gpio_pin_P2
+set gpio_dir_P0 33554431
+get gpio_dir_P0
+get gpio_dir_P1
+get gpio_dir_P2
+get gpio_in_P0
+get gpio_in_P1
+get gpio_in_P2
+set gpio_pin_mode 0
+get gpio_pin_mode
+get gpio_pin_P0
+get gpio_pin_P1
+get gpio_pin_P2
+get gpio_dir_P0
+get gpio_dir_P1
+get gpio_dir_P2
  
