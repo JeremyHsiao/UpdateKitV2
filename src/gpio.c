@@ -17,7 +17,6 @@ uint32_t LED_G_toggle_cnt, LED_R_toggle_cnt, LED_Y_toggle_cnt;
 
 // Direction Output is 1
 uint32_t GPIO_Pin_Mode = 0;
-uint32_t GPIO_dir[3] = { 0,0,0 };
 uint32_t GPIO_pin_mask[3] = {
 		// Available pin of GPIO_P0
 		((1UL<<4) | (1UL<<5) | (1UL<<11) | (1UL<<12) |
@@ -74,15 +73,71 @@ const uint32_t GPIO_pin_mask_by_mode[][3] = {
 //	//Board_LED_Set(0, true);
 //	GPIOGoup0_Int = true;
 //}
+static inline void GPIO_Command_Update_Mux_and_Direction(uint8_t port, uint32_t new_dir_value)
+{
+	const uint32_t mux_lut[]=
+	{
+		FUNC0_MUX_IN,
+		FUNC0_MUX_OUT,
+		FUNC1_MUX_IN,
+		FUNC1_MUX_OUT,
+		P0_4_5_MUX_IN,
+		P0_4_5_MUX_OUT,
+	};
+	uint8_t 	pin, mux_index;
+	uint32_t	mask_value, out_pin, in_pin;
+
+	mask_value = GPIO_pin_mask[port] & GPIO_pin_mask_by_mode[GPIO_Pin_Mode][port];
+	out_pin =  new_dir_value & mask_value;
+	Chip_GPIO_SetPortDIROutput(LPC_GPIO,port,out_pin);
+	in_pin  = ~new_dir_value & mask_value;
+	Chip_GPIO_SetPortDIRInput(LPC_GPIO,port,in_pin);
+
+	pin = 31;
+	do
+	{
+		if(mask_value&(1UL<<31)) // only enabled bit are set.
+		{
+			mux_index = 0;			// Default is FUNC0 for GPIO function
+			if(port==0)	// special mux_value port/pin
+			{
+				if((pin==4)||(pin==5))
+				{
+					mux_index = 2*2;	// P0_4 & P0_5
+				}
+				else if ((pin==0)||((pin>=10)&&(pin<=15)))
+				{
+					mux_index = 1*2;	// FUNC1 is GPIO function
+				}
+			}
+
+			if(new_dir_value&(1UL<<31))	// if output?
+			{
+				++mux_index;
+				Chip_IOCON_PinMuxSet(LPC_IOCON, port, pin, mux_lut[mux_index]);
+			}
+			else
+			{
+				Chip_IOCON_PinMuxSet(LPC_IOCON, port, pin, mux_lut[mux_index]);
+			}
+		}
+		mask_value<<=1;
+		new_dir_value<<=1;
+	}
+	while(pin-->0);
+}
 
 void Init_GPIO(void)
 {
-#if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
-
+#if defined(_REAL_UPDATEKIT_V2_BOARD_)
 	// Set PIO0_3
 	Chip_IOCON_PinMuxSet(LPC_IOCON, 0, 3, (IOCON_FUNC0 | IOCON_MODE_INACT | (1L<<7)));				// P0.0-3; 6-10; 17-21);
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, 0, 3);
 	Chip_GPIO_SetPinOutLow(LPC_GPIO, 0, 3);
+
+#endif // defined(_REAL_UPDATEKIT_V2_BOARD_)
+
+#if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
 
 	// This is for input button - original
 	Chip_IOCON_PinMuxSet(LPC_IOCON, SWITCH_KEY_GPIO_PORT, SWITCH_KEY_GPIO_PIN, SWITCH_KEY_PIN_MUX);
@@ -160,7 +215,7 @@ void Init_GPIO(void)
 #endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || (_HOT_SPRING_BOARD_V2_)
 
 //	GPIOGoup0_Int = false;
-
+#if defined (_HOT_SPRING_BOARD_V2_)
 	Chip_IOCON_PinMuxSet(LPC_IOCON, BLUE_KEY_GPIO_PORT, BLUE_KEY_GPIO_PIN, BLUE_KEY_PIN_MUX);
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, BLUE_KEY_GPIO_PORT, BLUE_KEY_GPIO_PIN);
 	Chip_IOCON_PinMuxSet(LPC_IOCON, YELLOW_KEY_GPIO_PORT, YELLOW_KEY_GPIO_PIN, YELLOW_KEY_PIN_MUX);
@@ -170,21 +225,20 @@ void Init_GPIO(void)
 	Chip_IOCON_PinMuxSet(LPC_IOCON, RED_KEY_GPIO_PORT, RED_KEY_GPIO_PIN, RED_KEY_PIN_MUX);
 	Chip_GPIO_SetPinDIRInput(LPC_GPIO, RED_KEY_GPIO_PORT, RED_KEY_GPIO_PIN);
 
+	GPIO_Command_Update_Mux_and_Direction(0,0);
+	GPIO_Command_Update_Mux_and_Direction(1,0);
+	GPIO_Command_Update_Mux_and_Direction(2,0);
+#endif // #if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
+
 	/* Enable Group GPIO interrupt 0 */
 //	NVIC_EnableIRQ(GINT0_IRQn);
 // Use SW debounce now
 
 }
 
-void Set_GPIO_Dirction_Command(uint8_t port, uint32_t dir_value)
+void Set_GPIO_Dirction_Command(uint8_t port, uint32_t new_dir_value)
 {
-	uint32_t out_pin, in_pin, mask;
-
-	mask = GPIO_pin_mask[port] & GPIO_pin_mask_by_mode[GPIO_Pin_Mode][port];
-	out_pin =  dir_value & mask;
-	Chip_GPIO_SetPortDIROutput(LPC_GPIO,port,out_pin);
-	in_pin  = ~dir_value & mask;
-	Chip_GPIO_SetPortDIRInput(LPC_GPIO,port,in_pin);
+	GPIO_Command_Update_Mux_and_Direction(port,new_dir_value);
 }
 
 uint32_t Get_GPIO_Direction_Command(uint8_t port)
@@ -220,7 +274,7 @@ void Set_GPIO_Output_Command(uint8_t port, uint32_t out_value)
 	uint32_t mask;
 
 	mask = GPIO_pin_mask[port] & GPIO_pin_mask_by_mode[GPIO_Pin_Mode][port];
-	Chip_GPIO_SetPortMask(LPC_GPIO, port,mask);
+	Chip_GPIO_SetPortMask(LPC_GPIO, ~port,mask);
 	Chip_GPIO_SetMaskedPortValue(LPC_GPIO,port,out_value);
 }
 
@@ -229,8 +283,7 @@ uint32_t Get_Input_Command(uint8_t port)
 	uint32_t mask;
 
 	mask = GPIO_pin_mask[port] & GPIO_pin_mask_by_mode[GPIO_Pin_Mode][port];
-	Chip_GPIO_SetPortMask(LPC_GPIO, port, mask);
-	return (Chip_GPIO_GetMaskedPortValue(LPC_GPIO, port));
+	return (Chip_GPIO_GetPortValue(LPC_GPIO, port)&mask);
 }
 
 void Set_GPIO_PinMode_Command(uint32_t pin_mode)

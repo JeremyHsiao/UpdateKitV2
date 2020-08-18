@@ -8,6 +8,17 @@
 #ifndef GPIO_H_
 #define GPIO_H_
 
+// Define mux for GPIO
+// FUNC0_IO - output
+#define FUNC0_MUX_OUT		(IOCON_FUNC0 | IOCON_MODE_INACT | IOCON_DIGMODE_EN )
+#define FUNC0_MUX_IN		(IOCON_FUNC0 | IOCON_MODE_PULLUP | IOCON_HYS_EN | IOCON_DIGMODE_EN)
+// FUNC1_IO mux for P0_0, P0_10, P0_11,P0_12,P0_13,P0_14,P0_15 only
+#define FUNC1_MUX_OUT		(IOCON_FUNC1 | IOCON_MODE_INACT | IOCON_DIGMODE_EN )
+#define FUNC1_MUX_IN		(IOCON_FUNC1 | IOCON_MODE_PULLUP | IOCON_HYS_EN | IOCON_DIGMODE_EN)
+// FUNC0_IO - output
+#define P0_4_5_MUX_OUT		(IOCON_FUNC0)
+#define P0_4_5_MUX_IN		(IOCON_FUNC0)
+
 #if defined(_REAL_UPDATEKIT_V2_BOARD_) || defined (_HOT_SPRING_BOARD_V2_)
 
 // PIO1_24 Button -- for voltage output selection branch
