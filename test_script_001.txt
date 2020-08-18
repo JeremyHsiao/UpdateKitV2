@@ -36,4 +36,29 @@ get gpio_pin_P2
 get gpio_dir_P0
 get gpio_dir_P1
 get gpio_dir_P2
- 
+
+set gpio_pin_mode 1
+get gpio_pin_mode
+set gpio_pin_P0 6307632
+get gpio_pin_P0
+set gpio_pin_P0 6302464
+get gpio_pin_P0
+set gpio_dir_P0 11008
+get gpio_dir_P0
+set gpio_dir_P0 13056
+get gpio_dir_P0
+
+set gpio_pin_P0 6144
+get gpio_pin_P0
+set gpio_dir_P0 4096
+get gpio_dir_P0
+set gpio_dir_P0 2048
+get gpio_dir_P0
+
+set gpio_out_P0 6144
+get gpio_in_P0
+set gpio_out_P0 0
+get gpio_in_P0
+
+
+
