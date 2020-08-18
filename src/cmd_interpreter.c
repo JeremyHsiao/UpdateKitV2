@@ -786,11 +786,38 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			break;
 
 		case SET_OUTPUT_GPIO0:
-		case SET_OUTPUT_GPIO1:
-		case SET_OUTPUT_GPIO2:
+			Set_GPIO_Output_Command(0,param);
+			*return_string_ptr = message_ok;
+			ret_value = true;
+			break;
 		case GET_IUPUT_GPIO0:
+			strcpy(command_return_string,"gpio0_input:");
+			itoa_10(Get_Input_Command(0), command_return_string+sizeof("gpio0_input:")-1);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
+		case SET_OUTPUT_GPIO1:
+			Set_GPIO_Output_Command(1,param);
+			*return_string_ptr = message_ok;
+			ret_value = true;
+			break;
 		case GET_IUPUT_GPIO1:
+			strcpy(command_return_string,"gpio1_input:");
+			itoa_10(Get_Input_Command(1), command_return_string+sizeof("gpio1_input:")-1);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
+		case SET_OUTPUT_GPIO2:
+			Set_GPIO_Output_Command(2,param);
+			*return_string_ptr = message_ok;
+			ret_value = true;
+			break;
 		case GET_IUPUT_GPIO2:
+			strcpy(command_return_string,"gpio2_input:");
+			itoa_10(Get_Input_Command(2), command_return_string+sizeof("gpio2_input:")-1);
+			*return_string_ptr = command_return_string;
+			ret_value = true;
+			break;
 		// Reserved for alternative GPIO usage
 //		case GET_PIO0_0:
 //		case SET_PIO0_0:
