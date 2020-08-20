@@ -54,6 +54,66 @@ static uint8_t g_rxBuff[MAX_USB_RX_BUFF_SIZE+1];
  * Private functions
  ****************************************************************************/
 
+void Process_USB_CDC(void)
+{
+#if defined (_HOT_SPRING_BOARD_V2_)
+			if (Check_USB_IsConfigured())
+			{
+				char 		*command_string_usb, *return_string_ptr_usb;
+				char 		input_command_copy[MAX_SERIAL_GETS_LEN+1];			// Extra one is for '\0'
+				uint8_t 	*cmd_ptr_usb, *remaining_string_usb;
+				CmdExecutionPacket 	cmd_exe_packet_usb;
+
+				rdCnt = vcom_bread(&g_rxBuff[0], 256);
+				if (rdCnt)
+				{
+					g_rxBuff[rdCnt] = '\0';		// Insert a null char at the end of input string
+					cmd_ptr_usb = remaining_string_usb = g_rxBuff;
+					do
+					{
+						command_string_usb = serial_gets(*cmd_ptr_usb);
+						cmd_ptr_usb++;
+						if ((command_string_usb!=(char*)NULL)&&(*command_string_usb!='\0'))
+						{
+							// echoing input command
+							if(CheckEchoEnableStatus())
+							{
+								vcom_write(remaining_string_usb, (uint32_t)(cmd_ptr_usb-remaining_string_usb));
+								CDC_OutputString_with_newline("");
+								remaining_string_usb = cmd_ptr_usb;
+							}
+
+							// Check if command+paramemter is valid
+							strcpy(input_command_copy,command_string_usb);
+							if(CommandInterpreter(command_string_usb,&cmd_exe_packet_usb))
+							{
+								return_string_ptr_usb = input_command_copy;		// this is for get/set nop command
+								// Execute if valid
+								if(CommandExecution(cmd_exe_packet_usb, &return_string_ptr_usb))
+								{
+									CDC_OutputString_with_newline(return_string_ptr_usb);	// returning message
+								}
+								else
+								{
+									CDC_OutputString_with_newline(return_string_ptr_usb);  // error message
+								}
+							}
+							else
+							{
+								CDC_OutputString_with_newline("ERROR: Input command is invalid!");  // error message
+							}
+						}
+					}
+					while(--rdCnt>0);
+					if(CheckEchoEnableStatus())
+					{
+						CDC_OutputString((char*)remaining_string_usb);
+					}
+				}
+			}
+#endif // defined (_HOT_SPRING_BOARD_V2_)
+}
+
 /*****************************************************************************
  * Public functions
  ****************************************************************************/
@@ -162,6 +222,13 @@ int main(void)
 		int 				temp_len;
 
 #if defined (_HOT_SPRING_BOARD_V2_)
+
+		while(Get_PinMode_Command()==Get_Max_PinMode())
+		{
+			// If command_mode is the largest pin_mode, processing only USB_CDC
+			Process_USB_CDC();
+		}
+
 		if (sequenceComplete)
 		{
 			sequenceComplete = false;
@@ -266,62 +333,8 @@ int main(void)
 				while(--temp>0);
 			}
 
-#if defined (_HOT_SPRING_BOARD_V2_)
-			if (Check_USB_IsConfigured())
-			{
-				char 		*command_string_usb, *return_string_ptr_usb;
-				char 		input_command_copy[MAX_SERIAL_GETS_LEN+1];			// Extra one is for '\0'
-				uint8_t 	*cmd_ptr_usb, *remaining_string_usb;
-				CmdExecutionPacket 	cmd_exe_packet_usb;
+			Process_USB_CDC();
 
-				rdCnt = vcom_bread(&g_rxBuff[0], 256);
-				if (rdCnt)
-				{
-					g_rxBuff[rdCnt] = '\0';		// Insert a null char at the end of input string
-					cmd_ptr_usb = remaining_string_usb = g_rxBuff;
-					do
-					{
-						command_string_usb = serial_gets(*cmd_ptr_usb);
-						cmd_ptr_usb++;
-						if ((command_string_usb!=(char*)NULL)&&(*command_string_usb!='\0'))
-						{
-							// echoing input command
-							if(CheckEchoEnableStatus())
-							{
-								vcom_write(remaining_string_usb, (uint32_t)(cmd_ptr_usb-remaining_string_usb));
-								CDC_OutputString_with_newline("");
-								remaining_string_usb = cmd_ptr_usb;
-							}
-
-							// Check if command+paramemter is valid
-							strcpy(input_command_copy,command_string_usb);
-							if(CommandInterpreter(command_string_usb,&cmd_exe_packet_usb))
-							{
-								return_string_ptr_usb = input_command_copy;		// this is for get/set nop command
-								// Execute if valid
-								if(CommandExecution(cmd_exe_packet_usb, &return_string_ptr_usb))
-								{
-									CDC_OutputString_with_newline(return_string_ptr_usb);	// returning message
-								}
-								else
-								{
-									CDC_OutputString_with_newline(return_string_ptr_usb);  // error message
-								}
-							}
-							else
-							{
-								CDC_OutputString_with_newline("ERROR: Input command is invalid!");  // error message
-							}
-						}
-					}
-					while(--rdCnt>0);
-					if(CheckEchoEnableStatus())
-					{
-						CDC_OutputString((char*)remaining_string_usb);
-					}
-				}
-			}
-#endif // defined (_HOT_SPRING_BOARD_V2_)
 		}
 
 		if((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk))		// Returns 1 if the SysTick timer counted to 0 since the last read of this register
