@@ -39,7 +39,7 @@ const uint32_t GPIO_pin_mask_by_mode[][_PORT_NO_] = {
 		// Available pin of GPIO_P2
 		0
 	},
-	// All GPIO mode
+	// All GPIO mode -- HotSpring board is still operating, which means I/O is still in use
 	{
 		// Available pin of GPIO_P0
 		((1UL<<0) | (1UL<<1) | (1UL<<2) | (1UL<<4) | (1UL<<5) | (1UL<<6) | (1UL<<7) | (1UL<<8) | (1UL<<9) | (1UL<<10) | (1UL<<11) | (1UL<<12) |
@@ -49,7 +49,7 @@ const uint32_t GPIO_pin_mask_by_mode[][_PORT_NO_] = {
 		// Available pin of GPIO_P2
 		((1UL<<0) | (1UL<<1) | (1UL<<2) | (1UL<<5) | (1UL<<7))
 	},
-	// All GPIO mode
+	// All GPIO mode -- all I/O is free to use
 	{
 		// Available pin of GPIO_P0
 		((1UL<<0) | (1UL<<1) | (1UL<<2) | (1UL<<4) | (1UL<<5) | (1UL<<6) | (1UL<<7) | (1UL<<8) | (1UL<<9) | (1UL<<10) | (1UL<<11) | (1UL<<12) |
@@ -315,7 +315,7 @@ uint32_t Get_PinMode_Command(void)
 
 uint8_t Get_Max_PinMode(void)
 {
-	return (sizeof(GPIO_pin_mask_by_mode)/(sizeof(uint32_t)*_PORT_NO_));
+	return (sizeof(GPIO_pin_mask_by_mode)/((sizeof(uint32_t)*_PORT_NO_)-1));
 }
 
 #define GPIO_INPUT_MUX		(IOCON_FUNC0 | IOCON_MODE_INACT | IOCON_DIGMODE_EN)
