@@ -15,9 +15,10 @@
  ****************************************************************************/
 uint32_t LED_G_toggle_cnt, LED_R_toggle_cnt, LED_Y_toggle_cnt;
 
+#define _PORT_NO_	(3)
 // Direction Output is 1
 uint32_t GPIO_Pin_Mode = 0;
-uint32_t GPIO_pin_mask[3] = {
+uint32_t GPIO_pin_mask[_PORT_NO_] = {
 		// Available pin of GPIO_P0
 		((1UL<<4) | (1UL<<5) | (1UL<<11) | (1UL<<12) |
 		 (1UL<<13) | (1UL<<21) | (1UL<<22)),
@@ -27,7 +28,7 @@ uint32_t GPIO_pin_mask[3] = {
 		0,
 };
 
-const uint32_t GPIO_pin_mask_by_mode[][3] = {
+const uint32_t GPIO_pin_mask_by_mode[][_PORT_NO_] = {
 	// HotSpring board mode
 	{
 		// Available pin of GPIO_P0
@@ -314,7 +315,7 @@ uint32_t Get_PinMode_Command(void)
 
 uint8_t Get_Max_PinMode(void)
 {
-	return (sizeof(GPIO_pin_mask_by_mode)/sizeof(uint32_t));
+	return (sizeof(GPIO_pin_mask_by_mode)/(sizeof(uint32_t)*_PORT_NO_));
 }
 
 #define GPIO_INPUT_MUX		(IOCON_FUNC0 | IOCON_MODE_INACT | IOCON_DIGMODE_EN)
