@@ -60,7 +60,13 @@ get gpio_in_P0
 set gpio_out_P0 0
 get gpio_in_P0
 
+set gpio_pin_mode 3
+get gpio_pin_mode
+
 set gpio_pin_mode 2
+get gpio_pin_mode
+
+set gpio_pin_mode 1
 get gpio_pin_mode
 
 set gpio_pin_mode 0
