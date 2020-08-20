@@ -767,7 +767,7 @@ bool CommandExecution(CmdExecutionPacket cmd_packet, char **return_string_ptr)
 			break;
 
 		case SET_PINMODE:
-			if(param<=1)
+			if(param<=Get_Max_PinMode())
 			{
 				Set_GPIO_PinMode_Command(param);
 				*return_string_ptr = message_ok;

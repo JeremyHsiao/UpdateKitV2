@@ -150,6 +150,7 @@ extern void Set_GPIO_PinMode_Command(uint32_t pin_mode);
 extern uint32_t Get_PinMode_Command(void);
 extern void Set_GPIO_Output_Command(uint8_t port, uint32_t out_value);
 extern uint32_t Get_Input_Command(uint8_t port);
+extern uint8_t Get_Max_PinMode(void);
 
 extern bool Get_GPIO_Pin_Command(uint8_t port, uint8_t pin);
 extern void Set_GPIO_Pin_Command(uint8_t port, uint8_t pin, bool pin_value);

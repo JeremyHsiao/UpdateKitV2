@@ -47,6 +47,16 @@ const uint32_t GPIO_pin_mask_by_mode[][3] = {
 		((1UL<<13) | (1UL<<20) |(1UL<<21) | (1UL<<23) | (1UL<<24)),
 		// Available pin of GPIO_P2
 		((1UL<<0) | (1UL<<1) | (1UL<<2) | (1UL<<5) | (1UL<<7))
+	},
+	// All GPIO mode
+	{
+		// Available pin of GPIO_P0
+		((1UL<<0) | (1UL<<1) | (1UL<<2) | (1UL<<4) | (1UL<<5) | (1UL<<6) | (1UL<<7) | (1UL<<8) | (1UL<<9) | (1UL<<10) | (1UL<<11) | (1UL<<12) |
+		 (1UL<<13)| (1UL<<14) | (1UL<<15) | (1UL<<16) | (1UL<<17) | (1UL<<20) | (1UL<<21) | (1UL<<22) | (1UL<<23)),
+		// Available pin of GPIO_P1
+		((1UL<<13) | (1UL<<20) |(1UL<<21) | (1UL<<23) | (1UL<<24)),
+		// Available pin of GPIO_P2
+		((1UL<<0) | (1UL<<1) | (1UL<<2) | (1UL<<5) | (1UL<<7))
 	}
 };
 
@@ -288,7 +298,7 @@ uint32_t Get_Input_Command(uint8_t port)
 
 void Set_GPIO_PinMode_Command(uint32_t pin_mode)
 {
-	if(pin_mode<=(sizeof(GPIO_pin_mask_by_mode)/sizeof(uint32_t)))
+	if(pin_mode<=Get_Max_PinMode())
 	{
 		GPIO_Pin_Mode = pin_mode;
 		GPIO_pin_mask[0] &= GPIO_pin_mask_by_mode[GPIO_Pin_Mode][0];
@@ -300,6 +310,11 @@ void Set_GPIO_PinMode_Command(uint32_t pin_mode)
 uint32_t Get_PinMode_Command(void)
 {
 	return GPIO_Pin_Mode;
+}
+
+uint8_t Get_Max_PinMode(void)
+{
+	return (sizeof(GPIO_pin_mask_by_mode)/sizeof(uint32_t));
 }
 
 #define GPIO_INPUT_MUX		(IOCON_FUNC0 | IOCON_MODE_INACT | IOCON_DIGMODE_EN)
