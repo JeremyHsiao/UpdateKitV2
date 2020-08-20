@@ -315,7 +315,7 @@ uint32_t Get_PinMode_Command(void)
 
 uint8_t Get_Max_PinMode(void)
 {
-	return (sizeof(GPIO_pin_mask_by_mode)/((sizeof(uint32_t)*_PORT_NO_)-1));
+	return ( ( sizeof(GPIO_pin_mask_by_mode) / (sizeof(uint32_t)*_PORT_NO_) ) - 1 );
 }
 
 #define GPIO_INPUT_MUX		(IOCON_FUNC0 | IOCON_MODE_INACT | IOCON_DIGMODE_EN)
