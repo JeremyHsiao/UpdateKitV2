@@ -515,7 +515,19 @@ int Show_ADC_Voltage_3_Digits(uint32_t value, char* result)
 {
     int return_value;
 
-    if (value<(10000))
+    if (value<(1000))
+    {
+    	// if input voltage <1 V
+    	result[0] = '0';
+    	result[1] = '.';
+    	itoa_10_fixed_position(value, result+2, 3); // 3 digit are placed at position 2/3/4 and only pos 2/3 will be shown
+    	if(result[3]==' ') {result[3]=result[2]='0';}
+    	else if(result[2]==' ') {result[2]='0';}
+    	result[4] = 'V';
+    	result[5] = '\0';
+    	return_value = 5;
+    }
+    else if (value<(10000))
     {
     	// rounding and remove latest digit (so only 3 digit left)
     	value = (value + (10/2)) / (10);
@@ -538,10 +550,24 @@ int Show_ADC_Voltage_3_Digits(uint32_t value, char* result)
     	result[2] = '.';
     	return_value = 5;
     }
+    else if (value<(10000000))
+    {
+    	// 100 - 9999
+    	value = (value + (1000/2)) / (1000);
+    	itoa_10_fixed_position(value, result, 4);
+    	result[5] = '\0';
+    	result[4] = 'V';
+    	return_value = 5;
+    }
     else
     {
-    	result[0] = '\0';
-		return_value = 0;
+    	result[0] = '9';
+    	result[1] = '9';
+    	result[2] = '9';
+    	result[3] = '9';
+    	result[4] = 'V';
+    	result[5] = '\0';
+    	return_value = 5;
     }
 
     return return_value;
