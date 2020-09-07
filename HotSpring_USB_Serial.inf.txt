@@ -18,15 +18,15 @@ DefaultDestDir=        12; Default install directory is \drivers or \IOSubSys
 
 [DeviceList.NT]
 %Description%=    DriverInstall,USB\VID_03EB&PID_6124
-%Description%=    LPC11U6xUSB, USB\VID_1FC9&PID_0003	
+%Description%=    LPC11U6xUSB, USB\VID_1FC9&PID_0083&MI_00	
 
 [DeviceList.NTia64]
 %Description%=    DriverInstall,USB\VID_03EB&PID_6124
-%Description%=    LPC11U6xUSB, USB\VID_1FC9&PID_0003
+%Description%=    LPC11U6xUSB, USB\VID_1FC9&PID_0083&MI_00
 
 [DeviceList.NTamd64]
 %Description%=    DriverInstall,USB\VID_03EB&PID_6124
-%Description%=    LPC11U6xUSB, USB\VID_1FC9&PID_0003
+%Description%=    LPC11U6xUSB, USB\VID_1FC9&PID_0083&MI_00
 
 
 ;---------------------------------------------------------------------------------------
